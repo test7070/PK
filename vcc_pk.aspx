@@ -115,7 +115,7 @@
 					//---------------------------------------
 					if($('#chkAprice_'+j).prop('checked')){
 						t_weights = q_float('txtWeight_' + j);
-						t_mounts = q_float('txtMount_' + j);
+						t_mounts = q_float('txtTranmoney_' + j);
 						t_moneys = q_float('txtTotal_' + j);
 						
 						t_prices = round(q_div(t_moneys, t_mounts),3);
@@ -126,7 +126,7 @@
 					}else{
 						t_weights = q_float('txtWeight_' + j);
 						t_prices = q_float('txtPrice_' + j);
-						t_mounts = q_float('txtMount_' + j);
+						t_mounts = q_float('txtTranmoney_' + j);
 						
 						t_moneys = q_mul(t_prices, t_mounts);
 						if (t_float == 0) {
@@ -1156,10 +1156,6 @@
 					if (!$('#btnMinus_' + j).hasClass('isAssign')) {
 						$('#chkAprice_'+j).click(function(e){refreshBbs();});
 						$('#txtStyle_' + j).blur(function() {
-							$('input[id*="txtProduct_"]').each(function() {
-								thisId = $(this).attr('id').split('_')[$(this).attr('id').split('_').length - 1];
-								$(this).attr('OldValue', $('#txtProductno_' + thisId).val());
-							});
 							var n = $(this).attr('id').split('_')[$(this).attr('id').split('_').length - 1];
 							//ProductAddStyle(n);
 							sum();
