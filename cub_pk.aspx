@@ -680,7 +680,7 @@
 						<td><span> </span><a id="lblTypea" class="lbl"> </a></td>
 						<td><select id="cmbTypea" class="txt c1"></select></td>
 					</tr>
-					<tr>
+					<tr style="display:none;">
 						<td><span> </span><a id="lblBdate" class="lbl" ></a></td>
 						<td colspan="2">
 							<input id="txtBdate" type="text" style="width:45%;"/>
