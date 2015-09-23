@@ -537,7 +537,7 @@ z_ucc_pk01:--z_ucc_pk01
 	left join view_orde c on b.accy=c.accy and b.noa=c.noa
 	where c.noa is not null
 	
-	if CHARINDEX(',03,',','+@t_option+',')>0
+	if CHARINDEX(',03,',','+@t_option+',')>0 and (len(@t_itype)=0 or @t_itype='1')
 	begin
 		--採購
 		insert into #z_ucc_pk01(gno,uno,datea,tablea,[action],accy,noa,noq
