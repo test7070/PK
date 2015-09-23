@@ -232,13 +232,13 @@ z_umm_pk06:--z_umm_pk06  客戶請款單(明細) A5橫印  日期   ref.z_umm_pk
 	,a.tdate dd
 	,a.ttype tt
 	,a.unit uu
-	,case when isnull(a.tranmoney,0)!=0 then dbo.getComma(a.tranmoney,-1) else '' end
-		+case when isnull(a.tranmoney,0)!=0 then a.item else '' end a1
+	,case when isnull(a.mount,0)!=0 then dbo.getComma(a.mount,-1) else '' end
+		+case when isnull(a.mount,0)!=0 then a.item else '' end a1
 	--計價單位 PC 都改為 KG
 	--unit=KG OR M  就顯示重量, 不然就顯示數量 
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'
-		+case when isnull(a.tranmoney2,0)!=0 then dbo.getComma(a.tranmoney2,-1) else '' end
-		+case when isnull(a.tranmoney2,0)!=0 then a.unit else '' end
+		+case when isnull(a.tranmoney,0)!=0 then dbo.getComma(a.tranmoney,-1) else '' end
+		+case when isnull(a.tranmoney,0)!=0 then a.unit else '' end
 		+'</a>'a2
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+case when len(@t_isweight)=0 then '' else '重量' end +'</a>'ww
 	--,case when a.[weight]=0 or len(@t_isweight)=0 or a.unit!='KG'  then '' else cast(a.[weight] as nvarchar(50))+isnull(a.unit,'') end a2
@@ -351,7 +351,7 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 	declare @linecount int --每頁行數
 	declare @endcount int --總計行數
 	set @linecount = 12
-	set @endcount = 7 
+	set @endcount = 4 + case when len(@t_istotal)>0 then 3 else 0 end 
 	declare @nn int
 	declare @mm int
 	
@@ -395,12 +395,15 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		select '6',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2,@t_memo2
 		insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,ttotal2,memo)
 		select '7',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2,@t_memo3
-		insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,ttotal2,memo)
-		select '8',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2,@t_memo4
-		insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,ttotal2,memo)
-		select '9',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2,@t_memo5
-		insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,ttotal2,memo)
-		select '10',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2,''
+		if len(@t_istotal)>0
+		begin
+			insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,ttotal2,memo)
+			select '8',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2,@t_memo4
+			insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,ttotal2,memo)
+			select '9',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2,@t_memo5
+			insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,ttotal2,memo)
+			select '10',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2,''
+		end
 		--空白行	
 		select @nn = count(1) from @result where custno=@custno
 		while @nn%@linecount !=0
@@ -686,13 +689,13 @@ z_umm_pk04:--z_umm_pk04  客戶請款單(明細)  日期
 	,a.tdate dd
 	,a.ttype tt
 	,a.unit uu
-	,case when isnull(a.tranmoney,0)!=0 then dbo.getComma(a.tranmoney,-1) else '' end
-		+case when isnull(a.tranmoney,0)!=0 then a.item else '' end a1
+	,case when isnull(a.mount,0)!=0 then dbo.getComma(a.mount,-1) else '' end
+		+case when isnull(a.mount,0)!=0 then a.item else '' end a1
 	--計價單位 PC 都改為 KG
 	--unit=KG OR M  就顯示重量, 不然就顯示數量 
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'
-		+case when isnull(a.tranmoney2,0)!=0 then dbo.getComma(a.tranmoney2,-1) else '' end
-		+case when isnull(a.tranmoney2,0)!=0 then a.unit else '' end
+		+case when isnull(a.tranmoney,0)!=0 then dbo.getComma(a.tranmoney,-1) else '' end
+		+case when isnull(a.tranmoney,0)!=0 then a.unit else '' end
 		+'</a>'a2
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+case when len(@t_isweight)=0 then '' else '重量' end +'</a>'ww
 	--,case when a.[weight]=0 or len(@t_isweight)=0 or a.unit!='KG'  then '' else cast(a.[weight] as nvarchar(50))+isnull(a.unit,'') end a2
