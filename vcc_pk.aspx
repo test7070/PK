@@ -2038,7 +2038,7 @@
 					<td align="center" style="width:20px;">自訂<br>金額</td>
 					<td align="center" style="width:100px;display:none;"><a id='lblGweight_st'></a></td>
 					<td align="center" style="width:60px;display:none;">寄Y<BR>代Z</td>
-					<td align="center" style="width:80px;"><a id='lblStore2_st'> </a></td>
+					<td align="center" style="width:80px;display:none;"><a id='lblStore2_st'> </a></td>
 					<td align="center" style="width:180px;"><a id='lblMemos_st'></a></td>
 					<td align="center" style="width:230px;"><a id="lblUno_st" > </a></td>
 				</tr>
@@ -2088,7 +2088,7 @@
 					<td><input id="chkAprice.*" type="checkbox"/></td>
 					<td style="display:none;"><input id="txtGweight.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td style="display:none;"><input class="txt" id="txtUsecoil.*" type="text" style="text-align:center;width:95%;"/></td>
-					<td>
+					<td style="display:none;">
 						<input class="btn" id="btnStoreno2.*" type="button" value='.' style=" font-weight: bold;width:1%;float:left;display:none;" />
 						<input id="txtStoreno2.*" type="text" style="width:95%;" />
 						<input id="txtStore2.*" type="text" style='width: 95%;'/>

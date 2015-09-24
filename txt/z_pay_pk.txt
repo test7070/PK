@@ -33,7 +33,7 @@ z_pay_pk03:--z_pay_pk03	廠商對帳單(明細)  月份
 	)
 	insert into @tmp(tggno,typea,ctype,datea,noa,[money],tax,total)
 	select a.tggno,a.typea
-		,case when ISNULL(a.typea,'')='1' then '出' else '退' end
+		,case when ISNULL(a.typea,'')='1' then '進' else '退' end
 		,a.datea,a.noa,a.[money],a.tax,a.total
 	from view_rc2 a
 	where a.tggno between @t_btggno and @t_etggno
@@ -160,8 +160,11 @@ z_pay_pk03:--z_pay_pk03	廠商對帳單(明細)  月份
 	deallocate cursor_table
 ---------------------------------------------------------------------------------------------------------------
 	update @result set [money]=-[money],[tax]=-[tax],[total]=-[total] where ctype='付' or ctype='退'
+	declare @t_acomp nvarchar(max) = ''
+	select @t_acomp=acomp from acomp where noa=@t_cno
 	
 	select gno,nn
+	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+@t_acomp +'</a>' aacomp
 	,(ROW_NUMBER()over(partition by a.tggno order by cast(a.gno as int))-1)/@linecount+1 pp
 	,a.totpage qq
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.tggno+'</a>' tggno
