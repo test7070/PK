@@ -78,6 +78,10 @@
 						type : '8', //[15] 12
 						name : 'xisweight',
 						value : "1@顯示重量".split(',')
+					}, {
+						type : '8', //[16] 13
+						name : 'xistotal',
+						value : "1@顯示應收總計".split(',')
 					}]
 				});
 				q_popAssign();
