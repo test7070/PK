@@ -23,7 +23,7 @@
 			q_tables = 's';
 			var q_name = "vcc";
 			var q_readonly = ['txtVccatax', 'txtComp', 'txtAccno', 'txtAcomp', 'txtSales', 'txtWorker', 'txtWorker2', 'txtMoney', 'txtWeight', 'txtTotal', 'txtTax', 'txtTotalus'];
-			var q_readonlys = ['txtTotal', 'txtOrdeno', 'txtNo2', 'txtTheory','txtUno'];
+			var q_readonlys = ['txtTotal', 'txtOrdeno', 'txtNo2', 'txtTheory'];
 			var bbmNum = [
 				['txtPrice', 15, 3, 1], ['txtVccatax', 10, 0, 1], ['txtMoney', 10, 0, 1],
 				['txtTranmoney', 10, 0, 1], ['txtTax', 10, 0, 1], ['txtTotal', 10, 0, 1],
@@ -2022,7 +2022,7 @@
 					</td>
 					<td align="center" style="width:20px;"></td>
 					<td align="center" style="width:50px;"><a>序</a></td>
-					
+					<td align="center" style="width:230px;"><a id="lblUno_st" > </a></td>
 					<td align="center" style="width:120px;"><a>品號<BR>品名</a></td>
 					<td align="center" style="width:30px;"><a id='lblStyle_st'> </a></td>
 					<td align="center" style="width:80px;"><a>等級</a></td>
@@ -2037,10 +2037,10 @@
 					<td align="center" style="width:80px;">合計<br>理論重</td>
 					<td align="center" style="width:20px;">自訂<br>金額</td>
 					<td align="center" style="width:100px;display:none;"><a id='lblGweight_st'></a></td>
-					<td align="center" style="width:60px;display:none;">寄Y<BR>代Z</td>
-					<td align="center" style="width:80px;display:none;"><a id='lblStore2_st'> </a></td>
+					<td align="center" style="width:60px;">寄Y<BR>代Z</td>
+					<td align="center" style="width:80px;"><a id='lblStore2_st'> </a></td>
 					<td align="center" style="width:180px;"><a id='lblMemos_st'></a></td>
-					<td align="center" style="width:230px;"><a id="lblUno_st" > </a></td>
+					
 				</tr>
 				<tr style='background:#cad3ff;'>
 					<td align="center">
@@ -2048,7 +2048,10 @@
 					</td>
 					<td><a id="lblNo.*" style="font-weight: bold;text-align: center;display: block;"> </a></td>
 					<td><input id="txtNoq.*" type="text" style="width:95%;" /></td>
-					
+					<td>
+						<input id="txtUno.*" type="text" style="width:95%;"/>
+						<input class="btn" id="btnUno.*" type="button" style="display:none;"/>
+					</td>
 					<td>
 						<input id="txtProductno.*" type="text" style="width:95%;" />
 						<input type="text" id="txtProduct.*" style="width:95%;" />
@@ -2087,8 +2090,8 @@
 					</td>
 					<td><input id="chkAprice.*" type="checkbox"/></td>
 					<td style="display:none;"><input id="txtGweight.*" type="text" class="txt num" style="width:95%;"/></td>
-					<td style="display:none;"><input class="txt" id="txtUsecoil.*" type="text" style="text-align:center;width:95%;"/></td>
-					<td style="display:none;">
+					<td style=""><input class="txt" id="txtUsecoil.*" type="text" style="text-align:center;width:95%;"/></td>
+					<td style="">
 						<input class="btn" id="btnStoreno2.*" type="button" value='.' style=" font-weight: bold;width:1%;float:left;display:none;" />
 						<input id="txtStoreno2.*" type="text" style="width:95%;" />
 						<input id="txtStore2.*" type="text" style='width: 95%;'/>
@@ -2099,10 +2102,7 @@
 						<input id="txtNo2.*" type="text" style="width:20%;" />
 						<input id="recno.*" type="hidden" />
 					</td>
-					<td>
-						<input id="txtUno.*" type="text" style="width:95%;"/>
-						<input class="btn" id="btnUno.*" type="button" style="display:none;"/>
-					</td>
+					
 				</tr>
 			</table>
 		</div>
