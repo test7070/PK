@@ -138,13 +138,13 @@ z_ucc_pk02:--z_ucc_pk02
 	while(@@FETCH_STATUS <> -1)
 	begin
 		set @cmd =
-		" select '製管',1,case when len(isnull(a.datea,''))>0 then a.datea else b.datea end"+
-		" ,@tableau,a.noa,a.noq,a.uno,a.storeno,a.weight"+
-		" from "+@tableau+" a"+
+		" select '派令',1,case when len(isnull(a.datea,''))>0 then a.datea else b.datea end"+
+		" ,@tableau,a.noa,a.noq,a.wno,a.storeno,a.wweight"+
+		" from "+@tableat+" a"+
 		" left join "+@tablea+" b on a.noa=b.noa"+
 		" where b.noa is not null"+
-		" and len(isnull(a.uno,''))>0"+
-		" and (upper(left(a.uno,1))='X' or upper(left(a.uno,1))='Y' or upper(left(a.uno,1))='Z')"+
+		" and len(isnull(a.wno,''))>0"+
+		--" and (upper(left(a.uno,1))='X' or upper(left(a.uno,1))='Y' or upper(left(a.uno,1))='Z')"+
 		" and (case when len(isnull(a.datea,''))>0 then a.datea else b.datea end)<=@t_edate"+
 		" and isnull(a.storeno,'') between @t_bstoreno and @t_estoreno"
 		insert into @tmp(typea,n,datea,tablea,noa,noq,uno,storeno,[weight])
