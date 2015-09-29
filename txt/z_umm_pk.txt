@@ -403,6 +403,10 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		--and a.datea between @t_bdate and @t_edate
 		and a.mon < @t_bmon 
 		
+		select @tunpay = @tunpay + SUM(ISNULL(a.paysale,0))
+		from umm a
+		where a.custno = @custno
+		and a.datea between @t_bdate and @t_edate
 		
 		set @ttotal2 = isnull(@ttotal,0) - isnull(@tumm,0) + isnull(@tunpay,0)
 			
