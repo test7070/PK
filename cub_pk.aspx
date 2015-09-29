@@ -812,7 +812,8 @@
 					<td style="width:120px; text-align: center;">入庫重</td>
 					<td style="width:120px; text-align: center;">餘料編號</td>
 					<td style="width:120px; text-align: center;">餘料客戶</td>
-					<td style="width:120px; text-align: center;">廢料</td>
+					<td style="width:120px; text-align: center;">廢料批號</td>
+					<td style="width:80px; text-align: center;">廢料重</td>
 					<td style="width:120px; text-align: center;">倉庫</td>
 					<td style="width:120px; text-align: center;">儲位</td>
 					<td style="width:120px; text-align: center;">餘料備註</td>
@@ -849,7 +850,9 @@
 					<td><input id="txtWeight..*" type="text" class="txt c1 num"/></td>
 					<td><input id="txtBno..*" type="text" class="txt c1"/></td>
 					<td><input id="txtCustno..*" type="text" class="txt c1"/></td>
-					<td><input id="txtXbutt..*" type="text" class="txt c1"/></td>
+					<!--<td><input id="txtXbutt..*" type="text" class="txt c1"/></td>-->
+					<td><input id="txtWno..*" type="text" class="txt c1"/></td>
+					<td><input id="txtWweight..*" type="text" class="txt c1 num"/></td>		
 					<td><input id="txtStoreno..*" type="text" class="txt c1"/></td>
 					<td><input id="txtPlace..*" type="text" class="txt c1"/></td>
 					<td><input id="txtMemo..*" type="text" class="txt c1"/></td>
