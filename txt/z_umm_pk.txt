@@ -316,16 +316,19 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 	
 	--全抓
 	--不確定還會不會有問題 2015/09/25
-	insert into @tmp(custno,typea,ctype,datea,noa,[money],tax,total)
-	select a.custno
-		,'','收',a.datea,a.noa,0,0,SUM(ISNULL(a.total,0))
-	from umm a
-	where a.custno between @t_bcustno and @t_ecustno
-	and a.datea between @t_bdate and @t_edate
-	--and ISNULL(a.total,0)!=0
-	group by a.custno,a.datea,a.noa
+	if len(@t_istotal)>0
+	begin
+		insert into @tmp(custno,typea,ctype,datea,noa,[money],tax,total)
+		select a.custno
+			,'','收',a.datea,a.noa,0,0,SUM(ISNULL(a.total,0))
+		from umm a
+		where a.custno between @t_bcustno and @t_ecustno
+		and a.datea between @t_bdate and @t_edate
+		--and ISNULL(a.total,0)!=0
+		group by a.custno,a.datea,a.noa
+	end
 	
-	delete @tmp where [money]=0 and tax=0 and total=0
+	--delete @tmp where [money]=0 and tax=0 and total=0
 	--------------------------------------------------------------------------------------------------
 	declare @result table(
 		sel int identity(1,1),
