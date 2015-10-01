@@ -559,7 +559,7 @@
 							(trim($('#txtPaytype').val()) == '' ? $('#txtPaytype').val(as[0].paytype) : '');
 							$('#cmbTrantype').val(as[0].trantype);
 							(trim($('#txtFloata').val()) == '' ? $('#txtFloata').val(as[0].floata) : '');
-							$('#cmbCoin').val(as[0].coin);
+							$('#cmbPart2').val(as[0].coin);
 							
 							//$('#txtTel').val(as[0].fax.length>0?as[0].fax:as[0].tel);
 						}
@@ -585,9 +585,9 @@
 						}
 						if(z_coin.length==0) z_coin=' ';
 						
-						q_cmbParse("cmbCoin", z_coin);
+						q_cmbParse("cmbPart2", z_coin);
 						if(abbm[q_recno])
-							$('#cmbCoin').val(abbm[q_recno].coin);
+							$('#cmbPart2').val(abbm[q_recno].coin);
 						
 						break;
 					case 'flors':
@@ -886,7 +886,7 @@
 			}
 			
 			function coin_chg() {
-				var t_where = "where=^^ ('" + $('#txtDatea').val() + "' between bdate and edate) and coin='"+$('#cmbCoin').find("option:selected").text()+"' ^^";
+				var t_where = "where=^^ ('" + $('#txtDatea').val() + "' between bdate and edate) and coin='"+$('#cmbPart2').find("option:selected").text()+"' ^^";
 				q_gt('flors', t_where, 0, 0, 0, "");
 			}
 
@@ -1965,7 +1965,7 @@
 						<td><input id="txtFloata" type="text" class="txt num c1" /></td>
 						<td>
 							<span style="float:left;display:block;width:10px;"></span>
-							<select id="cmbCoin" style="float:left;width:80px;" onchange='coin_chg()'></select>
+							<select id="cmbPart2" style="float:left;width:80px;" onchange='coin_chg()'></select>
 						</td>
 						<td></td>
 						<td colspan="2">
