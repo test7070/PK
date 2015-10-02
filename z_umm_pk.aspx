@@ -67,7 +67,10 @@
 						type : '8', //[15] 12
 						name : 'xistotal',
 						value : "1@顯示應收總計".split(',')
-					}]
+					}, {
+                        type : '1', //[16][17]  13
+                        name : 'xummdate'
+                    }]
                 });
                 q_popAssign();
                 q_langShow();
@@ -76,6 +79,10 @@
                 $('#txtXdate1').datepicker();
                 $('#txtXdate2').mask('999/99/99');
                 $('#txtXdate2').datepicker();
+                $('#txtXummdate1').mask('999/99/99');
+                $('#txtXummdate1').datepicker();
+                $('#txtXummdate2').mask('999/99/99');
+                $('#txtXummdate2').datepicker();
                 
                 $('#txtXmon1').mask('999/99');
                 $('#txtXmon2').mask('999/99');
