@@ -720,7 +720,7 @@ z_umm_pk04:--z_umm_pk04  客戶請款單(明細)  日期
 	--,case when a.[weight]=0 or len(@t_isweight)=0 or a.unit!='KG'  then '' else cast(a.[weight] as nvarchar(50))+isnull(a.unit,'') end a2
 	--,case when len(@t_isweight)=0 then '' else '重量' end ww
 	,case when a.price=0 then '' else cast(a.price as nvarchar(50)) end a3
-	,case when a.[moneys]=0 then '' else cast(dbo.getComma(a.[moneys],0) as nvarchar(50)) end a4
+	,case when a.[moneys]=0 and a.tranmoney=0 and a.mount=0 then '' else cast(dbo.getComma(a.[moneys],0) as nvarchar(50)) end a4
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+b.comp +'</a>'comp
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+b.nick+'</a>' nick
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+b.addr_comp+'</a>' addr
