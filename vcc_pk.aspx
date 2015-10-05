@@ -1272,6 +1272,11 @@
 							if (q_cur == 1 || q_cur == 2)
 								sum();
 						});
+						$('#txtTranmoney_' + j).focusout(function() {
+							if (q_cur == 1 || q_cur == 2) {
+								sum();
+							}
+						});
 						$('#txtPrice_' + j).focusout(function() {
 							if (q_cur == 1 || q_cur == 2) {
 								sum();
