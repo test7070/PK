@@ -291,7 +291,7 @@
 					else
 						wrServer(t_noa);
             	}else{
-            		if($('#txtUno__'+n).val().length!=0 && q_float('txtWeight__'+n)!=0){
+            		if($('#txtBno__'+n).val().length==0 && q_float('txtWeight__'+n)!=0){
             			var t_buno = ' ';
 		            	var t_datea = $('#txtDatea').val();
 		            	var t_style = $('#txtStyle__'+n).val();
@@ -394,7 +394,7 @@
 									,edime:t_edime
 									,width:t_width
 									,blength:t_blengthb
-									,elength:t_elengthb}
+									,elength:t_elengthb};
 
 							q_box("uccc_chk_b.aspx?" + r_userno + ";" + r_name + ";" + q_time + ";;;" + encodeURIComponent(JSON.stringify(t_array)), 'uccc', "95%", "95%", q_getMsg('popUccc'));
 						});
