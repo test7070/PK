@@ -663,6 +663,7 @@
 						}
 						break;
 					case 'unostk':
+						//20151007註解:  不知道用途
 						/*var unostkList = _q_appendData("unostktmp", "", true);
 						var unostkList_Tmp = new Array();
 						;
