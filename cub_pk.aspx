@@ -232,8 +232,8 @@
 								}
 							}
 							if (b_ret[0] != undefined) {
-								ret = q_gridAddRow(bbtHtm, 'tbbt', 'txtUno,txtGmount,txtGweight,txtDime,txtWidth,txtLengthb,txtSource,txtStyle,txtProductno,txtProduct', b_ret.length, b_ret
-								, 'uno,emount,eweight,dime,width,lengthb,source,style,productno,product', 'txtUno', '__');
+								ret = q_gridAddRow(bbtHtm, 'tbbt', 'txtUno,txtGmount,txtGweight,txtDime,txtWidth,txtLengthb,txtSource,txtStyle,txtProductno,txtProduct,txtKind', b_ret.length, b_ret
+								, 'uno,emount,eweight,dime,width,lengthb,source,style,productno,product,kind', 'txtUno', '__');
 								/// 最後 aEmpField 不可以有【數字欄位】
 							}
 							sum();
@@ -837,6 +837,7 @@
 					<td>
 						<input id="btnMinut..*" type="button" style="font-size: medium; font-weight: bold;" value="－"/>
 						<input class="txt" id="txtNoq..*" type="text" style="display: none;"/>
+						<input class="txt" id="txtKind..*" type="text" style="display: none;"/>
 					</td>
 					<td><a id="lblNo..*" style="font-weight: bold;text-align: center;display: block;"> </a></td>
 					<td>
