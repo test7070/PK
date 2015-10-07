@@ -35,7 +35,7 @@
 			brwCount2 = 5;
 			aPop = new Array(
 				['textTggno', 'lblxTggno', 'tgg', 'noa,comp', 'textTggno', 'tgg_b.aspx']
-				,['txtUno__', 'btnUno__', 'view_uccc2', 'uno,productno,class,spec,style,product', '0txtUno__', 'uccc_seek_b2.aspx?;;;1=0', '95%', '60%']
+				,['txtUno__', 'btnUno__', 'view_uccc2', 'uno,dime,width,lengthb,productno,class,spec,style,source,product', '0txtUno__,txtDime,txtWidth,txtLengthb,txtPorductno,txtClass,txtSpec,txtStyle,txtSource,txtProduct', 'uccc_seek_b2.aspx?;;;1=0', '95%', '60%']
 				,['txtProductno_', 'btnProduct_', 'ucaucc', 'noa,product', 'txtProductno_,txtProduct_', 'ucaucc_b.aspx']
 			);
 
@@ -182,7 +182,7 @@
                             $('#txtOrdcno').val(b_ret[0].noa);
                             ret = q_gridAddRow(bbtHtm, 'tbbt'
                             	, 'txtOrdcno,txtOrdcno2,txtGmount,txtGweight,txtStyle', b_ret.length, b_ret
-                            	, 'noa,no2,mount,weight,txtStyle', 'txtProductno,txtProduct');
+                            	, 'noa,no2,mount,weight,style', 'txtProductno,txtProduct');
                             bbtAssign();
                             sum();
                         }
@@ -203,7 +203,8 @@
 								}
 							}
 							if (b_ret && b_ret[0] != undefined) {
-								ret = q_gridAddRow(bbsHtm, 'tbbs', 'txtCustno,txtComp,txtClass,txtProductno,txtProduct,txtUnit,txtDime,txtWidth,txtLengthb,txtSpec,txtOrdeno,txtNo2,txtWeight,txtMount,txtTheory,txtSize,txtUno,txtMemo', b_ret.length, b_ret, 'custno,cust,class,productno,product,unit,dime,width,lengthb,spec,noa,no2,weight,mount,theory,size,uno,memo', 'txtProductno');
+								ret = q_gridAddRow(bbsHtm, 'tbbs', 'txtCustno,txtComp,txtClass,txtProductno,txtProduct,txtUnit,txtDime,txtWidth,txtLengthb,txtSpec,txtOrdeno,txtNo2,txtWeight,txtMount,txtTheory,txtSize,txtUno,txtMemo', b_ret.length, b_ret
+								, 'custno,cust,class,productno,product,unit,dime,width,lengthb,spec,noa,no2,weight,mount,theory,size,uno,memo', 'txtProductno');
 								/// 最後 aEmpField 不可以有【數字欄位】
 								var t_where = 'where=^^ 1=0 ';
 								for (var i = 0; i < ret.length; i++) {
@@ -231,7 +232,8 @@
 								}
 							}
 							if (b_ret[0] != undefined) {
-								ret = q_gridAddRow(bbtHtm, 'tbbt', 'txtUno,txtGmount,txtGweight,txtWidth,txtLengthb', b_ret.length, b_ret, 'uno,emount,eweight,width,lengthb', 'txtUno', '__');
+								ret = q_gridAddRow(bbtHtm, 'tbbt', 'txtUno,txtGmount,txtGweight,txtDime,txtWidth,txtLengthb,txtSource,txtStyle,txtProductno,txtProduct', b_ret.length, b_ret
+								, 'uno,emount,eweight,dime,width,lengthb,source,style,productno,product', 'txtUno', '__');
 								/// 最後 aEmpField 不可以有【數字欄位】
 							}
 							sum();
@@ -805,8 +807,9 @@
 					<td style="width:120px; text-align: center;">領料數</td>
 					<td style="width:120px; text-align: center;">領料重</td>
 					<td style="width:200px; text-align: center;">裁剪備註</td>
-					<td style="width:120px; text-align: center;">餘料寬</td>
-					<td style="width:120px; text-align: center;">餘料長</td>
+					<td style="width:100px; text-align: center;">餘料厚</td>
+					<td style="width:100px; text-align: center;">餘料寬</td>
+					<td style="width:100px; text-align: center;">餘料長</td>
 					<td style="width:30px; text-align: center;">型</td>
 					<td style="width:80px; text-align: center;">數量</td>
 					<td style="width:120px; text-align: center;">入庫重</td>
@@ -814,8 +817,9 @@
 					<td style="width:120px; text-align: center;">餘料客戶</td>
 					<td style="width:120px; text-align: center;">廢料批號</td>
 					<td style="width:80px; text-align: center;">廢料重</td>
-					<td style="width:120px; text-align: center;">倉庫</td>
-					<td style="width:120px; text-align: center;">儲位</td>
+					<td style="width:100px; text-align: center;">倉庫</td>
+					<td style="width:100px; text-align: center;">儲位</td>
+					<td style="width:100px; text-align: center;">鋼廠</td>
 					<td style="width:120px; text-align: center;">餘料備註</td>
 					<td style="width:120px; text-align: center;">餘料毛重</td>
 					<td style="width:120px; text-align: center;">餘料品名</td>
@@ -825,7 +829,7 @@
 					<td style="width:20px; text-align: center;">印</td>
 					<td style="width:120px; text-align: center;">原批號<br>儲位異動</td>
 					<td style="width:120px; text-align: center;">外加成本</td>
-					<td style="width:120px; text-align: center;">原批號餘毛重</td>
+					<td style="width:120px; text-align: center;">原批號<BR>餘毛重</td>
 					<td style="width:80px; text-align: center;">成本單價</td>
 					<td style="width:120px; text-align: center;">尺寸</td>
 				</tr>
@@ -843,6 +847,7 @@
 					<td><input id="txtGmount..*" type="text" class="txt c1 num"/></td>
 					<td><input id="txtGweight..*" type="text" class="txt c1 num"/></td>
 					<td><input id="txtMemo2..*" type="text" class="txt c1"/></td>
+					<td><input id="txtDime..*" type="text" class="txt c1 num"/></td>
 					<td><input id="txtWidth..*" type="text" class="txt c1 num"/></td>
 					<td><input id="txtLengthb..*" type="text" class="txt c1 num"/></td>
 					<td><input id="txtStyle..*" type="text" class="txt c1"/></td>
@@ -855,6 +860,7 @@
 					<td><input id="txtWweight..*" type="text" class="txt c1 num"/></td>		
 					<td><input id="txtStoreno..*" type="text" class="txt c1"/></td>
 					<td><input id="txtPlace..*" type="text" class="txt c1"/></td>
+					<td><input id="txtSource..*" type="text" class="txt c1"/></td>
 					<td><input id="txtMemo..*" type="text" class="txt c1"/></td>
 					<td><input id="txtMweight..*" type="text" class="txt c1"/></td>
 					<td><input id="txtProductno..*" type="text" class="txt c1"/></td>
