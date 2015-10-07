@@ -663,7 +663,7 @@
 						}
 						break;
 					case 'unostk':
-						var unostkList = _q_appendData("unostktmp", "", true);
+						/*var unostkList = _q_appendData("unostktmp", "", true);
 						var unostkList_Tmp = new Array();
 						;
 						var ErrStr = '';
@@ -693,7 +693,7 @@
 								ErrStr = '警告：\n' + ErrStr;
 								alert(ErrStr);
 							}
-						}
+						}*/
 						var t_noa = trim($('#txtNoa').val());
 						var t_date = trim($('#txtDatea').val());
 						if (t_noa.length == 0 || t_noa == "AUTO")

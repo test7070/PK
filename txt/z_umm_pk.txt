@@ -383,22 +383,24 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		select @tumm=SUM(ISNULL([total],0)) from @tmp where custno=@custno and ctype='收'
 		--前期未收
 		select @tunpay=0
-		select @tunpay=sum(ISNULL(a.total,0)-ISNULL(b.paysale,0) )
+		select @tunpay=isnull(sum(ISNULL(a.total,0)-ISNULL(b.paysale,0) ),0)
 		from view_vcc a
-		outer apply(select sum(isnull(paysale,0)) paysale from umms where vccno=a.noa) b
+		outer apply(select sum(isnull(x.paysale,0)) paysale from umms x left join umm y on x.noa=y.noa 
+			where x.vccno=a.noa and y.datea<=@t_eummdate) b
 		where a.datea<@t_bdate 
 		and a.custno=@custno
-		
+
 		----需要再加上本次收的前期
-		select @tunpay=@tunpay+ISNULL(b.paysale,0) 
+		select @tunpay=@tunpay+isnull(sum(ISNULL(b.paysale,0)),0)
 		from @tmp a
 		left join umms b on a.noa=b.noa
 		left join view_vcc c on b.vccno=c.noa
-		where a.ctype='收'
+		where 1=1
 		and c.datea<@t_bdate
 		and a.custno=@custno
+		
 		----預收
-		select @tunpay=@tunpay-SUM(ISNULL(opay,0)-ISNULL(unopay,0))
+		select @tunpay=@tunpay-isnull(SUM(ISNULL(opay,0)-ISNULL(unopay,0)),0)
 		from umm
 		where datea<@t_bummdate
 		and custno=@custno
