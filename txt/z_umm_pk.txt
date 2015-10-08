@@ -303,7 +303,6 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 	from view_vcc a
 	where a.custno between @t_bcustno and @t_ecustno
 	and a.datea between @t_bdate and @t_edate
-
 	
 	if len(@t_istotal )>0
 	begin
@@ -316,6 +315,56 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		and ISNULL(a.total,0)!=0
 		group by a.custno,a.datea,a.noa
 	end
+	
+	/*declare @tmpa table(
+		vccno nvarchar(20),
+		isvcc bit,
+		total float,
+		isumm bit,
+		paysale float,
+		mm01 float,--前期帳款、前期收
+		mm02 float,--前期帳款、本期收
+		mm03 float,--前期帳款、下期收
+		mm04 float,--本期帳款、前期收
+		mm05 float,--本期帳款、本期收
+		mm06 float,--本期帳款、下期收
+		mm07 float,--下期帳款、前期收
+		mm08 float,--下期帳款、本期收
+		mm09 float,--下期帳款、下期收
+		
+		memo nvarchar(max)
+	)
+	insert into @tmpa(vccno,isvcc,total)
+	select a.noa,1,a.total
+	from view_vcc a
+	where a.custno between @t_bcustno and @t_ecustno
+	and a.datea between @t_bdate and @t_edate
+	
+	update @tmpa set isumm=1,paysale=b.paysale
+	from @tmpa a
+	left join
+		(select a.vccno,SUM(a.paysale) paysale
+		from umms a
+		left join umm b on a.noa=b.noa
+		where a.custno between @t_bcustno and @t_ecustno
+		and b.datea between @t_bummdate and @t_eummdate
+		and a.paysale!=0
+		group by a.vccno)b on a.vccno=b.vccno
+	where b.vccno is not null
+	
+	insert into @tmpa(vccno,isumm,paysale)
+	select a.vccno,1,a.paysale
+	from (select a.vccno,SUM(a.paysale) paysale
+		from umms a
+		left join umm b on a.noa=b.noa
+		where a.custno between @t_bcustno and @t_ecustno
+		and b.datea between @t_bummdate and @t_eummdate
+		and a.paysale!=0
+		group by a.vccno) a
+	left join @tmpa b on a.vccno=b.vccno
+	where b.vccno is null
+	
+	select * from @tmpa*/
 	
 	--delete @tmp where [money]=0 and tax=0 and total=0
 	--------------------------------------------------------------------------------------------------
@@ -337,8 +386,19 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		tbkmoney float,--退貨金額
 		ttax float,--營業稅
 		ttotal float,--本期應收
-		tumm float,--本期收款
 		tunpay float,--前期未收
+		tumm float,--本期收款
+		
+		/*mm01 float,--前期帳款、前期收
+		mm02 float,--前期帳款、本期收
+		mm03 float,--前期帳款、下期收
+		mm04 float,--本期帳款、前期收
+		mm05 float,--本期帳款、本期收
+		mm06 float,--本期帳款、下期收
+		mm07 float,--下期帳款、前期收
+		mm08 float,--下期帳款、本期收
+		mm09 float,--下期帳款、下期收*/
+		
 		ttotal2 float--應收總計
 	)
 	declare @custno nvarchar(20)
@@ -346,7 +406,16 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 	declare @tbkmoney float
 	declare @ttax float
 	declare @ttotal float
-	declare @tumm float 
+	declare @tumm float
+	declare @mm01 float
+	declare @mm02 float
+	declare @mm03 float
+	declare @mm04 float
+	declare @mm05 float
+	declare @mm06 float
+	declare @mm07 float
+	declare @mm08 float
+	declare @mm09 float
 	declare @tunpay float
 	declare @ttotal2 float
 	
@@ -371,39 +440,106 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		where custno=@custno
 		order by datea,noa
 		
-		select @tmoney=0,@tbkmoney=0,@ttax=0,@ttotal=0,@tumm=0,@tunpay=0,@ttotal2=0
+		select @tmoney=0,@tbkmoney=0,@ttax=0,@ttotal=0,@tunpay=0,@ttotal2=0
 		
 		select @tmoney=SUM(ISNULL([money],0)) from @tmp where custno=@custno and ctype='出'
 		select @tbkmoney=SUM(ISNULL([money],0)) from @tmp where custno=@custno and ctype='退'
 		select @ttax=SUM(ISNULL([tax]*case when ctype='出' then 1 else -1 end,0)) from @tmp where custno=@custno and (ctype='出' or ctype='退')
+		--本期應收
 		set @ttotal = isnull(@tmoney,0) - isnull(@tbkmoney,0) + isnull(@ttax,0)
 		
-		--本期收款
-		select @tumm=0
-		select @tumm=SUM(ISNULL([total],0)) from @tmp where custno=@custno and ctype='收'
-		--前期未收
+		--前期帳款、前期收 mm01 不必顯示
+		--前期帳款、本期收 mm02
+		set @mm02=0
+		select @mm02=isnull(SUM(isnull(a.paysale,0)),0)
+		from umms a
+		left join umm b on a.noa=b.noa
+		left join view_vcc c on a.vccno=c.noa
+		where a.paysale!=0 and b.custno=@custno
+		and c.datea<@t_bdate
+		and b.datea between @t_bummdate and @t_eummdate
+		--前期帳款、下期收 mm03
+		set @mm03=0
+		select @mm03=isnull(SUM(isnull(a.paysale,0)),0)
+		from umms a
+		left join umm b on a.noa=b.noa
+		left join view_vcc c on a.vccno=c.noa
+		where a.paysale!=0 and b.custno=@custno
+		and c.datea < @t_bdate
+		and b.datea > @t_eummdate
+		--本期帳款、前期收 mm04
+		set @mm04=0
+		select @mm04=isnull(SUM(isnull(a.paysale,0)),0)
+		from umms a
+		left join umm b on a.noa=b.noa
+		left join view_vcc c on a.vccno=c.noa
+		where a.paysale!=0 and b.custno=@custno
+		and c.datea between @t_bdate and @t_edate
+		and b.datea<@t_bummdate
+		--本期帳款、本期收 mm05
+		set @mm05=0
+		select @mm05=isnull(SUM(isnull(a.paysale,0)),0)
+		from umms a
+		left join umm b on a.noa=b.noa
+		left join view_vcc c on a.vccno=c.noa
+		where a.paysale!=0 and b.custno=@custno
+		and c.datea between @t_bdate and @t_edate
+		and b.datea between @t_bummdate and @t_eummdate
+		--本期帳款、下期收 mm06 不必顯示
+		set @mm06=0
+		select @mm06=isnull(SUM(isnull(a.paysale,0)),0)
+		from umms a
+		left join umm b on a.noa=b.noa
+		left join view_vcc c on a.vccno=c.noa
+		where a.paysale!=0 and b.custno=@custno
+		and c.datea between @t_bdate and @t_edate
+		and b.datea > @t_eummdate
+		--下期帳款、前期收 mm07 不必顯示
+		set @mm07=0
+		select @mm07=isnull(SUM(isnull(a.paysale,0)),0)
+		from umms a
+		left join umm b on a.noa=b.noa
+		left join view_vcc c on a.vccno=c.noa
+		where a.paysale!=0 and b.custno=@custno
+		and c.datea > @t_edate
+		and b.datea < @t_bummdate
+		--下期帳款、本期收 mm08
+		set @mm08=0
+		select @mm08=isnull(SUM(isnull(a.paysale,0)),0)
+		from umms a
+		left join umm b on a.noa=b.noa
+		left join view_vcc c on a.vccno=c.noa
+		where a.paysale!=0 and b.custno=@custno
+		and c.datea > @t_edate
+		and b.datea between @t_bummdate and @t_eummdate
+		--下期帳款、下期收 mm09 不必顯示
+		set @mm09=0
+		select @mm09=isnull(SUM(isnull(a.paysale,0)),0)
+		from umms a
+		left join umm b on a.noa=b.noa
+		left join view_vcc c on a.vccno=c.noa
+		where a.paysale!=0 and b.custno=@custno
+		and c.datea > @t_edate
+		and b.datea > @t_eummdate
+		
+		--前期未收：
 		select @tunpay=0
 		select @tunpay=isnull(sum(ISNULL(a.total,0)-ISNULL(b.paysale,0) ),0)
 		from view_vcc a
-		outer apply(select sum(isnull(x.paysale,0)) paysale from umms x left join umm y on x.noa=y.noa 
-			where x.vccno=a.noa and y.datea<=@t_eummdate) b
-		where a.datea<@t_bdate 
-		and a.custno=@custno
-
-		----需要再加上本次收的前期
-		select @tunpay=@tunpay+isnull(sum(ISNULL(b.paysale,0)),0)
-		from @tmp a
-		left join umms b on a.noa=b.noa
-		left join view_vcc c on b.vccno=c.noa
-		where 1=1
-		and c.datea<@t_bdate
-		and a.custno=@custno
+		outer apply(select sum(isnull(paysale,0)) paysale from umms where vccno=a.noa) b
+		where a.custno=@custno 
+		and a.datea<@t_bdate
+		----要再加上 (前期帳款、本期收 mm02) (前期帳款、下期收 mm03)
+		----扣掉(本期帳款、前期收 mm04)
+		set @tunpay = ISNULL(@tunpay,0)+ISNULL(@mm02,0)+ISNULL(@mm03,0)-ISNULL(@mm04,0)
+		--本期收款 (前期帳款、本期收 mm02)(本期帳款、本期收 mm05)(下期帳款、本期收 mm08)
+		set @tumm = ISNULL(@mm02,0)+ISNULL(@mm05,0)+ISNULL(@mm08,0)
 		
-		----預收
-		select @tunpay=@tunpay-isnull(SUM(ISNULL(opay,0)-ISNULL(unopay,0)),0)
-		from umm
-		where datea<@t_bummdate
-		and custno=@custno
+		/*select @mm02 mm02,@mm03 mm03,@mm04 mm04,@mm05 mm05,@mm06 mm06,@mm07 mm07,@mm08 mm08,@mm09 mm09
+		select isnull(@ttotal,0)本期應收
+			,isnull(@tumm,0)本期收款
+			,isnull(@tunpay,0)前期未收
+			,isnull(@ttotal,0) - isnull(@tumm,0) + isnull(@tunpay,0)應收總計*/
 		
 		set @ttotal2 = isnull(@ttotal,0) - isnull(@tumm,0) + isnull(@tunpay,0)
 		
