@@ -186,6 +186,8 @@
                 // comb 未連結資料庫
                 q_cmbParse("cmbTrantype",q_getPara('sys.tran'));
                 q_cmbParse("cmbTaxtype", q_getPara('sys.taxtype'));
+                q_cmbParse("combUcolor", ',A240,SUS','s');
+                
                 $('#btnOrdei').hide();
                 var t_where = "where=^^ 1=1^^";
 				q_gt('custaddr', t_where, 0, 0, 0, "");
@@ -801,6 +803,13 @@
                         $('#txtNo2_'+j).val(tmpNo2);
                     }
                     if (!$('#btnMinus_' + j).hasClass('isAssign')) {
+                    	$('#combUcolor_' + j).click(function() {
+                    		if(q_cur==1 || q_cur==2){
+                    			var n = $(this).attr('id').replace('combUcolor_','');
+                    			if($(this).val().length>0)
+                        			$('#txtUcolor_'+n).val($(this).val());
+                    		}
+                        });
                         $('#txtUnit_' + j).focusout(function() {
                         	if(!(q_cur==1 || q_cur==2))
                         		return;
@@ -1563,7 +1572,8 @@
                     </td>
                     <td><input id="txtClass.*" type="text" style="width:95%;text-align:center;"/></td>
                     <td>
-                        <input id="txtUcolor.*" type="text" style="width:95%;"/>
+                        <input id="txtUcolor.*" type="text" style="width:75%;float: left;"/>
+                        <select id="combUcolor.*" style="width:20%;float:left;"></select>
                         <input id="txtScolor.*" type="text" style="width:95%;"/>
                     </td>
                     <td>
