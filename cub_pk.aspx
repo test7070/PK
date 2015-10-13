@@ -35,7 +35,7 @@
 			brwCount2 = 5;
 			aPop = new Array(
 				['textTggno', 'lblxTggno', 'tgg', 'noa,comp', 'textTggno', 'tgg_b.aspx']
-				,['txtUno__', 'btnUno__', 'view_uccc2', 'uno,dime,width,lengthb,productno,class,spec,style,source,product', '0txtUno__,txtDime,txtWidth,txtLengthb,txtPorductno,txtClass,txtSpec,txtStyle,txtSource,txtProduct', 'uccc_seek_b2.aspx?;;;1=0', '95%', '60%']
+				,['txtUno__', 'btnUno__', 'view_uccc2', 'uno,dime,width,lengthb,productno,class,spec,style,source,product,kind', '0txtUno__,txtDime__,txtWidth__,txtLengthb__,txtPorductno__,txtClass__,txtSpec__,txtStyle__,txtSource__,txtProduct__,txtKind__', 'uccc_seek_b2.aspx?;;;1=0', '95%', '60%']
 				,['txtProductno_', 'btnProduct_', 'ucaucc', 'noa,product', 'txtProductno_,txtProduct_', 'ucaucc_b.aspx']
 			);
 
