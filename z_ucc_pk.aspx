@@ -147,6 +147,9 @@
 						type : '8', //[33] 24
 						name : 'xoption',
 						value : ('01@排除Ｈ&02@現貨&03@期貨').split('&')
+					}, {
+						type : '6', //[34] 25
+						name : 'ydate'
 					}]
 				});
 				q_popAssign();
@@ -154,6 +157,10 @@
 				q_langShow();
 				$('#Xoption').find('input[type=checkbox]').eq(1).prop('checked',true);
 				$('#Xoption').find('input[type=checkbox]').eq(2).prop('checked',true);
+				
+				$('#txtYdate').mask('999/99/99');
+				$('#txtYdate').val(q_date());
+				$('#txtYdate').datepicker();
 				
 				$('#Xdate').css('width', '350px');
 				$('#Xstktype').css('width', '250px');

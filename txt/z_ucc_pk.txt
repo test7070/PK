@@ -1,5 +1,143 @@
 z_ucc_pk02:--z_ucc_pk02
 	SET QUOTED_IDENTIFIER OFF
+	declare @t_edate nvarchar(20)=case when '#non'=[34] then '' else [34] end
+	------------------------------------------------------
+	declare @tmp table(
+		uno nvarchar(30),
+		[weight] float,
+		[money] float
+	)
+	--rc2
+	insert into @tmp(uno,[weight],[money])
+	select a.uno,SUM(ISNULL(a.[weight],0)),SUM(ISNULL(a.total,0))
+	from view_rc2s a
+	left join view_rc2 b on a.accy=b.accy and a.noa=b.noa
+	where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
+	and b.datea<=@t_edate
+	group by a.uno
+	--ina
+	insert into @tmp(uno,[weight],[money])
+	select a.uno,SUM(ISNULL(a.[weight],0)),SUM(ISNULL(a.total,0))
+	from view_inas a
+	left join view_ina b on b.accy=a.accy and a.noa=b.noa
+	where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
+	and b.datea<=@t_edate
+	group by a.uno
+	--cut
+	insert into @tmp(uno,[weight],[money])
+	select a.bno,SUM(ISNULL(a.[weight],0)),SUM(round(ISNULL(a.[weight],0)*isnull(c.sprice,0),0))
+	from view_cuts a
+	left join view_cut b on b.accy=a.accy and a.noa=b.noa
+	left join view_uccb c on b.uno=c.uno
+	where LEFT(isnull(a.bno,''),1) between 'X' and 'Z'
+	and b.datea<=@t_edate
+	group by a.bno
+	--cub
+	insert into @tmp(uno,[weight],[money])
+	select a.bno,SUM(ISNULL(a.[weight],0)),SUM(round(ISNULL(a.[weight],0)*isnull(c.sprice,0),0))
+	from view_cubt a
+	left join view_cub b on b.accy=a.accy and a.noa=b.noa
+	left join view_uccb c on a.uno=c.uno
+	where LEFT(isnull(a.bno,''),1) between 'X' and 'Z'
+	and b.datea<=@t_edate
+	group by a.bno
+	-----------------------------------------------------------------------------------------------------
+	declare @tmpa table(
+		gno nvarchar(10),
+		uno nvarchar(30),
+		[weight] float,
+		[money] float,
+		price float,
+		vccweight float,
+		vccmoney float,
+		getweight float,
+		getmoney float,
+		eweight float,
+		emoney float
+	)
+	
+	insert into @tmpa(uno,[weight],[money])
+	select uno,SUM(ISNULL([weight],0)),sum(isnull([money],9)) from @tmp group by uno
+	
+	update @tmpa set price = case when ISNULL([weight],0)!=0 then round([money]/[weight],3) else 0 end
+	---------------------------------------------------------------------------------------------------------
+	declare @uno nvarchar(50)
+	declare @weight float
+	declare @money float
+
+	declare cursor_table cursor for
+	select a.uno
+		,SUM( case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end) 
+		,sum(isnull(a.total,0))
+	from view_vccs a
+	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+	where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
+	and b.datea<=@t_edate
+	group by a.uno
+	open cursor_table
+	fetch next from cursor_table
+	into @uno,@weight,@money
+	while(@@FETCH_STATUS <> -1)
+	begin
+		if exists(select * from @tmpa where uno=@uno)
+		begin
+			update @tmpa set vccweight=@weight,vccmoney=@money where uno=@uno
+		end
+		else
+		begin
+			insert into @tmpa(uno,vccweight,vccmoney)values(@uno,@weight,@money)
+		end	
+		fetch next from cursor_table
+		into @uno,@weight,@money
+	end
+	close cursor_table
+	deallocate cursor_table
+	
+	---------------------------------------------------------------------------------------------------------
+	declare cursor_table cursor for
+	select a.uno,SUM( case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end) 
+	from view_gets a
+	left join view_get b on a.accy=b.accy and a.noa=b.noa
+	where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
+	and b.datea<=@t_edate
+	group by a.uno
+	open cursor_table
+	fetch next from cursor_table
+	into @uno,@weight
+	while(@@FETCH_STATUS <> -1)
+	begin
+		if exists(select * from @tmpa where uno=@uno)
+		begin
+			update @tmpa set getweight=@weight,getmoney=ROUND(@weight*price,0) where uno=@uno
+		end
+		else
+		begin
+			insert into @tmpa(uno,getweight)values(@uno,@weight)
+		end	
+		fetch next from cursor_table
+		into @uno,@weight
+	end
+	close cursor_table
+	deallocate cursor_table
+	
+	update @tmpa set eweight = isnull([weight],0)-ISNULL(vccweight,0)-ISNULL(getweight,0)
+		,emoney = isnull([money],0)-ISNULL(vccmoney,0)-ISNULL(getmoney,0)
+	--------------------------------------------------------------------------------------------------
+	update @tmpa set gno='1'
+	insert into @tmpa(gno,eweight,emoney)
+	select '2',SUM(ISNULL(eweight,0)),SUM(ISNULL(emoney,0)) 
+	from @tmpa where gno='1'
+	
+	select ROW_NUMBER()over(order by gno,uno) rr
+		,gno
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+uno+'</a>' a01
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(eweight,-1)+'</a>' a02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(emoney,-1)+'</a>' a03
+	from @tmpa
+	order by gno,uno;
+	
+z_ucc_pk02_old:--z_ucc_pk02_old
+	SET QUOTED_IDENTIFIER OFF
 	declare @cmd nvarchar(max)
 	
 	declare @t_bdate nvarchar(10)
