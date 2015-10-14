@@ -316,57 +316,6 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		group by a.custno,a.datea,a.noa
 	end
 	
-	/*declare @tmpa table(
-		vccno nvarchar(20),
-		isvcc bit,
-		total float,
-		isumm bit,
-		paysale float,
-		mm01 float,--前期帳款、前期收
-		mm02 float,--前期帳款、本期收
-		mm03 float,--前期帳款、下期收
-		mm04 float,--本期帳款、前期收
-		mm05 float,--本期帳款、本期收
-		mm06 float,--本期帳款、下期收
-		mm07 float,--下期帳款、前期收
-		mm08 float,--下期帳款、本期收
-		mm09 float,--下期帳款、下期收
-		
-		memo nvarchar(max)
-	)
-	insert into @tmpa(vccno,isvcc,total)
-	select a.noa,1,a.total
-	from view_vcc a
-	where a.custno between @t_bcustno and @t_ecustno
-	and a.datea between @t_bdate and @t_edate
-	
-	update @tmpa set isumm=1,paysale=b.paysale
-	from @tmpa a
-	left join
-		(select a.vccno,SUM(a.paysale) paysale
-		from umms a
-		left join umm b on a.noa=b.noa
-		where a.custno between @t_bcustno and @t_ecustno
-		and b.datea between @t_bummdate and @t_eummdate
-		and a.paysale!=0
-		group by a.vccno)b on a.vccno=b.vccno
-	where b.vccno is not null
-	
-	insert into @tmpa(vccno,isumm,paysale)
-	select a.vccno,1,a.paysale
-	from (select a.vccno,SUM(a.paysale) paysale
-		from umms a
-		left join umm b on a.noa=b.noa
-		where a.custno between @t_bcustno and @t_ecustno
-		and b.datea between @t_bummdate and @t_eummdate
-		and a.paysale!=0
-		group by a.vccno) a
-	left join @tmpa b on a.vccno=b.vccno
-	where b.vccno is null
-	
-	select * from @tmpa*/
-	
-	--delete @tmp where [money]=0 and tax=0 and total=0
 	--------------------------------------------------------------------------------------------------
 	declare @result table(
 		sel int identity(1,1),
@@ -387,17 +336,8 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		ttax float,--營業稅
 		ttotal float,--本期應收
 		tunpay float,--前期未收
+		topay float,--預收
 		tumm float,--本期收款
-		
-		/*mm01 float,--前期帳款、前期收
-		mm02 float,--前期帳款、本期收
-		mm03 float,--前期帳款、下期收
-		mm04 float,--本期帳款、前期收
-		mm05 float,--本期帳款、本期收
-		mm06 float,--本期帳款、下期收
-		mm07 float,--下期帳款、前期收
-		mm08 float,--下期帳款、本期收
-		mm09 float,--下期帳款、下期收*/
 		
 		ttotal2 float--應收總計
 	)
@@ -417,18 +357,27 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 	declare @mm08 float
 	declare @mm09 float
 	declare @tunpay float
+	declare @topay float
 	declare @ttotal2 float
 	
 	declare @totpage int
 	declare @linecount int --每頁行數
 	declare @endcount int --總計行數
 	set @linecount = 12
-	set @endcount = 4 + case when len(@t_istotal)>0 then 3 else 0 end 
+	set @endcount = 4 + case when len(@t_istotal)>0 then 4 else 0 end 
 	declare @nn int
 	declare @mm int
 	
 	declare cursor_table cursor for
-	select custno from @tmp group by custno
+	select custno
+	from(
+	select custno from view_vcc 
+	where custno between @t_bcustno and @t_ecustno
+	group by custno
+	union
+	select custno from umm
+	where custno between @t_bcustno and @t_ecustno
+	group by custno) a group by custno
 	open cursor_table
 	fetch next from cursor_table
 	into @custno
@@ -440,7 +389,7 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		where custno=@custno
 		order by datea,noa
 		
-		select @tmoney=0,@tbkmoney=0,@ttax=0,@ttotal=0,@tunpay=0,@ttotal2=0
+		select @tmoney=0,@tbkmoney=0,@ttax=0,@ttotal=0,@tunpay=0,@ttotal2=0,@topay=0
 		
 		select @tmoney=SUM(ISNULL([money],0)) from @tmp where custno=@custno and ctype='出'
 		select @tbkmoney=SUM(ISNULL([money],0)) from @tmp where custno=@custno and ctype='退'
@@ -524,7 +473,7 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		
 		--前期未收：
 		select @tunpay=0
-		select @tunpay=isnull(sum(ISNULL(a.total,0)-ISNULL(b.paysale,0) ),0)
+		select @tunpay=isnull(sum(case when ISNULL(a.typea,'')='1' then 1 else -1 end *ISNULL(a.total,0)-ISNULL(b.paysale,0) ),0)
 		from view_vcc a
 		outer apply(select sum(isnull(paysale,0)) paysale from umms where vccno=a.noa) b
 		where a.custno=@custno 
@@ -534,15 +483,20 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		set @tunpay = ISNULL(@tunpay,0)+ISNULL(@mm02,0)+ISNULL(@mm03,0)-ISNULL(@mm04,0)
 		--本期收款 (前期帳款、本期收 mm02)(本期帳款、本期收 mm05)(下期帳款、本期收 mm08)
 		set @tumm = ISNULL(@mm02,0)+ISNULL(@mm05,0)+ISNULL(@mm08,0)
-		
+		--預收
+		select @topay=SUM(ISNULL(opay,0)-ISNULL(unopay,0))
+		from umm 
+		where custno=@custno
 		/*select @mm02 mm02,@mm03 mm03,@mm04 mm04,@mm05 mm05,@mm06 mm06,@mm07 mm07,@mm08 mm08,@mm09 mm09
 		select isnull(@ttotal,0)本期應收
 			,isnull(@tumm,0)本期收款
 			,isnull(@tunpay,0)前期未收
 			,isnull(@ttotal,0) - isnull(@tumm,0) + isnull(@tunpay,0)應收總計*/
 		
-		set @ttotal2 = isnull(@ttotal,0) - isnull(@tumm,0) + isnull(@tunpay,0)
+		set @ttotal2 = isnull(@ttotal,0) - isnull(@tumm,0) + isnull(@tunpay,0) - isnull(@topay,0)
 		
+		--select @ttotal,@tumm,@tunpay,@ttotal2
+
 		insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,ttotal2)
 		select '4',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2
 		insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,ttotal2,memo)
@@ -553,12 +507,17 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		select '7',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2,@t_memo3
 		if len(@t_istotal)>0
 		begin
-			insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,ttotal2,memo)
-			select '8',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2,@t_memo4
-			insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,ttotal2,memo)
-			select '9',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2,@t_memo5
-			insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,ttotal2,memo)
-			select '10',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@ttotal2,''
+			if @topay!=0
+			begin
+				insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,topay,ttotal2,memo)
+				select '8',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@topay,@ttotal2,''
+			end
+			insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,topay,ttotal2,memo)
+			select '9',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@topay,@ttotal2,''
+			insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,topay,ttotal2,memo)
+			select '10',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@topay,@ttotal2,''
+			insert into @result(gno,custno,tmoney,tbkmoney,ttax,ttotal,tumm,tunpay,topay,ttotal2,memo)
+			select '11',@custno,@tmoney,@tbkmoney,@ttax,@ttotal,@tumm,@tunpay,@topay,@ttotal2,''
 		end
 		--空白行	
 		select @nn = count(1) from @result where custno=@custno
@@ -603,9 +562,10 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+(case when a.[tbkmoney]<0 then'(' else '' end)+dbo.getComma(abs(a.[tbkmoney]),0)+(case when a.[tbkmoney]<0 then')' else '' end)+'</a>' b2
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+(case when a.[ttax]<0 then'(' else '' end)+dbo.getComma(abs(a.[ttax]),0)+(case when a.[ttax]<0 then')' else '' end)+'</a>' b3
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+(case when a.[ttotal]<0 then'(' else '' end)+dbo.getComma(abs(a.[ttotal]),0)+(case when a.[ttotal]<0 then')' else '' end)+'</a>' b4
-	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+(case when a.[tumm]<0 then'(' else '' end)+dbo.getComma(abs(a.[tumm]),0)+(case when a.[tumm]<0 then')' else '' end)+'</a>' b5
-	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+(case when a.[tunpay]<0 then'(' else '' end)+dbo.getComma(abs(a.[tunpay]),0)+(case when a.[tunpay]<0 then')' else '' end)+'</a>' b6
-	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+(case when a.[ttotal2]<0 then'(' else '' end)+dbo.getComma(abs(a.[ttotal2]),0)+(case when a.[ttotal2]<0 then')' else '' end)+'</a>' b7
+	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+(case when a.[topay]<0 then'(' else '' end)+dbo.getComma(abs(a.[topay]),0)+(case when a.[topay]<0 then')' else '' end)+'</a>' b5
+	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+(case when a.[tumm]<0 then'(' else '' end)+dbo.getComma(abs(a.[tumm]),0)+(case when a.[tumm]<0 then')' else '' end)+'</a>' b6
+	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+(case when a.[tunpay]<0 then'(' else '' end)+dbo.getComma(abs(a.[tunpay]),0)+(case when a.[tunpay]<0 then')' else '' end)+'</a>' b7
+	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+(case when a.[ttotal2]<0 then'(' else '' end)+dbo.getComma(abs(a.[ttotal2]),0)+(case when a.[ttotal2]<0 then')' else '' end)+'</a>' b8
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.memo+'</a>' memo
 	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+case when @t_bdate=@t_edate then @t_bdate else @t_bdate+'～'+@t_edate end+'</a>' e01
 	from @result a
