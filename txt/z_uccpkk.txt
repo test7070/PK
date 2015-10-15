@@ -2,7 +2,7 @@ z_uccpkk01:--z_uccpkk01
 	SET QUOTED_IDENTIFIER OFF
 	declare @cmd nvarchar(max)
 	
-	declare @t_edate nvarchar(10) = case when '#non'=[1] then '' else [1] end
+	declare @t_edate nvarchar(10) = case when '#non'=[1] then char(255) else [1] end
 	declare @t_itype nvarchar(max) = case when '#non'=[2] then '' else [2] end
 	declare @t_bproductno nvarchar(20) = case when '#non'=[3] then '' else [3] end
 	declare @t_eproductno nvarchar(20) = case when '#non'=[4] then char(255) else [4] end
@@ -147,7 +147,7 @@ z_uccpkk01:--z_uccpkk01
 	insert into @tmpa(uno,mount,[weight])
 	select a.bno,a.mount,a.[weight]
 	from view_cuts a
-	left join view_ina b on a.accy=b.accy and a.noa=b.noa
+	left join view_cut b on a.accy=b.accy and a.noa=b.noa
 	where len(isnull(a.bno,''))>0
 	--and b.typea='1' 
 	and b.datea<=@t_edate
@@ -203,7 +203,7 @@ z_uccpkk01:--z_uccpkk01
 	
 	delete @tmpa where gmount<=0 or eweight<=0
 ------------------------------------------------------------------------------------------------------------------------------
-	update @tmpa set gno='1',productno=b.productno,product=b.product,size=b.size
+	update @tmpa set gno='1',productno=b.productno,product=b.product,size=replace(b.size,'~#$',"'")
 		,dime=b.dime,width=b.width,lengthb=b.lengthb,radius=b.radius,[source]=b.[source]
 		,itype=b.itype,price=b.sprice,total=round(ISNULL(b.sprice,0)*ISNULL(eweight,0),0)
 		,style=b.style,class=b.class
@@ -213,8 +213,9 @@ z_uccpkk01:--z_uccpkk01
 	delete @tmpa 
 	where not( (len(@t_itype)=0 or CHARINDEX(','+itype+',',','+@t_itype+',')>0)
 		and productno between @t_bproductno and @t_eproductno
+		and not upper(left(uno,1)) between 'X' and 'Z'
 	)
-	update @tmpa set recno=b.sel
+	update @tmpa set recno=b.recno
 	from @tmpa a
 	left join (select sel,ROW_NUMBER()over(order by uno) recno from @tmpa) b on a.sel=b.sel
 	
@@ -223,8 +224,11 @@ z_uccpkk01:--z_uccpkk01
 	from @tmpa
 
 	select a.gno 
+		--,ghref = 'z_unobd?$rr?'
+		,case when left(uno,1)='*' then '' else 'z_unobd?$a01' end ghref
 		,a.recno rr
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.uno +'</a>' a01
+		,a.uno a01
+		--,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.uno +'</a>' a01
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+b.product +'</a>' a02
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.productno +'</a>' a03
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.class +'</a>' a04

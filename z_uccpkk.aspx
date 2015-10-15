@@ -73,7 +73,7 @@
 				$('#txtXdate').mask('999/99/99');
 				$('#txtXdate').val(q_date());
 				$('#txtXdate').datepicker();
-				//$('#Xitype').css('width', '120px');
+				$('#Xitype select option').eq(1).attr("selected","selected");//買賣
 				
 				$('#Xbproduct select').change(function(e){
 					$('#Xeproduct select').val($('#Xbproduct select').val());
