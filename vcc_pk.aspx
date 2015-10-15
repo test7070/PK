@@ -1489,8 +1489,10 @@
 				size_change();
 				if (t_para) {
 					$('#combAddr').attr('disabled', 'disabled');
+					$('#btnGet').removeAttr('disabled');
 				} else {
 					$('#combAddr').removeAttr('disabled');
+					$('#btnGet').attr('disabled', 'disabled');
 				}
 
 				//限制帳款月份的輸入 只有在備註的第一個字為*才能手動輸入
@@ -2003,6 +2005,8 @@
 						<td><input id="txtPrice" type="text" class="txt num c1" /></td>
 						<td><span> </span><a id='lblTranmoney' class="lbl"> </a></td>
 						<td><input id="txtTranmoney" type="text" class="txt num c1" /></td>
+						<td></td>
+						<td><input id="btnGet" type="button" value='領料'/></td>
 					</tr>
 					<tr>
 						<td><span> </span><a id='lblMemo' class="lbl"> </a></td>
