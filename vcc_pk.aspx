@@ -227,6 +227,13 @@
 					if ($('#txtMon').attr("readonly") == "readonly" && (q_cur == 1 || q_cur == 2))
 						q_msg($('#txtMon'), "月份要另外設定，請在" + q_getMsg('lblMemo') + "的第一個字打'*'字");
 				});*/
+				$('#btnGet').click(function(e){
+					var  t_para = {
+						source : 'vcc'
+						,noa : $('#txtNoa').val()
+					};
+					q_box("getst.aspx?" + r_userno + ";" + r_name + ";" + q_time + ";1=1^^" + JSON.stringify(t_para) + ";" + r_accy, 'get', "95%", "95%", q_getMsg("popGet"));
+				});
 
 				$("#cmbTypea").focus(function() {
 					var len = $(this).children().length > 0 ? $(this).children().length : 1;
