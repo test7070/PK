@@ -736,7 +736,7 @@ z_umm_pk04:--z_umm_pk04  客戶請款單(明細)  日期
 			update @result set gno='3'
 			from @result a
 			outer apply(select * from @result where custno=@custno and vccno=a.vccno and noq=a.noq and gno='4') b
-			where a.gno='2' and b.gno is null
+			where a.gno='2' and b.gno is null and a.custno=@custno
 			--稅額
 			--insert into @result(gno,pno,custno
 			--	,typea,datea,vccno,productno,product,unit,[weight],mount,price,moneys)
@@ -787,7 +787,7 @@ z_umm_pk04:--z_umm_pk04  客戶請款單(明細)  日期
 			insert into @result(gno,pno,custno,vccno,[money],bkmoney,tax,total,payed,unpay,tot,memo)
 			select '11','8',@custno,CHAR(255)+CHAR(255),@money,@bkmoney,@tax,@total,@payed,@unpay,@tot,@t_memo3
 			
-			select @nn = count(1) from (select vccno from @result where custno=@custno and gno='1' group by vccno)a
+			select @nn = count(1) from (select vccno from @result where custno=@custno and (gno='2' or gno='3') group by vccno)a
 			select @totpage = COUNT(1) from @result where custno=@custno
 			update @result set nn = ISNULL(@nn,0),totpage = @totpage/@linecount where custno=@custno
 		end
@@ -804,7 +804,7 @@ z_umm_pk04:--z_umm_pk04  客戶請款單(明細)  日期
 	where b.recno=1
 --------------------------------------------------------------------------------------------------------	
 	select a.* 
-	,(ROW_NUMBER()over(partition by a.custno order by pno)-1)/@linecount+1 pp
+	,(ROW_NUMBER()over(partition by a.custno order by a.vccno,a.noq,cast(a.gno as int),a.sel)-1)/@linecount+1 pp
 	,a.totpage qq
 	,a.tdate dd
 	,a.ttype tt

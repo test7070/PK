@@ -50,7 +50,7 @@
 						name : 'xdate'
 					}, {
 						type : '1', //[6][7]      4
-						name : 'xmon'
+						name : 'xpaydate'
 					}, {
                         type : '6', //[8]   5
                         name : 'xmemo1'
@@ -61,25 +61,7 @@
                         type : '6', //[10]   7
                         name : 'xmemo3'
                     }, {
-                        type : '6', //[11]   8
-                        name : 'xmemo4'
-                    }, {
-                        type : '6', //[12]   9
-                        name : 'xmemo5'
-                    }, {
-						type : '8', //[13] 10
-						name : 'xispayed',
-						value : "1@顯示已付".split(',')
-					}, {
-						type : '8', //[14] 11
-						name : 'xisunpay',
-						value : "1@顯示未付".split(',')
-					}, {
-						type : '8', //[15] 12
-						name : 'xisweight',
-						value : "1@顯示重量".split(',')
-					}, {
-						type : '8', //[16] 13
+						type : '8', //[11] 8
 						name : 'xistotal',
 						value : "1@顯示應收總計".split(',')
 					}]
@@ -91,8 +73,11 @@
 				$('#txtXdate1').datepicker();
 				$('#txtXdate2').mask('999/99/99');
 				$('#txtXdate2').datepicker();
-				$('#txtXmon1').mask('999/99');
-				$('#txtXmon2').mask('999/99');
+				
+				$('#txtXpaydate1').mask('999/99/99');
+				$('#txtXpaydate1').datepicker();
+				$('#txtXpaydate2').mask('999/99/99');
+				$('#txtXpaydate2').datepicker();
 
 				var t_date, t_year, t_month, t_day;
 				t_date = new Date();
@@ -122,16 +107,8 @@
                 $('#txtXmemo2').css('width','85%');
                 $('#Xmemo3').css('width','98%');
                 $('#txtXmemo3').css('width','85%');
-                $('#Xmemo4').css('width','98%');
-                $('#txtXmemo4').css('width','85%');
-                $('#Xmemo5').css('width','98%');
-                $('#txtXmemo5').css('width','85%');
                 $('#Xcno').css('width','98%');
-                $('#Xcno select').css('width','85%');
-                
-                $('#chkXispayed input[type="checkbox"]').prop("checked",true);
-                $('#chkXisunpay input[type="checkbox"]').prop("checked",true);
-                $('#chkXisweight input[type="checkbox"]').prop("checked",true);
+                $('#Xcno select').css('width','85%');      
 			}
 
 			function q_boxClose(s2) {
