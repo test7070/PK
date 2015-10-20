@@ -15,7 +15,7 @@
 		<script src="css/jquery/ui/jquery.ui.widget.js"></script>
 		<script src="css/jquery/ui/jquery.ui.datepicker_tw.js"></script>
 		<script type="text/javascript">
-			var t_style = '',t_ucc='';
+			var t_style = '',t_ucc='',t_store='';
 			$(document).ready(function() {
 				_q_boxClose();
 				q_getId();
@@ -43,6 +43,14 @@
 						for ( i = 0; i < as.length; i++) {
 							t_ucc += (t_ucc.length > 0 ? '&' : '') + as[i].noa + '@' + as[i].noa;
 						}
+						q_gt('store', '', 0, 0, 0, "");
+						break;
+					case 'store':
+						t_store = '';
+						var as = _q_appendData("store", "", true);
+						for ( i = 0; i < as.length; i++) {
+							t_store += (t_store.length > 0 ? '&' : '') + as[i].noa + '@' + as[i].store;
+						}
 						loadFinish();
 						break;
 				}
@@ -65,6 +73,10 @@
 						type : '5', //[4] 4
 						name : 'xeproduct',
 						value : t_ucc.split('&')
+					}, {
+						type : '8', //[5] 1
+						name : 'xstore',
+						value : t_store.split('&')
 					}]
 				});
 				q_popAssign();
