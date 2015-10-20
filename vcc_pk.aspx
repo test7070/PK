@@ -969,7 +969,7 @@
 				}
 				if(isExist){
 					for(var i=0;i<q_bbsCount;i++){
-						$('#txtNoq_'+i).val(('00'+(i+1)).substring(('00'+(i+1)).length-3,3));
+						$('#txtNoq_'+i).val(('00'+(i+1)).slice(-3,('00'+(i+1)).length));
 					}
 					/*var t_noa = $('#txtNoa').val();
 					for(var i=0;i<abbs.length;i++){
