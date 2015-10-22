@@ -109,7 +109,7 @@
 					}, {
 						type : '5', //[23] 15
 						name : 'xsortby',
-						value : ' @預設,datea@依入庫日期,productno@依品號,size@依尺寸,dime@依厚度,memo@依備註,uno@依批號,source@依鋼廠,spec@依規格'.split(',')
+						value : ' @預設,datea@依入庫日期,productno@依品號,size@依尺寸,dime@依厚度,memo@依備註,uno@依批號,source@依鋼廠,spec@依規格,style@依型'.split(',')
 					}, {
 						type : '8', //[24] 16
 						name : 'xshowprice',
