@@ -217,7 +217,8 @@ z_pay_pk02:--z_pay_pk02 廠商對帳單(明細、日期)
 			
 			--小計
 			select @moneys=0
-			select @moneys = SUM(ISNULL(total,0)) from view_rc2s where noa=@noa
+			select @moneys = isnull(@moneys,0) + isnull(SUM(ISNULL(total,0)),0) from view_rc2s where noa=@noa
+			select @moneys = isnull(@moneys,0) + isnull(SUM(ISNULL(total,0)),0) from bccins where noa=@noa
 			insert into @result(gno,pno,tggno,rc2no,noq,memo,moneys)
 			select '5','1',@tggno,@noa,CHAR(255),'合計：',@moneys
 			
