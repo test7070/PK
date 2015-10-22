@@ -1,4 +1,4 @@
-z_pay_pk02:--z_pay_pk02 廠商對帳單(合計、日期)
+z_pay_pk02:--z_pay_pk02 廠商對帳單(明細、日期)
 	SET QUOTED_IDENTIFIER OFF 
 	declare @cmd nvarchar(max) 
 	
@@ -26,16 +26,29 @@ z_pay_pk02:--z_pay_pk02 廠商對帳單(合計、日期)
 		tot float 
 	) 
 	insert into @tmpb(tggno,[money],bkmoney,tax)
+	select tggno,sum(ISNULL([money],0)),sum(ISNULL([bkmoney],0)),sum(ISNULL([tax],0))
+	from(
 	select tggno
-		,SUM(case when typea='1' then ISNULL([money],0) else 0 end) 
-		,SUM(case when typea!='1' then ISNULL([money],0) else 0 end) 
-		,SUM(case when typea='1' then ISNULL([tax],0) else -ISNULL([tax],0) end) 
+		,SUM(case when typea='1' then ISNULL([money],0) else 0 end) [money]
+		,SUM(case when typea!='1' then ISNULL([money],0) else 0 end) bkmoney
+		,SUM(case when typea='1' then ISNULL([tax],0) else -ISNULL([tax],0) end)  tax
 	from view_rc2 a
 	where isnull(a.tggno,'') between @t_btggno and @t_etggno
 	and ISNULL(a.datea,'') between @t_bdate and @t_edate
 	and left(a.noa,3)!='00Z'
-	group by tggno 
-	
+	group by tggno
+	union all
+	select tggno
+		,SUM(case when typea='1' then ISNULL([money],0) else 0 end) 
+		,SUM(case when typea!='1' then ISNULL([money],0) else 0 end) 
+		,SUM(case when typea='1' then ISNULL([tax],0) else -ISNULL([tax],0) end) 
+	from bccin a
+	where isnull(a.tggno,'') between @t_btggno and @t_etggno
+	and ISNULL(a.datea,'') between @t_bdate and @t_edate
+	--and left(a.noa,3)!='00Z'
+	group by tggno) a
+	group by tggno
+
 	update @tmpb set total = ISNULL([money],0)-ISNULL(bkmoney,0)+ISNULL(tax,0) 
 	 ------------------------------------------------------------------------------------------ 	
 	declare @linecount int --每頁行數
@@ -97,6 +110,7 @@ z_pay_pk02:--z_pay_pk02 廠商對帳單(合計、日期)
 		memo nvarchar(max)
 	)
 	
+	
 	declare cursor_table cursor for
 	select tggno,[money],bkmoney,tax,total,payed,unpay,tot from @tmpb
 	open cursor_table
@@ -106,10 +120,16 @@ z_pay_pk02:--z_pay_pk02 廠商對帳單(合計、日期)
 	begin
 		
 		declare cursor_table2 cursor for
-		select noa,ordeno,typea,datea from view_rc2
+		select noa,ordeno,typea,datea 
+		from view_rc2
 		where tggno=@tggno 
 		and ISNULL(datea,'') between @t_bdate and @t_edate
 		and left(noa,3)!='00Z'
+		union all
+		select noa,'',typea,datea 
+		from bccin
+		where tggno=@tggno 
+		and ISNULL(datea,'') between @t_bdate and @t_edate
 		order by datea,noa
 		open cursor_table2
 		fetch next from cursor_table2
