@@ -1,0 +1,75 @@
+z_ordc_pk01:--z_ordc_pk01	
+	SET QUOTED_IDENTIFIER OFF 
+	declare @t_noa nvarchar(max)= case when '#non'=[1] then '' else [1] end
+	----------------------------------------------------------------------------------
+	declare @tmp table(
+		sel int identity(1,1),
+		gno nvarchar(10),
+		
+		tggno nvarchar(20),
+		tgg nvarchar(30),
+		tel nvarchar(50),
+		fax nvarchar(50),
+		conn nvarchar(20),
+		memo nvarchar(50),
+		
+		accy nvarchar(10),
+		noa nvarchar(20),
+		noq nvarchar(10),
+		size nvarchar(50),
+		mount float,
+		[weight] float,
+		price float,
+		[money] float,
+		datea nvarchar(20),
+		memos nvarchar(max)
+	)
+	insert into @tmp(gno,tggno,tgg,tel,fax,conn,memo
+		,accy,noa,noq,size,mount,[weight],price,[money],datea,memos)
+	select '1',b.tggno,b.tgg,b.tel,b.fax,'',b.memo
+		,a.accy,a.noa,a.no2,a.size,a.mount,a.[weight],a.price,a.[total],a.datea,a.memo
+	from view_ordcs a
+	left join view_ordc b on a.accy=b.accy and a.noa=b.noa
+	where a.noa=@t_noa
+---------------------------------------------------------------------------------------------------------------
+	declare @nrow int = 12
+	declare @tggno nvarchar(20)
+	declare @n int
+	-- 補空白行
+    declare cursor_table cursor for
+    select tggno,count(1) from @tmp group by tggno
+    open cursor_table
+    fetch next from cursor_table
+    into @tggno,@n
+    while(@@FETCH_STATUS <> -1)
+    begin
+        while @n%@nrow!=0
+        begin
+			insert into @tmp(gno,tggno)
+            select '2',@tggno
+            set @n = @n + 1
+        end
+        fetch next from cursor_table
+        into @tggno,@n
+    end
+    close cursor_table
+    deallocate cursor_table
+	
+	select * 
+		,ROW_NUMBER()over(partition by tggno order by datea,noa,noq) rr
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.tggno +'</a>' a01
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.tgg +'</a>' a02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.tel +'</a>' a03
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.fax +'</a>' a04
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.conn +'</a>' a05
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.memo +'</a>' a06
+		
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.size +'</a>' b01
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.mount,-1) +'</a>' b02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.[weight],-1) +'</a>' b02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.price,-1) +'</a>' b04
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.[money],-1) +'</a>' b05
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.datea +'</a>' b06
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.memos +'</a>' b07
+	from @tmp a
+	order by tggno,datea,noa,noq
