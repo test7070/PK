@@ -1,6 +1,8 @@
 z_ordc_pk01:--z_ordc_pk01	
 	SET QUOTED_IDENTIFIER OFF 
-	declare @t_noa nvarchar(max)= case when '#non'=[1] then '' else [1] end
+	declare @t_path nvarchar(max)= '[1]'
+	declare @t_db nvarchar(max)= '[2]'
+	declare @t_noa nvarchar(max)= case when '#non'=[3] then '' else [3] end
 	----------------------------------------------------------------------------------
 	declare @tmp table(
 		sel int identity(1,1),
@@ -32,7 +34,13 @@ z_ordc_pk01:--z_ordc_pk01
 	left join view_ordc b on a.accy=b.accy and a.noa=b.noa
 	where a.noa=@t_noa
 ---------------------------------------------------------------------------------------------------------------
-	declare @nrow int = 12
+	insert into @tmp(gno,tggno,datea,noa,[mount],[weight],[money])
+	select '3',tggno,datea,noa,SUM(ISNULL([mount],0)),SUM(ISNULL([weight],0)),SUM(ISNULL([money],0))
+	from @tmp a
+	group by gno,tggno,datea,noa
+	
+	
+	declare @nrow int = 8
 	declare @tggno nvarchar(20)
 	declare @n int
 	-- 補空白行
@@ -56,6 +64,7 @@ z_ordc_pk01:--z_ordc_pk01
     deallocate cursor_table
 	
 	select * 
+		,'<img src="'+@t_path+'getlogo.aspx?noa=JC01'+CHAR(38)+'db='+@t_db+'"/>' logo
 		,ROW_NUMBER()over(partition by tggno order by datea,noa,noq) rr
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.tggno +'</a>' a01
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.tgg +'</a>' a02
@@ -66,10 +75,10 @@ z_ordc_pk01:--z_ordc_pk01
 		
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.size +'</a>' b01
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.mount,-1) +'</a>' b02
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.[weight],-1) +'</a>' b02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.[weight],-1) +'</a>' b03
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.price,-1) +'</a>' b04
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.[money],-1) +'</a>' b05
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.datea +'</a>' b06
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.memos +'</a>' b07
 	from @tmp a
-	order by tggno,datea,noa,noq
+	order by gno,tggno,datea,noa,noq;
