@@ -707,7 +707,7 @@ z_umm_pk04:--z_umm_pk04  客戶請款單(明細)  日期
 			,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' end+isnull(b.size,'')+SPACE(1)+ISNULL(c.custpro,'')
 			,b.unit,b.weight
 			,b.item,b.mount
-			,b.price
+			,case when isnull(a.floata,0)=0 then b.price else round(b.price*a.floata,4) end
 			,b.total
 			,b.tranmoney,b.tranmoney2
 			from view_vcc a
@@ -723,7 +723,7 @@ z_umm_pk04:--z_umm_pk04  客戶請款單(明細)  日期
 			,case when a.typea='1' then '出' else '退' end
 			,a.datea,a.noa,b.productno,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' end+isnull(b.size,''),b.unit,b.weight
 			,b.item,b.mount
-			,b.price
+			,case when isnull(a.floata,0)=0 then b.price else round(b.price*a.floata,4) end
 			,b.total
 			,b.tranmoney,b.tranmoney2
 			from view_vcc a
