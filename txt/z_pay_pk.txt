@@ -157,8 +157,9 @@ z_pay_pk02:--z_pay_pk02 廠商對帳單(明細、日期)
 			select '4','1',b.noq,@tggno
 			,case when a.typea='1' then '進' else '退' end
 			,a.datea,a.noa,b.productno
-			,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' end+isnull(b.size,'')
-			,b.mount,b.unit2
+			--,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' end+isnull(b.size,'')
+			,,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' 
+			,b.mount,b.unit2+end+isnull(b.size,'')
 			,b.[weight],b.unit
 			,b.price
 			,b.total
