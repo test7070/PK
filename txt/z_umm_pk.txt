@@ -129,7 +129,11 @@ z_umm_pk06:--z_umm_pk06  客戶請款單(明細) A5橫印  日期   ref.z_umm_pk
 				,typea,datea,vccno,productno,product,unit,[weight],item,mount,price,moneys,tranmoney,tranmoney2)
 			select '2','1',b.noq,@custno
 			,case when a.typea='1' then '出' else '退' end
-			,a.datea,a.noa,b.productno,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' end+isnull(b.size,''),b.unit,b.weight
+			,a.datea,a.noa,b.productno
+			,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' end
+				+case when len(isnull(b.class,''))>0 then ' '+isnull(b.class,'')+' ' else '' end
+				+isnull(b.size,'')
+			,b.unit,b.weight
 			,b.item,b.mount
 			,b.price
 			,b.total
@@ -144,7 +148,11 @@ z_umm_pk06:--z_umm_pk06  客戶請款單(明細) A5橫印  日期   ref.z_umm_pk
 				,typea,datea,vccno,productno,product,unit,[weight],item,mount,price,moneys,tranmoney,tranmoney2)
 			select '4','1',b.noq,@custno
 			,case when a.typea='1' then '出' else '退' end
-			,a.datea,a.noa,b.productno,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' end+isnull(b.size,''),b.unit,b.weight
+			,a.datea,a.noa,b.productno
+			,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' end
+				+case when len(isnull(b.class,''))>0 then ' '+isnull(b.class,'')+' ' else '' end
+				+isnull(b.size,'')
+			,b.unit,b.weight
 			,b.item,b.mount
 			,b.price
 			,b.total
@@ -704,7 +712,9 @@ z_umm_pk04:--z_umm_pk04  客戶請款單(明細)  日期
 			select '2','1',b.noq,@custno
 			,case when a.typea='1' then '出' else '退' end
 			,a.datea,a.noa,b.productno
-			,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' end+isnull(b.size,'')+SPACE(1)+ISNULL(c.custpro,'')
+			,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' end
+				+case when len(isnull(b.class,''))>0 then ' '+isnull(b.class,'')+' ' else '' end
+				+isnull(b.size,'')+SPACE(1)+ISNULL(c.custpro,'')
 			,b.unit,b.weight
 			,b.item,b.mount
 			,case when isnull(a.floata,0)=0 then b.price else round(b.price*a.floata,4) end
@@ -721,13 +731,18 @@ z_umm_pk04:--z_umm_pk04  客戶請款單(明細)  日期
 				,typea,datea,vccno,productno,product,unit,[weight],item,mount,price,moneys,tranmoney,tranmoney2)
 			select '4','1',b.noq,@custno
 			,case when a.typea='1' then '出' else '退' end
-			,a.datea,a.noa,b.productno,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' end+isnull(b.size,''),b.unit,b.weight
+			,a.datea,a.noa,b.productno
+			,isnull(b.product,'')+case when len(isnull(b.product,''))>0 then ' ' else '' end
+				+case when len(isnull(b.class,''))>0 then ' '+isnull(b.class,'')+' ' else '' end
+				+isnull(b.size,'')+SPACE(1)+ISNULL(c.custpro,'')
+			,b.unit,b.weight
 			,b.item,b.mount
 			,case when isnull(a.floata,0)=0 then b.price else round(b.price*a.floata,4) end
 			,b.total
 			,b.tranmoney,b.tranmoney2
 			from view_vcc a
 			left join view_vccs b on a.noa=b.noa
+			left join view_ordes c on b.ordeno=c.noa and b.no2=c.no2
 			where a.noa=@noa
 			and b.noa is not null
 			and not(isnull(b.mount,0)=0 and ISNULL(b.[weight],0)=0)
