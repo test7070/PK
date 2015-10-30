@@ -115,6 +115,10 @@
 					q_box("ordcsst_b.aspx?" + r_userno + ";" + r_name + ";" + q_time + ";" + t_where + ";" + r_accy, 'ordcs', "95%", "95%", q_getMsg('popOrdcs'));
 					*/
 				});
+				$('#btnCubm').click(function(e) {
+                	if(q_cur==1){return;}
+                    q_box("cubm.aspx?;;;noa='" + $('#txtNoa').val() + "'", 'cubm', "95%", "95%", q_getMsg("popCubm"));
+                });
 			}
 
 			function q_gtPost(t_name) {
@@ -714,6 +718,7 @@
 						<td><span> </span><a id="lblxTggno" class="lbl">廠商編號</a></td>
 						<td><input id="textTggno" type="text" class="txt c1"/></td>
 						<td><input id="btnOrdc" type="button" value="採購匯入"/></td>
+						<td><input id="btnCubm" type="button" value="機台排程"/></td>
 						<td style="display:none;"><span> </span><a id="lblWaste" class="lbl" ></a></td>
 						<td style="display:none;"><input id="txtWaste" type="text" class="txt c1 num"/></td>
 						<td style="display:none;"><span> </span><a id="lblMo" class="lbl" ></a></td>
