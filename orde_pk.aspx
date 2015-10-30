@@ -192,8 +192,9 @@
                 var t_where = "where=^^ 1=1^^";
 				q_gt('custaddr', t_where, 0, 0, 0, "");
                 //外銷訂單按鈕隱藏
-                
                 q_gt('spec', '', 0, 0, 0, "", r_accy);
+                
+                $('#lblDatea').html('預交日期');
                 $('#lblQuat').click(function() {
                     if(!(q_cur==1 || q_cur ==2))
                         return;
@@ -540,6 +541,10 @@
                 Lock(1, {
                     opacity : 0
                 });
+                if($('#txtDatea').val().length>0)
+	                for(var i=0;i<q_bbsCount;i++)
+	                	if($('#txtDatea_'+i).val().length==0)
+                			$('#txtDatea_'+i).val($('#txtDatea').val());
                 if ($('#txtOdate').val().length == 0 || !q_cd($('#txtOdate').val())) {
                     alert(q_getMsg('lblOdate') + '錯誤。');
                     Unlock(1);
@@ -1388,11 +1393,8 @@
                         	<input id="txtKind"  type="text"  style="display:none;"/>
                         </td>
                         <td><select id="cmbStype" class="txt c1"></select></td>
-                        <td align="center">
-                            <input id="chkIsproj" type="checkbox"/>
-                            <span> </span><a id='lblIsproj'> </a>
-                        </td>
-                        <td> </td>
+                        <td><span> </span><a id='lblDatea' class="lbl"> </a></td>
+                        <td><input id="txtDatea"  type="text"  class="txt c1"/></td>
                         <td><span> </span><a id='lblCustorde' class="lbl"> </a></td>
                         <td colspan="2">
                         <input id="txtCustorde"   type="text" class="txt c1"/>
@@ -1400,9 +1402,13 @@
                     </tr>
                     <tr>
                         <td><span> </span><a id='lblAcomp' class="lbl btn"> </a></td>
-                        <td colspan="4">
+                        <td colspan="3">
                         <input id="txtCno" type="text" style="float:left;width:25%;"/>
                         <input id="txtAcomp" type="text" style="float:left;width:75%;"/>
+                        </td>
+                        <td align="center">
+                            <input id="chkIsproj" type="checkbox"/>
+                            <span> </span><a id='lblIsproj'> </a>
                         </td>
                         <td><span> </span><a id='lblNoa' class="lbl"> </a></td>
                         <td colspan="2">
