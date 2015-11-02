@@ -636,7 +636,10 @@ z_ucc_pk01:--z_ucc_pk01
 		price float,
 		tdime float,
 		twidth float,
-		tlength float
+		tlength float,
+		
+		weight2 float,--已受訂
+		weight3 float--可受訂
 	)
 	set @t_waste = UPPER(@t_waste)
 	
@@ -727,6 +730,13 @@ z_ucc_pk01:--z_ucc_pk01
 		--and (len(@t_productno2)=0 or CHARINDEX(','+a.productno+',',','+@t_productno2+',')>0)
 		and ISNULL(a.productno,'') between @t_bproductno3 and @t_eproductno3
 		 
+		update #z_ucc_pk01 set weight2=b.[weight]
+		from #z_ucc_pk01 a
+		outer apply (select SUM(isnull([weight],0)) [weight] 
+			from view_ordct where accy=a.accy and noa=a.noa and no2=a.no2) b
+		where tablea='ordcs'
+		
+		update #z_ucc_pk01 set weight3 = isnull([weight],0) - isnull([weight2],0) where tablea='ordcs'
 	end	
 	---------------------------------------------------------------------------
 	if LEN(@t_sort)=0
@@ -799,6 +809,8 @@ z_ucc_pk01:--z_ucc_pk01
 		,a.tdime
 		,a.twidth
 		,a.tlength
+		,dbo.getComma(a.weight2,-1) ww01
+		,dbo.getComma(a.weight3,-1) ww02
 	from #z_ucc_pk01 a
 	left join store b on a.laststoreno=b.noa
 	left join cust c on a.custno=c.noa
