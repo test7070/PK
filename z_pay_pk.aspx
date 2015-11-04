@@ -63,7 +63,7 @@
                     }, {
 						type : '8', //[11] 8
 						name : 'xistotal',
-						value : "1@顯示應收總計".split(',')
+						value : "1@顯示應付總計".split(',')
 					}]
 				});
 				q_popAssign();
