@@ -809,7 +809,7 @@
 						t_style += '&';
 					}
 					if ($('#txtUno_' + i).val().length == 0 ) {
-						if(q_getPara('sys.comp').substring(0,2)=='傑期' && $('#txtProductno_'+i).val().toUpperCase()=='OEM'){
+						if(q_getPara('sys.comp').substring(0,2)=='傑期' && $('#txtProductno_'+i).val().toUpperCase()=='OEM' && $('#txtStyle_' + i).val().toUpperCase()>='A' && $('#txtStyle_' + i).val().toUpperCase()<='M'){
 							
 						}else{
 							t_buno += '';
@@ -818,7 +818,7 @@
 						}
 					}
 				}
-				q_func('qtxt.query.getuno', 'uno.txt,getuno,' + t_buno + ';' + t_datea + ';' + t_style + ';');
+				q_func('qtxt.query.getuno', 'uno.txt,getuno_bydate,' + t_buno + ';' + t_datea + ';' + t_style + ';');
 			}
 
 			function q_funcPost(t_func, result) {
@@ -827,11 +827,11 @@
 						var as = _q_appendData("tmp0", "", true, true);
 						if (as[0] != undefined) {
 							if (as.length != q_bbsCount) {
-								alert('批號取得異常。');
+								//alert('批號取得異常。');
 							} else {
 								for (var i = 0; i < q_bbsCount; i++) {
 									if ($('#txtUno_' + i).val().length == 0) {
-										if(q_getPara('sys.comp').substring(0,2)=='傑期' && $('#txtProductno_'+i).val().toUpperCase()=='OEM'){
+										if(q_getPara('sys.comp').substring(0,2)=='傑期' && $('#txtProductno_'+i).val().toUpperCase()=='OEM' && $('#txtStyle_' + i).val().toUpperCase()>='A' && $('#txtStyle_' + i).val().toUpperCase()<='M'){
 							
 										}else{
 											$('#txtUno_' + i).val(as[i].uno);
