@@ -17,16 +17,27 @@ z_uccpkk01:--z_uccpkk01
 		,uno nvarchar(30)
 		,bno nvarchar(30)
 		,price float
+		,sprice float
+		,sprice2 float
 		,isprice bit
 	)
 --rc2
-	insert into @tmp(tablea,accy,noa,noq,uno,price,isprice)
-	select 'rc2s',a.accy,a.noa,a.noq,a.uno,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end,1
+	--排除進口報單的
+	insert into @tmp(tablea,accy,noa,noq,uno,price,sprice,sprice2,isprice)
+	select 'rc2s',a.accy,a.noa,a.noq,a.uno
+		,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		,case when exists(select uno from delis where uno=a.uno) then sprice else (case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end) end
+		,case when exists(select uno from delis where uno=a.uno) then sprice2 else (case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end) end
+		,1
 	from view_rc2s a
 	left join view_rc2 b on a.accy=b.accy and a.noa=b.noa
 --ina	
-	insert into @tmp(tablea,accy,noa,noq,uno,price,isprice)
-	select 'inas',a.accy,a.noa,a.noq,a.uno,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end,1
+	insert into @tmp(tablea,accy,noa,noq,uno,price,sprice,sprice2,isprice)
+	select 'inas',a.accy,a.noa,a.noq,a.uno
+		,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		,1
 	from view_inas a
 	left join view_ina b on a.accy=b.accy and a.noa=b.noa
 --cuts
@@ -49,6 +60,8 @@ z_uccpkk01:--z_uccpkk01
 	declare @noq nvarchar(10)
 	declare @uno nvarchar(30)
 	declare @price float
+	declare @sprice float
+	declare @sprice2 float
 	declare @isprice bit
 	
 	while @n>0
@@ -66,14 +79,14 @@ z_uccpkk01:--z_uccpkk01
 			begin
 				select @price=0
 				select @price=price from @tmp where uno=@uno and isprice=1
-				update @tmp set price=@price,isprice=1 where sel=@sel
+				update @tmp set price=@price,sprice=@price,sprice2=@price,isprice=1 where sel=@sel
 				set @isprice=1
 			end
 			if @isprice=0 and exists(select * from @tmp where bno=@uno and isprice=1)
 			begin
 				select @price=0
 				select @price=price from @tmp where bno=@uno and isprice=1
-				update @tmp set price=@price,isprice=1 where sel=@sel
+				update @tmp set price=@price,sprice=@price,sprice2=@price,isprice=1 where sel=@sel
 				set @isprice=1
 			end
 			
@@ -86,18 +99,18 @@ z_uccpkk01:--z_uccpkk01
 ----------------------------------------------------------------------------------------------------
 	--回寫 SPRICE
 	declare cursor_table cursor for
-	select tablea,accy,noa,noq,price from @tmp where isprice=1
+	select tablea,accy,noa,noq,price,sprice,sprice2 from @tmp where isprice=1
 	open cursor_table
 	fetch next from cursor_table
-	into @tablea,@accy,@noa,@noq,@price
+	into @tablea,@accy,@noa,@noq,@price,@sprice,@sprice2
 	while(@@FETCH_STATUS <> -1)
 	begin	
-		set @cmd = "update "+@tablea+@accy+" set sprice=@price,sprice2=@price where noa=@noa and noq=@noq"
-		execute sp_executesql @cmd,N'@price float,@noa nvarchar(20),@noq nvarchar(10)'
-			,@price=@price,@noa=@noa,@noq=@noq
+		set @cmd = "update "+@tablea+@accy+" set sprice=@sprice,sprice2=@sprice2 where noa=@noa and noq=@noq"
+		execute sp_executesql @cmd,N'@price float,@sprice float,@sprice2 float,@noa nvarchar(20),@noq nvarchar(10)'
+			,@price=@price,@sprice=@sprice,@sprice2=@sprice2,@noa=@noa,@noq=@noq
 		
 		fetch next from cursor_table
-		into @tablea,@accy,@noa,@noq,@price
+		into @tablea,@accy,@noa,@noq,@price,@sprice,@sprice2
 	end
 	close cursor_table
 	deallocate cursor_table
