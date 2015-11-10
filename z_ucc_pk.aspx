@@ -150,6 +150,9 @@
 					}, {
 						type : '6', //[34] 25
 						name : 'ydate'
+					}, {
+						type : '6', //[35] 26
+						name : 'ysource'
 					}]
 				});
 				q_popAssign();
