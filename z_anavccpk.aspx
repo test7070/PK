@@ -58,14 +58,21 @@
 						type : '5', //[6] 4
 						name : 'xeproduct',
 						value : t_ucc.split('&')
-					},{
-						type : '1', //[7][8] 5
-						name : 'xdime'
 					}, {
-						type : '5', //[9] 6
+						type : '5', //[7] 5
 						name : 'xsort',
 						value : 'weight@重量,total@銷售金額,rate@毛利率,profit@毛利'.split(',')
-					}]
+					},{
+						type : '1', //[8][9] 6
+						name : 'xdime'
+					},{
+						type : '1', //[10][11] 7
+						name : 'xwidth'
+					}, {
+                        type : '8',//[12]  8
+                        name : 'xoption01',
+                        value : '明細'.split('&')
+                    }]
 				});
 				q_popAssign();
 				q_getFormat();
@@ -87,10 +94,6 @@
 				var t_date, t_year, t_month, t_day;
                 t_date = new Date();
                 t_date.setDate(1);
-                t_date.setDate(-2);
-                t_date.setDate(0);
-                t_date.setDate(-2);
-                t_date.setDate(0);
                 t_date.setDate(-2);
                 t_date.setDate(0);
                 t_date.setDate(-2);
