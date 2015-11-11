@@ -534,6 +534,7 @@ z_ucc_pk01:--z_ucc_pk01
 	declare @t_bproductno3 nvarchar(max) = case when '#non'=[31] then '' else [31] end
 	declare @t_eproductno3 nvarchar(max) = case when '#non'=[32] then '' else [32] end
 	declare @t_option nvarchar(max) = case when '#non'=[33] then '' else [33] end
+	declare @t_source nvarchar(max) = case when '#non'=[35] then '' else [35] end
 	------------------------------------------------------------------------------------------------
 	declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,@t_bwidth float,@t_ewidth float,@t_blengthb float,@t_elengthb float
