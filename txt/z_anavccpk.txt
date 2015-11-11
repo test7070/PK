@@ -437,30 +437,36 @@ z_anavccpk02:--z_anavccpk02
 	
 	update @tmpc set rate = case when ISNULL(stotal,0)=0 then 0 else ROUND((total-stotal)/stotal*100,2) end
 	update @tmpc set profit = ISNULL(total,0)-ISNULL(stotal,0)
+	
+	insert into @tmpc(gno,productno,dime,weight,total,stotal,profit)
+	select '2',CHAR(255),null,SUM(ISNULL(weight,0)),SUM(ISNULL(total,0)),SUM(ISNULL(stotal,0)),SUM(ISNULL(profit,0)) from @tmpc 	
+	
+	update @tmpc set rate=case when stotal=0 then 0 else ROUND((total-stotal)/stotal*100,2) end where gno='2'
+	
 	-- 排行：量、金額、毛利率、毛利     
 	if @t_sort = 'weight'
 	begin
 		update @tmpc set recno=b.recno
 		from @tmpc a
-		left join (select sel,ROW_NUMBER()over(order by [weight] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+		left join (select sel,ROW_NUMBER()over(order by gno,[weight] desc,sel) recno from @tmpc ) b on a.sel=b.sel
 	end
 	else if @t_sort = 'total'
 	begin
 		update @tmpc set recno=b.recno
 		from @tmpc a
-		left join (select sel,ROW_NUMBER()over(order by [total] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+		left join (select sel,ROW_NUMBER()over(order by gno,[total] desc,sel) recno from @tmpc ) b on a.sel=b.sel
 	end
 	else if @t_sort = 'rate'
 	begin
 		update @tmpc set recno=b.recno
 		from @tmpc a
-		left join (select sel,ROW_NUMBER()over(order by [rate] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+		left join (select sel,ROW_NUMBER()over(order by gno,[rate] desc,sel) recno from @tmpc ) b on a.sel=b.sel
 	end
 	else
 	begin
 		update @tmpc set recno=b.recno
 		from @tmpc a
-		left join (select sel,ROW_NUMBER()over(order by [profit] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+		left join (select sel,ROW_NUMBER()over(order by gno,[profit] desc,sel) recno from @tmpc ) b on a.sel=b.sel
 	end
 	
 	set @cmd = "日期："+@t_bdate+" ～ "+@t_edate
@@ -626,34 +632,39 @@ z_anavccpk01:--z_anavccpk01
 	
 	update @tmpc set rate = case when ISNULL(stotal,0)=0 then 0 else ROUND((total-stotal)/stotal*100,2) end
 	update @tmpc set profit = ISNULL(total,0)-ISNULL(stotal,0)
+	
+	insert into @tmpc(gno,custno,cust,productno,dime,weight,total,stotal,profit)
+	select '2',CHAR(255),char(255),char(255),null,SUM(ISNULL(weight,0)),SUM(ISNULL(total,0)),SUM(ISNULL(stotal,0)),SUM(ISNULL(profit,0)) from @tmpc 	
+	
+	update @tmpc set rate=case when stotal=0 then 0 else ROUND((total-stotal)/stotal*100,2) end where gno='2'
+	
 	-- 排行：量、金額、毛利率、毛利     
 	if @t_sort = 'weight'
 	begin
 		update @tmpc set recno=b.recno
 		from @tmpc a
-		left join (select sel,ROW_NUMBER()over(order by [weight] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+		left join (select sel,ROW_NUMBER()over(order by gno,[weight] desc,sel) recno from @tmpc ) b on a.sel=b.sel
 	end
 	else if @t_sort = 'total'
 	begin
 		update @tmpc set recno=b.recno
 		from @tmpc a
-		left join (select sel,ROW_NUMBER()over(order by [total] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+		left join (select sel,ROW_NUMBER()over(order by gno,[total] desc,sel) recno from @tmpc ) b on a.sel=b.sel
 	end
 	else if @t_sort = 'rate'
 	begin
 		update @tmpc set recno=b.recno
 		from @tmpc a
-		left join (select sel,ROW_NUMBER()over(order by [rate] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+		left join (select sel,ROW_NUMBER()over(order by gno,[rate] desc,sel) recno from @tmpc ) b on a.sel=b.sel
 	end
 	else
 	begin
 		update @tmpc set recno=b.recno
 		from @tmpc a
-		left join (select sel,ROW_NUMBER()over(order by [profit] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+		left join (select sel,ROW_NUMBER()over(order by gno,[profit] desc,sel) recno from @tmpc ) b on a.sel=b.sel
 	end
 	
 	set @cmd = "日期："+@t_bdate+" ～ "+@t_edate
-	
 	select gno,recno rr
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+@cmd+'</a>' titlea
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+custno+'</a>' a01
