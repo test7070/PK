@@ -389,7 +389,7 @@ z_anavccpk02:--z_anavccpk02
 			--出貨單沒批號就到領料單找	
 			--productno都依出貨單
 			if LEN(@uno)=0
-			begin
+			begin			
 				insert into @tmpb(pno,tablea,accy,noa,noq
 					,uno,productno,style,dime,width,size,mount,[weight])
 				select '2','gets',a.accy,a.noa,a.nor
@@ -429,7 +429,7 @@ z_anavccpk02:--z_anavccpk02
 	)
 	insert into @tmpc(gno,productno,dime,[weight],total,stotal)
 	select '1',a.productno,a.dime
-		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.[weight],0))
+		,sum(case when b.typea='1' then 1 else -1 end * case when tablea='vccs' then 1 else 0 end * isnull(a.[weight],0))
 		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.total,0))
 		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.stotal,0))
 	from @tmpb a
@@ -624,7 +624,7 @@ z_anavccpk01:--z_anavccpk01
 	)
 	insert into @tmpc(gno,custno,cust,productno,dime,[weight],total,stotal)
 	select '1',b.custno,c.nick,a.productno,a.dime
-		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.[weight],0))
+		,sum(case when b.typea='1' then 1 else -1 end * case when tablea='vccs' then 1 else 0 end * isnull(a.[weight],0))
 		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.total,0))
 		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.stotal,0))
 	from @tmpb a
