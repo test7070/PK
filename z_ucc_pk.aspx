@@ -153,6 +153,10 @@
 					}, {
 						type : '6', //[35] 26
 						name : 'ysource'
+					}, {
+						type : '8', //[36] 27
+						name : 'xdetail',
+						value : "1@明細".split(',')
 					}]
 				});
 				q_popAssign();
