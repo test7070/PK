@@ -42,7 +42,7 @@ z_ordc_pk01:--z_ordc_pk01
 	group by gno,tggno,odate,noa,tgg,tel,fax,addr
 	
 	
-	declare @nrow int = 6
+	declare @nrow int = 5
 	declare @odate nvarchar(10)
 	declare @tggno nvarchar(20)
 	declare @tgg nvarchar(100)
