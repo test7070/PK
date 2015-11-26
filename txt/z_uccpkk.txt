@@ -1,0 +1,272 @@
+z_uccpkk01:--z_uccpkk01	
+	SET QUOTED_IDENTIFIER OFF
+	declare @cmd nvarchar(max)
+	
+	declare @t_edate nvarchar(10) = case when '#non'=[1] then char(255) else [1] end
+	declare @t_itype nvarchar(max) = case when '#non'=[2] then '' else [2] end
+	declare @t_bproductno nvarchar(20) = case when '#non'=[3] then '' else [3] end
+	declare @t_eproductno nvarchar(20) = case when '#non'=[4] then char(255) else [4] end
+	declare @t_storeno nvarchar(max) = case when '#non'=[5] then '' else [5] end
+----------------------------------------------------------------------------------------------------
+	declare @tmp table(
+		sel int identity(1,1)
+		,tablea nvarchar(20)
+		,accy nvarchar(10)
+		,noa nvarchar(20)
+		,noq nvarchar(10)
+		,uno nvarchar(30)
+		,bno nvarchar(30)
+		,price float
+		,sprice float
+		,sprice2 float
+		,isprice bit
+	)
+--rc2
+	--排除進口報單的
+	insert into @tmp(tablea,accy,noa,noq,uno,price,sprice,sprice2,isprice)
+	select 'rc2s',a.accy,a.noa,a.noq,a.uno
+		,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		,case when exists(select uno from delis where uno=a.uno) then sprice else (case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end) end
+		,case when exists(select uno from delis where uno=a.uno) then sprice2 else (case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end) end
+		,1
+	from view_rc2s a
+	left join view_rc2 b on a.accy=b.accy and a.noa=b.noa
+--ina	
+	insert into @tmp(tablea,accy,noa,noq,uno,price,sprice,sprice2,isprice)
+	select 'inas',a.accy,a.noa,a.noq,a.uno
+		,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		,1
+	from view_inas a
+	left join view_ina b on a.accy=b.accy and a.noa=b.noa
+--cuts
+	insert into @tmp(tablea,accy,noa,noq,uno,bno,isprice)
+	select 'cuts',a.accy,a.noa,a.noq,b.uno,a.bno,0
+	from view_cuts a
+	left join view_cut b on a.accy=b.accy and a.noa=b.noa
+	where len(isnull(a.bno,''))>0
+--cubt
+	insert into @tmp(tablea,accy,noa,noq,uno,bno,isprice)
+	select 'cubt',a.accy,a.noa,a.noq,a.uno,a.bno,0
+	from view_cubt a
+	where len(isnull(a.bno,''))>0
+---------------------------------------------------------------------------------------
+	declare @n int = 10
+	declare @sel int
+	declare @tablea nvarchar(20)
+	declare @accy nvarchar(10)
+	declare @noa nvarchar(20)
+	declare @noq nvarchar(10)
+	declare @uno nvarchar(30)
+	declare @price float
+	declare @sprice float
+	declare @sprice2 float
+	declare @isprice bit
+	
+	while @n>0
+	begin
+		set @n=@n-1
+		declare cursor_table cursor for
+		select sel,tablea,uno,isprice from @tmp where isprice=0 
+		open cursor_table
+		fetch next from cursor_table
+		into @sel,@tablea,@uno,@isprice
+		while(@@FETCH_STATUS <> -1)
+		begin	
+			set @isprice=0
+			if @isprice=0 and exists(select * from @tmp where uno=@uno and isprice=1)
+			begin
+				select @price=0
+				select @price=price from @tmp where uno=@uno and isprice=1
+				update @tmp set price=@price,sprice=@price,sprice2=@price,isprice=1 where sel=@sel
+				set @isprice=1
+			end
+			if @isprice=0 and exists(select * from @tmp where bno=@uno and isprice=1)
+			begin
+				select @price=0
+				select @price=price from @tmp where bno=@uno and isprice=1
+				update @tmp set price=@price,sprice=@price,sprice2=@price,isprice=1 where sel=@sel
+				set @isprice=1
+			end
+			
+			fetch next from cursor_table
+			into @sel,@tablea,@uno,@isprice
+		end
+		close cursor_table
+		deallocate cursor_table
+	end
+----------------------------------------------------------------------------------------------------
+	--回寫 SPRICE
+	declare cursor_table cursor for
+	select tablea,accy,noa,noq,price,sprice,sprice2 from @tmp where isprice=1
+	open cursor_table
+	fetch next from cursor_table
+	into @tablea,@accy,@noa,@noq,@price,@sprice,@sprice2
+	while(@@FETCH_STATUS <> -1)
+	begin	
+		set @cmd = "update "+@tablea+@accy+" set sprice=@sprice,sprice2=@sprice2 where noa=@noa and noq=@noq"
+		execute sp_executesql @cmd,N'@price float,@sprice float,@sprice2 float,@noa nvarchar(20),@noq nvarchar(10)'
+			,@price=@price,@sprice=@sprice,@sprice2=@sprice2,@noa=@noa,@noq=@noq
+		
+		fetch next from cursor_table
+		into @tablea,@accy,@noa,@noq,@price,@sprice,@sprice2
+	end
+	close cursor_table
+	deallocate cursor_table
+----------------------------------------------------------------------------------------------------	
+	declare @tmpa table(
+		sel int identity(1,1),
+		recno int,
+		gno nvarchar(10),
+		uno nvarchar(30),
+		storeno nvarchar(20),
+		mount float,
+		[weight] float,
+		gmount float,
+		gweight float,
+		emount float,
+		eweight float,
+		style nvarchar(20),
+		class nvarchar(20),
+		productno nvarchar(50),
+		product nvarchar(50),
+		size nvarchar(max),
+		dime float,
+		width float,
+		lengthb float,
+		radius float,
+		[source] nvarchar(20),
+		itype nvarchar(20),
+		price float,
+		total float
+	)
+	--進貨
+	----退貨的忽略
+	insert into @tmpa(uno,mount,[weight],storeno)
+	select a.uno,a.mount,a.[weight]
+		,case when len(isnull(a.storeno,''))>0 then a.storeno else ISNULL(b.storeno,'') end
+	from view_rc2s a
+	left join view_rc2 b on a.accy=b.accy and a.noa=b.noa
+	where len(isnull(a.uno,''))>0
+	and b.typea='1' 
+	and b.datea<=@t_edate
+	--入庫
+	insert into @tmpa(uno,mount,[weight],storeno)
+	select a.uno,a.mount,a.[weight]
+		,ISNULL(b.storeno,'')
+	from view_inas a
+	left join view_ina b on a.accy=b.accy and a.noa=b.noa
+	where len(isnull(a.uno,''))>0
+	--and b.typea='1' 
+	and b.datea<=@t_edate
+	--cuts
+	insert into @tmpa(uno,mount,[weight],storeno)
+	select a.bno,a.mount,a.[weight]
+		,isnull(a.storeno,'')
+	from view_cuts a
+	left join view_cut b on a.accy=b.accy and a.noa=b.noa
+	where len(isnull(a.bno,''))>0
+	--and b.typea='1' 
+	and b.datea<=@t_edate
+	--cubt
+	insert into @tmpa(uno,mount,[weight],storeno)
+	select a.uno,a.mount,a.[weight]
+		,isnull(a.storeno,'')
+	from view_cubt a
+	left join view_cub b on a.accy=b.accy and a.noa=b.noa
+	where len(isnull(a.bno,''))>0
+	and b.datea<=@t_edate
+-----------------------------------------------------------------------------------------
+	declare @tmpb table(
+		uno nvarchar(30),
+		mount float,
+		[weight] float
+	)
+	--出貨
+	----退貨的忽略
+	insert into @tmpb(uno,mount,[weight])
+	select a.uno,a.mount,case when isnull(a.[gweight],0)!=0 then a.[gweight] else a.[weight] end
+	from view_vccs a
+	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+	where len(isnull(a.uno,''))>0
+	and b.typea='1' 
+	and b.datea<=@t_edate
+	
+	--領料
+	insert into @tmpb(uno,mount,[weight])
+	select a.uno,a.gmount,a.[gweight]
+	from view_gets a
+	left join view_get b on a.accy=b.accy and a.noa=b.noa
+	where len(isnull(a.uno,''))>0
+	and b.datea<=@t_edate
+	--裁領
+	insert into @tmpb(uno,mount,[weight])
+	select a.uno,a.gmount,a.[gweight]
+	from view_cut a
+	where len(isnull(a.uno,''))>0
+	and a.datea<=@t_edate
+	
+	--派令領料
+	insert into @tmpb(uno,mount,[weight])
+	select a.uno,a.gmount,a.[gweight]
+	from view_cubt a
+	left join view_cub b on a.accy=b.accy and a.noa=b.noa
+	where len(isnull(a.uno,''))>0
+	and b.datea<=@t_edate
+------------------------------------------------------------------------------------------------------------------------------
+	update @tmpa set gmount=b.mount,gweight=b.[weight]
+		,emount=ISNULL(a.mount,0)-ISNULL(b.mount,0),eweight=ISNULL(a.[weight],0)-ISNULL(b.[weight],0)
+	from @tmpa a
+	left join(select uno,SUM(ISNULL(mount,0)) mount,SUM(ISNULL([weight],0)) [weight] from @tmpb group by uno) b on a.uno=b.uno	
+	
+	delete @tmpa where gmount<=0 or eweight<=0
+------------------------------------------------------------------------------------------------------------------------------
+	update @tmpa set gno='1',productno=b.productno,product=b.product,size=replace(b.size,'~#$',"'")
+		,dime=b.dime,width=b.width,lengthb=b.lengthb,radius=b.radius,[source]=b.[source]
+		,itype=b.itype,price=b.sprice,total=round(ISNULL(b.sprice,0)*ISNULL(eweight,0),0)
+		,style=b.style,class=b.class
+	from @tmpa a
+	left join view_uccb b on a.uno=b.uno
+
+	delete @tmpa 
+	where not( (len(@t_itype)=0 or CHARINDEX(','+itype+',',','+@t_itype+',')>0)
+		and productno between @t_bproductno and @t_eproductno
+		and not upper(left(uno,1)) between 'X' and 'Z'
+	)
+	if len(@t_storeno)>0
+	begin
+		delete @tmpa where CHARINDEX(','+storeno+',',','+@t_storeno+',')<=0
+	end
+	
+	update @tmpa set recno=b.recno
+	from @tmpa a
+	left join (select sel,ROW_NUMBER()over(order by uno) recno from @tmpa) b on a.sel=b.sel
+	
+	insert into @tmpa(gno,emount,eweight,total)
+	select '2',SUM(ISNULL(emount,0)),SUM(ISNULL(eweight,0)),SUM(ISNULL(total,0))
+	from @tmpa
+
+	select a.gno 
+		--,ghref = 'z_unobd?$rr?'
+		,case when left(uno,1)='*' then '' else 'z_unobd?$a01' end ghref
+		,a.recno rr
+		,a.uno a01
+		--,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.uno +'</a>' a01
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+b.product +'</a>' a02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.productno +'</a>' a03
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.class +'</a>' a04
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+CAST(a.dime as nvarchar) +'</a>' a05
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+CAST(a.width as nvarchar) +'</a>' a06
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+CAST(a.lengthb as nvarchar) +'</a>' a07
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.size +'</a>' a08
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.[source] +'</a>' a09
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.emount,-1) +'</a>' a10
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.eweight,-1) +'</a>' a11
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.price,-1) +'</a>' a12
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.total,0) +'</a>' a13
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+c.store +'</a>' a14
+	from @tmpa a
+	left join style b on a.style=b.noa
+	left join store c on a.storeno=c.noa
+	order by a.gno,a.recno;

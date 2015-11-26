@@ -1,0 +1,845 @@
+z_anavccpk04:--z_anavccpk04
+	declare @t_bdate nvarchar(10)
+	declare @t_edate nvarchar(10)
+	declare @t_bcustno nvarchar(20)
+	declare @t_ecustno nvarchar(20)
+	declare @t_detail nvarchar(max)
+	declare @t_bproductno nvarchar(20) = case when '#non'=[10] then '' else [10] end
+	declare @t_eproductno nvarchar(20) = case when '#non'=[11] then char(255) else [11] end
+	
+	set @t_bdate = case when '#non'=[1] then '' else [1] end
+	set @t_edate = case when '#non'=[2] then char(255) else [2] end
+	set @t_bcustno = case when '#non'=[3] then '' else [3] end
+	set @t_ecustno = case when '#non'=[4] then char(255) else [4] end
+	declare @t_bdime float = 0
+	declare @t_edime float = 999
+	
+	begin try
+		set @t_bdime = cast([8] as float)
+		set @t_edime = cast([9] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	
+	set @t_detail = case when '#non'=[8] then '' else [8] end
+------------------------------------------------------------------------------------------------------------------------------
+	declare @result table(
+		gno nvarchar(10),
+		productno nvarchar(50),
+		products nvarchar(100),
+		dime float,
+		lengthb float,
+		width float,
+		mount float,
+		weight float,
+		stk1m float, --捲數
+		stk1w float, --捲重
+		stk2m float, --板數
+		stk2w float, --板重
+		need float,
+		ordeno nvarchar(30),
+		no2 nvarchar(10),
+		comp nvarchar(100),
+		memo nvarchar(MAX),
+		bwidth float
+	)
+	
+	insert @result 
+	select '2',b.productno,b.product,b.dime,b.lengthb,b.width,b.mount,b.weight,0,0,0,0
+	,b.weight,b.noa,b.no2,case when a.nick!='' then a.nick else left(a.comp,6) end,b.memo,cast(b.width as int)/100*100
+	from view_orde a left join view_ordes b on a.noa=b.noa 
+	where a.kind='A1' and b.productno!='' 
+	and (a.odate between @t_bdate and @t_edate)
+	and (a.custno between @t_bcustno and @t_ecustno)
+	and (b.productno between @t_bproductno and @t_eproductno)
+	and (b.dime between @t_bdime and @t_edime)
+	--排除已加工
+	and not exists (select * from view_cubs where ordeno=b.noa and no2=b.no2)
+	and not exists (select * from view_cuts where ordeno=b.noa and no2=b.no2)
+	
+	--排除已配料
+	declare @ordeno nvarchar(50)
+	declare @no2 nvarchar(50)
+	declare @pno nvarchar(50)
+	declare @dime float
+	declare @weight float--配料總重
+	declare @need float--須配料重
+	
+	declare cursor_table cursor for
+	select noa,productno,dime,sum(weight) from view_ordet a 
+	where exists (select * from @result where ordeno=a.noa and productno=a.productno and dime=a.dime)
+	group by noa,productno,dime
+	open cursor_table
+	fetch next from cursor_table
+	into @ordeno,@pno,@dime,@weight
+	while(@@FETCH_STATUS <> -1)
+	begin
+		if(@weight>0)
+		begin
+			declare cursor_table2 cursor for
+			select no2,need from @result where ordeno=@ordeno and productno=@pno and dime=@dime
+			open cursor_table2
+			fetch next from cursor_table2
+			into @no2,@need
+			while(@@FETCH_STATUS <> -1)
+			begin
+				if(@weight>0 and @need>0)
+				begin
+					if(@weight>=@need)
+					begin
+						update @result
+						set need=0
+						where CURRENT OF cursor_table2
+						
+						set @weight=@weight-@need
+					end
+					else
+					begin
+						update @result
+						set need=need-@weight
+						where CURRENT OF cursor_table2
+						
+						set set @weight=0
+					end
+					
+				end
+				else
+				begin
+					break
+				end
+				
+				fetch next from cursor_table2
+				into @no2,@need
+			end
+			close cursor_table2
+			deallocate cursor_table2
+		end
+	
+		fetch next from cursor_table
+		into @ordeno,@pno,@dime,@weight
+	end
+	close cursor_table
+	deallocate cursor_table
+	
+	--刪除配料需求=0
+	delete @result where need=0
+	
+	insert @result
+	select '0',productno,MAX(products),dime,lengthb,MAX(width),SUM(mount),SUM(weight)
+	,0,0,0,0,0
+	,'','','','',bwidth 
+	from @result a where gno='2'
+	group by productno,dime,lengthb,bwidth
+	
+	--更新庫存
+	update a
+	set stk1m=isnull(b.emount,0),stk1w=isnull(b.eweight,0),stk2m=isnull(c.emount,0),stk2w=isnull(c.eweight,0)
+	,need=case when isnull(b.eweight,0)+isnull(c.eweight,0)>a.weight then 0 else a.weight-(isnull(b.eweight,0)+isnull(c.eweight,0)) end
+	from @result a
+	outer apply (
+		select SUM(emount)emount,SUM(eweight)eweight from uccy ua 
+		outer apply(select top 1 * from view_uccb where ua.uno=uno)ub 
+		where ua.eweight>0 and ua.emount>0 and ub.lengthb=0 
+		and ub.productno=a.productno and ub.dime=a.dime and ub.lengthb=a.lengthb and ub.width between bwidth and (bwidth+99)
+	) b--捲
+	outer apply (
+		select SUM(emount)emount,SUM(eweight)eweight from uccy ua 
+		outer apply(select top 1 * from view_uccb where ua.uno=uno)ub 
+		where ua.eweight>0 and ua.emount>0 and ub.lengthb>0 
+		and ub.productno=a.productno and ub.dime=a.dime and ub.lengthb=a.lengthb and ub.width between bwidth and (bwidth+99)
+	)c--板
+	where gno='0'
+	
+	if(@t_detail='')
+		delete @result where gno='2' 
+	else
+		insert @result(gno,productno,dime,lengthb,bwidth)
+		select '1',productno,dime,lengthb,bwidth from @result a where gno='2' group by productno,dime,lengthb,bwidth
+	
+	select 
+	cast(dime as nvarchar(20))+' x '+cast(width as nvarchar(20))+' x '+cast(lengthb as nvarchar(20)) size
+	,dbo.getComma(mount,2)mount
+	,dbo.getComma(weight,2)weight
+	,dbo.getComma(stk1m,2)stk1m
+	,dbo.getComma(stk1w,2)stk1w
+	,dbo.getComma(stk2m,2)stk2m
+	,dbo.getComma(stk2w,2)stk2w
+	,dbo.getComma(need,2)need
+	,* 
+	from @result order by productno,dime,lengthb,bwidth,gno,ordeno,no2;
+
+z_anavccpk03:--z_anavccpk03
+	SET QUOTED_IDENTIFIER OFF
+	
+	declare @t_bproductno nvarchar(max) = case when '#non'=[5] then '' else [5] end
+	declare @t_eproductno nvarchar(max) = case when '#non'=[6] then char(255) else [6] end
+	declare @t_bdime float = 0
+	declare @t_edime float = 9999
+	declare @t_bwidth float = 0
+	declare @t_ewidth float = 99999
+	
+	begin try
+		set @t_bdime = cast([8] as float)
+		set @t_edime = cast([9] as float)
+		set @t_bwidth = cast([10] as float)
+		set @t_ewidth = cast([11] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	------------------------------------------------------------------------------------------
+	declare @tmpa table(
+		accy nvarchar(20),
+		ordeno nvarchar(20),
+		no2 nvarchar(10),
+		productno nvarchar(50),
+		dime float,
+		width float,
+		mount float,
+		[weight] float,
+		gmount float,
+		gweight float,
+		emount float,
+		eweight float
+	)
+	--前提：訂單編號不會重覆
+	insert into @tmpa (accy,ordeno,no2,productno,dime,width,mount,[weight])
+	select '',a.noa,b.no2,b.productno,b.dime,b.width,b.mount,b.[weight]
+	from view_orde a
+	left join view_ordes b on a.accy=b.accy and a.noa=b.noa
+	where b.noa is not null
+--	and LEFT(a.kind,1)='A'
+	and isnull(a.enda,0)=0 and isnull(a.cancel,0)=0  
+	and ISNULL(b.enda,0)=0 and isnull(b.cancel,0)=0
+	and b.productno between @t_bproductno and @t_eproductno
+	and b.dime between @t_bdime and @t_edime
+	and b.width between @t_bwidth and @t_ewidth
+	
+	update @tmpa set gmount=ISNULL(b.mount,0),gweight=ISNULL(b.[weight],0)
+	from @tmpa a
+	outer apply (select SUM(mount) mount,SUM([weight]) [weight] from view_vccs where ordeno=a.ordeno and no2=a.no2) b
+	update @tmpa set emount = cast(mount as decimal(10,3))-cast(gmount as decimal(10,3))
+		,eweight = cast([weight] as decimal(10,3))-cast(gweight as decimal(10,3))
+	------------------------------------------------------------------------------------------------
+	declare @tmpb table(
+		productno nvarchar(50),
+		dime float,
+		width float,
+		mount float,
+		[weight] float
+	)
+	insert into @tmpb(productno,dime,width,mount,[weight])
+	select productno,dime,width,SUM(emount),SUM([eweight])
+	from @tmpa
+	group by productno,dime,width
+	having not(SUM(emount)=0 and SUM([eweight])=0)
+	------------------------------------------------------------------------------------------------
+	declare @tmpc table(
+		productno nvarchar(50),
+		dime float,
+		width float,
+		mount float,
+		[weight] float
+	)
+	insert into @tmpc(productno,dime,width,mount,[weight])
+	select b.productno,b.dime,b.width,SUM(a.emount) mount,SUM(a.[eweight]) [weight]
+	from uccy a
+	left join view_uccb b on a.uno=b.uno
+	where b.uno is not null
+	--and LEFT(b.kind,1)='A'
+	and b.productno between @t_bproductno and @t_eproductno
+	and b.dime between @t_bdime and @t_edime
+	and b.width between @t_bwidth and @t_ewidth
+	group by b.productno,b.dime,b.width
+	having not(SUM(a.emount)=0 and SUM(a.[eweight])=0)
+	------------------------------------------------------------------------------------------------
+	declare @tmpd table(
+		gno nvarchar(20),
+		recno int,
+		productno nvarchar(50),
+		product nvarchar(200),
+		dime float,
+		width float,
+		mount1 float,
+		weight1 float,
+		mount2 float,
+		weight2 float
+	)
+	insert into @tmpd(gno,recno,productno,dime,width,mount1,[weight1],mount2,[weight2])
+	select '1',ROW_NUMBER()over(order by productno,dime,width),productno,dime,width,SUM(mount1),SUM(weight1),SUM(mount2),SUM(weight2)
+	from(
+		select productno,dime,width,mount mount1,[weight] weight1,0 mount2,0 weight2 from @tmpb
+		union all
+		select productno,dime,width,0,0,mount,[weight] from @tmpc)a
+	group by productno,dime,width
+	
+	update @tmpd set product=b.product
+	from @tmpd a
+	left join ucc b on a.productno=b.noa
+	
+	select recno rr
+		,productno b01
+		,replace(product,'~#$',"'") b02
+		,dime b03
+		,width b04
+		,dbo.getComma(mount1,3) b05
+		,dbo.getComma(weight1,3) b06
+		,dbo.getComma(mount2,3) b07
+		,dbo.getComma(weight2,3) b08
+		,* 
+	from @tmpd order by recno;
+
+z_anavccpk02:--z_anavccpk02
+	SET QUOTED_IDENTIFIER OFF 
+	declare @cmd nvarchar(max) 
+
+	declare @t_bdate nvarchar(10)= case when '#non'=[1] then '' else [1] end
+	declare @t_edate nvarchar(10)= case when '#non'=[2] then char(255) else [2] end
+	declare @t_bcustno nvarchar(20)= case when '#non'=[3] then '' else [3] end
+	declare @t_ecustno nvarchar(20)= case when '#non'=[4] then char(255) else [4] end
+	declare @t_bproductno nvarchar(20) = case when '#non'=[5] then '' else [5] end
+	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
+	declare @t_sort nvarchar(max) = case when '#non'=[7] then '' else [7] end
+	declare @t_bdime float = case when '#non'=[8] then 0 else cast([8] as float) end
+	declare @t_edime float = case when '#non'=[9] then 9999999 else cast([9] as float) end
+	
+	-----------------------------------------------------------------------------------
+	declare @tmpa table(
+		sel int identity(1,1),
+		accy nvarchar(20),
+		noa nvarchar(20),
+		custno nvarchar(20),
+		tranmoney float,
+		typea nvarchar(20)
+	)
+	
+	--出貨單 VCCS  只抓買賣的
+	insert into @tmpa(accy,noa,custno,tranmoney,typea)
+	select a.accy,a.noa,a.custno,isnull(a.tranmoney,0),a.typea 
+	from view_vcc a
+	where a.datea between @t_bdate and @t_edate
+	--and a.custno between @t_bcustno and @t_ecustno
+	and a.stype='1'
+	-------------------------------------------------------------------------------------
+	declare @tmpb table(
+		sel int identity(1,1),
+		pno nvarchar(10),
+		tablea nvarchar(20),
+		accy nvarchar(20),
+		noa nvarchar(20),
+		noq nvarchar(20),
+		custno nvarchar(20),
+		tranmoney float,
+		uno nvarchar(30),
+		productno nvarchar(50),
+		dime float,
+		width float,
+		style nvarchar(20),
+		size nvarchar(50),
+		mount float,
+		[weight] float,
+		price float,
+		total float,
+		sprice float,
+		stotal float
+	)
+	declare @noa nvarchar(20)
+	declare @custno nvarchar(20)
+	declare @tranmoney float
+	declare @typea nvarchar(20)
+	
+	declare @noq nvarchar(20)
+	declare @uno nvarchar(30)
+	declare @productno nvarchar(50)
+	declare @dime float
+	declare @width float
+	declare @size nvarchar(50)
+	declare @mount float
+	declare @weight float
+	declare @price float
+	declare @total float
+	
+	declare @totweight float
+	
+	declare cursor_table cursor for
+	select noa,custno,tranmoney,typea from @tmpa 
+	open cursor_table
+	fetch next from cursor_table
+	into @noa,@custno,@tranmoney,@typea
+	while(@@FETCH_STATUS <> -1)
+	begin
+		declare cursor_table2 cursor for
+		select noq,uno,productno,dime,width,size,mount,[weight],price,total 
+			from view_vccs 
+			where noa=@noa 
+			and productno between @t_bproductno and @t_eproductno
+			and dime between @t_bdime and @t_edime
+		open cursor_table2
+		fetch next from cursor_table2
+		into @noq,@uno,@productno,@dime,@width,@size,@mount,@weight,@price,@total
+		while(@@FETCH_STATUS <> -1)
+		begin
+			insert into @tmpb(pno,tablea,accy,noa,noq
+				,uno,productno,style,size,dime,width,mount,[weight],price,total)
+			select '1','vccs',a.accy,a.noa,a.noq
+				,a.uno,a.productno,a.style,a.size,a.dime,a.width,a.mount,a.[weight],a.price,a.total
+			from view_vccs a
+			where a.noa=@noa and a.noq=@noq
+			--出貨單沒批號就到領料單找	
+			--productno都依出貨單
+			if LEN(@uno)=0
+			begin			
+				insert into @tmpb(pno,tablea,accy,noa,noq
+					,uno,productno,style,dime,width,size,mount,[weight])
+				select '2','gets',a.accy,a.noa,a.nor
+					,a.uno,@productno,a.style,@dime,@width,a.size,a.gmount,a.gweight
+				from view_gets a
+				where a.noa=@noa and a.nor=@noq
+			end
+			fetch next from cursor_table2
+			into @noq,@uno,@productno,@dime,@width,@size,@mount,@weight,@price,@total
+		end
+		close cursor_table2
+		deallocate cursor_table2
+		
+		fetch next from cursor_table
+		into @noa,@custno,@tranmoney,@typea
+	end
+	close cursor_table
+	deallocate cursor_table
+	---找成本單價
+	update @tmpb set sprice=isnull(b.sprice,0),stotal=ROUND(isnull(a.[weight],0)*ISNULL(b.sprice,0),0)
+	from @tmpb a
+	left join view_uccb b on a.uno=b.uno
+	-----------------------------------------------------------------------------------------------------
+	declare @tmpc table(
+		sel int identity(1,1),
+		recno int,
+		gno nvarchar(20),
+		custno nvarchar(20),
+		cust nvarchar(20),
+		productno nvarchar(50),
+		dime float,
+		[weight] float,
+		total float,
+		stotal float,
+		profit float,
+		rate float
+	)
+	insert into @tmpc(gno,productno,dime,[weight],total,stotal)
+	select '1',a.productno,a.dime
+		,sum(case when b.typea='1' then 1 else -1 end * case when tablea='vccs' then 1 else 0 end * isnull(a.[weight],0))
+		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.total,0))
+		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.stotal,0))
+	from @tmpb a
+	left join @tmpa b on a.noa=b.noa
+	group by a.productno,a.dime
+	
+	update @tmpc set rate = case when ISNULL(stotal,0)=0 then 0 else ROUND((total-stotal)/stotal*100,2) end
+	update @tmpc set profit = ISNULL(total,0)-ISNULL(stotal,0)
+	
+	insert into @tmpc(gno,productno,dime,weight,total,stotal,profit)
+	select '2',CHAR(255),null,SUM(ISNULL(weight,0)),SUM(ISNULL(total,0)),SUM(ISNULL(stotal,0)),SUM(ISNULL(profit,0)) from @tmpc 	
+	
+	update @tmpc set rate=case when stotal=0 then 0 else ROUND((total-stotal)/stotal*100,2) end where gno='2'
+	
+	-- 排行：量、金額、毛利率、毛利     
+	if @t_sort = 'weight'
+	begin
+		update @tmpc set recno=b.recno
+		from @tmpc a
+		left join (select sel,ROW_NUMBER()over(order by gno,[weight] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+	end
+	else if @t_sort = 'total'
+	begin
+		update @tmpc set recno=b.recno
+		from @tmpc a
+		left join (select sel,ROW_NUMBER()over(order by gno,[total] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+	end
+	else if @t_sort = 'rate'
+	begin
+		update @tmpc set recno=b.recno
+		from @tmpc a
+		left join (select sel,ROW_NUMBER()over(order by gno,[rate] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+	end
+	else
+	begin
+		update @tmpc set recno=b.recno
+		from @tmpc a
+		left join (select sel,ROW_NUMBER()over(order by gno,[profit] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+	end
+	
+	set @cmd = "日期："+@t_bdate+" ～ "+@t_edate
+	
+	select gno,recno rr
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+@cmd+'</a>' titlea
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+custno+'</a>' a01
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+cust+'</a>' a02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+productno+'</a>' a03
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(dime,-1)+'</a>' a04
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma([weight],0)+'</a>' a05
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(total,0)+'</a>' a06
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(stotal,0)+'</a>' a07
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(profit,0)+'</a>' a08
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(rate,2)+'</a>' a09
+	from @tmpc order by recno;
+
+z_anavccpk01:--z_anavccpk01	
+	SET QUOTED_IDENTIFIER OFF 
+	declare @cmd nvarchar(max) 
+
+	declare @t_bdate nvarchar(10)= case when '#non'=[1] then '' else [1] end
+	declare @t_edate nvarchar(10)= case when '#non'=[2] then char(255) else [2] end
+	declare @t_bcustno nvarchar(20)= case when '#non'=[3] then '' else [3] end
+	declare @t_ecustno nvarchar(20)= case when '#non'=[4] then char(255) else [4] end
+	declare @t_bproductno nvarchar(20) = case when '#non'=[5] then '' else [5] end
+	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
+	declare @t_sort nvarchar(max) = case when '#non'=[7] then '' else [7] end
+	declare @t_bdime float = case when '#non'=[8] then 0 else cast([8] as float) end
+	declare @t_edime float = case when '#non'=[9] then 9999999 else cast([9] as float) end
+	
+	-----------------------------------------------------------------------------------
+	declare @tmpa table(
+		sel int identity(1,1),
+		accy nvarchar(20),
+		noa nvarchar(20),
+		custno nvarchar(20),
+		tranmoney float,
+		typea nvarchar(20)
+	)
+	
+	--出貨單 VCCS  只抓買賣的
+	insert into @tmpa(accy,noa,custno,tranmoney,typea)
+	select a.accy,a.noa,a.custno,isnull(a.tranmoney,0),a.typea 
+	from view_vcc a
+	where a.datea between @t_bdate and @t_edate
+	and a.custno between @t_bcustno and @t_ecustno
+	and a.stype='1'
+	-------------------------------------------------------------------------------------
+	declare @tmpb table(
+		sel int identity(1,1),
+		pno nvarchar(10),
+		tablea nvarchar(20),
+		accy nvarchar(20),
+		noa nvarchar(20),
+		noq nvarchar(20),
+		custno nvarchar(20),
+		tranmoney float,
+		uno nvarchar(30),
+		productno nvarchar(30),
+		dime float,
+		width float,
+		style nvarchar(20),
+		size nvarchar(50),
+		mount float,
+		[weight] float,
+		price float,
+		total float,
+		sprice float,
+		stotal float
+	)
+	declare @noa nvarchar(20)
+	declare @custno nvarchar(20)
+	declare @tranmoney float
+	declare @typea nvarchar(20)
+	
+	declare @noq nvarchar(20)
+	declare @uno nvarchar(30)
+	declare @productno nvarchar(30)
+	declare @dime float
+	declare @width float
+	declare @size nvarchar(50)
+	declare @mount float
+	declare @weight float
+	declare @price float
+	declare @total float
+	
+	declare @totweight float
+	
+	declare cursor_table cursor for
+	select noa,custno,tranmoney,typea from @tmpa 
+	open cursor_table
+	fetch next from cursor_table
+	into @noa,@custno,@tranmoney,@typea
+	while(@@FETCH_STATUS <> -1)
+	begin
+		declare cursor_table2 cursor for
+		select noq,uno,productno,dime,width,size,mount,[weight],price,total 
+			from view_vccs 
+			where noa=@noa 
+			and productno between @t_bproductno and @t_eproductno
+			and dime between @t_bdime and @t_edime
+		open cursor_table2
+		fetch next from cursor_table2
+		into @noq,@uno,@productno,@dime,@width,@size,@mount,@weight,@price,@total
+		while(@@FETCH_STATUS <> -1)
+		begin
+			insert into @tmpb(pno,tablea,accy,noa,noq
+				,uno,productno,style,size,dime,width,mount,[weight],price,total)
+			select '1','vccs',a.accy,a.noa,a.noq
+				,a.uno,a.productno,a.style,a.size,a.dime,a.width,a.mount,a.[weight],a.price,a.total
+			from view_vccs a
+			where a.noa=@noa and a.noq=@noq
+			--出貨單沒批號就到領料單找	
+			--productno都依出貨單
+			if LEN(@uno)=0
+			begin
+				insert into @tmpb(pno,tablea,accy,noa,noq
+					,uno,productno,style,dime,width,size,mount,[weight])
+				select '2','gets',a.accy,a.noa,a.nor
+					,a.uno,@productno,a.style,@dime,@width,a.size,a.gmount,a.gweight
+				from view_gets a
+				where a.noa=@noa and a.nor=@noq
+			end
+			fetch next from cursor_table2
+			into @noq,@uno,@productno,@dime,@width,@size,@mount,@weight,@price,@total
+		end
+		close cursor_table2
+		deallocate cursor_table2
+		
+		fetch next from cursor_table
+		into @noa,@custno,@tranmoney,@typea
+	end
+	close cursor_table
+	deallocate cursor_table
+	---找成本單價
+	update @tmpb set sprice=isnull(b.sprice,0),stotal=ROUND(isnull(a.[weight],0)*ISNULL(b.sprice,0),0)
+	from @tmpb a
+	left join view_uccb b on a.uno=b.uno
+	-----------------------------------------------------------------------------------------------------
+	declare @tmpc table(
+		sel int identity(1,1),
+		recno int,
+		gno nvarchar(20),
+		custno nvarchar(20),
+		cust nvarchar(20),
+		productno nvarchar(30),
+		dime float,
+		[weight] float,
+		total float,
+		stotal float,
+		profit float,
+		rate float
+	)
+	insert into @tmpc(gno,custno,cust,productno,dime,[weight],total,stotal)
+	select '1',b.custno,c.nick,a.productno,a.dime
+		,sum(case when b.typea='1' then 1 else -1 end * case when tablea='vccs' then 1 else 0 end * isnull(a.[weight],0))
+		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.total,0))
+		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.stotal,0))
+	from @tmpb a
+	left join @tmpa b on a.noa=b.noa
+	left join cust c on b.custno=c.noa
+	group by b.custno,c.nick,a.productno,a.dime
+	
+	update @tmpc set rate = case when ISNULL(stotal,0)=0 then 0 else ROUND((total-stotal)/stotal*100,2) end
+	update @tmpc set profit = ISNULL(total,0)-ISNULL(stotal,0)
+	
+	insert into @tmpc(gno,custno,cust,productno,dime,weight,total,stotal,profit)
+	select '2',CHAR(255),char(255),char(255),null,SUM(ISNULL(weight,0)),SUM(ISNULL(total,0)),SUM(ISNULL(stotal,0)),SUM(ISNULL(profit,0)) from @tmpc 	
+	
+	update @tmpc set rate=case when stotal=0 then 0 else ROUND((total-stotal)/stotal*100,2) end where gno='2'
+	
+	-- 排行：量、金額、毛利率、毛利     
+	if @t_sort = 'weight'
+	begin
+		update @tmpc set recno=b.recno
+		from @tmpc a
+		left join (select sel,ROW_NUMBER()over(order by gno,[weight] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+	end
+	else if @t_sort = 'total'
+	begin
+		update @tmpc set recno=b.recno
+		from @tmpc a
+		left join (select sel,ROW_NUMBER()over(order by gno,[total] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+	end
+	else if @t_sort = 'rate'
+	begin
+		update @tmpc set recno=b.recno
+		from @tmpc a
+		left join (select sel,ROW_NUMBER()over(order by gno,[rate] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+	end
+	else
+	begin
+		update @tmpc set recno=b.recno
+		from @tmpc a
+		left join (select sel,ROW_NUMBER()over(order by gno,[profit] desc,sel) recno from @tmpc ) b on a.sel=b.sel
+	end
+	
+	set @cmd = "日期："+@t_bdate+" ～ "+@t_edate
+	select gno,recno rr
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+@cmd+'</a>' titlea
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+custno+'</a>' a01
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+cust+'</a>' a02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+productno+'</a>' a03
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(dime,-1)+'</a>' a04
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma([weight],0)+'</a>' a05
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(total,0)+'</a>' a06
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(stotal,0)+'</a>' a07
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(profit,0)+'</a>' a08
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(rate,2)+'</a>' a09
+	from @tmpc order by recno;
+
+z_anavccpk01xxx:--z_anavccpk01xxxx
+	SET QUOTED_IDENTIFIER OFF
+	declare @cmd nvarchar(max)
+	
+	declare @t_bdate nvarchar(10)= case when '#non'=[1] then '' else [1] end
+	declare @t_edate nvarchar(10)= case when '#non'=[2] then char(255) else [2] end
+	declare @t_bcustno nvarchar(20)= case when '#non'=[3] then '' else [3] end
+	declare @t_ecustno nvarchar(20)= case when '#non'=[4] then char(255) else [4] end
+	
+	-----------------------------------------------------------------------------------
+	IF OBJECT_ID('tempdb..#z_anavccpk01')is not null
+	BEGIN
+		drop table #z_anavccpk01
+	END
+	create table #z_anavccpk01(
+		rr1 int,
+		rr2 int,
+		tablea nvarchar(20),
+		gno nvarchar(10),
+		noa nvarchar(20),
+		noq nvarchar(10),
+		typea nvarchar(10),
+		datea nvarchar(20),
+		custno nvarchar(20),
+		salesno nvarchar(20),
+		productno nvarchar(20),
+		product nvarchar(50),
+		style nvarchar(20),
+		uno nvarchar(30),
+		csize nvarchar(max),
+		class nvarchar(max),
+		spec nvarchar(max),
+		unit nvarchar(20),
+		[weight] decimal(20,3),
+		mount float,
+		price float,
+		total float,
+		sprice float,
+		floata float,
+		vcctranmoney float,
+		vccweight float,
+		stotal float,
+		tranmoney float,
+		profit float,
+		rate float
+	)
+	create index no1 on #z_anavccpk01(noa,noq,custno)
+	create index no2 on #z_anavccpk01(custno)
+
+	--運費都平均分攤
+	--出貨單 VCCS  只抓買賣的
+	insert into #z_anavccpk01(tablea,gno,noa,noq,typea,datea,custno,salesno,productno,product,style,uno,csize,class,spec,unit,[weight],mount,price,total
+		,sprice,floata,vcctranmoney,vccweight)
+	select 'vccs','2',a.noa,a.noq,isnull(b.typea,'0'),isnull(b.datea,'0'),b.custno,b.salesno,a.productno,a.product,a.style,a.uno
+	,replace(case when len(a.size)>0 then a.size when len(c.size)>0 then c.size else dbo.csize(a.style,a.dime,a.width,a.lengthb,a.radius) end,'~#$',char(39))
+	,a.class,a.spec
+	,a.unit,a.[weight],a.mount
+	,case when ISNULL(b.floata,0)=0 then a.price else ROUND(b.floata*a.price,2) end
+	,a.total,isnull(c.sprice,0),b.floata,b.tranmoney,d.[weight]
+	from view_vccs a
+	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+	left join view_uccb c on a.uno=c.uno
+	outer apply (select sum(isnull([weight],0)) [weight] from view_vccs where accy=a.accy and noa=a.noa and (len(isnull(uno,''))>0 or dime!=0)) d
+	where b.noa is not null
+	and (len(isnull(a.uno,''))>0 or a.dime!=0) 
+	and ISNULL(a.total,0)!=0
+	and isnull(b.datea,'') between @t_bdate and @t_edate
+	and isnull(b.custno,'') between @t_bcustno and @t_ecustno
+	and isnull(c.itype,'')='1'
+	
+	--抓退貨的成本單價
+	update #z_anavccpk01 set sprice=isnull(b.sprice,0)
+	from #z_anavccpk01 a
+	outer apply(select top 1 z.sprice
+		,replace(case when len(y.size)>0 then y.size when len(z.size)>0 then z.size else dbo.csize(y.style,y.dime,y.width,y.lengthb,y.radius) end,'~#$',char(39)) size
+		from view_vcc x 
+		left join view_vccs y on x.accy=y.accy and x.noa=y.noa
+		left join view_uccb z on y.uno=z.uno
+		where isnull(x.typea,'0')='1' 
+		and a.custno=x.custno
+		and a.datea>=x.datea
+		and a.noa!=y.noa 
+		order by x.datea,x.noa
+		) b
+	where a.typea!='1'
+	and a.csize=b.size
+	
+	--領料單 GETS  有批號的才抓
+	insert into #z_anavccpk01(tablea,gno,noa,noq,typea,datea,custno,salesno,productno,product,style,uno,csize,class,spec,unit
+		,[weight],mount,price,total
+		,sprice,floata,vcctranmoney,vccweight)
+	select 'gets','2',a.noa,a.noq,isnull(d.typea,'0'),isnull(d.datea,'0'),d.custno,d.salesno,a.productno,a.product,a.style,a.uno
+		,replace(case when len(a.size)>0 then a.size when len(e.size)>0 then e.size else dbo.csize(a.style,a.dime,a.width,a.lengthb,a.radius) end,'~#$',char(39))
+		,a.class,a.spec
+		,c.unit,a.[gweight],a.gmount,c.price,ROUND(a.gweight*c.price,0)
+		,isnull(e.sprice,0),d.floata,d.tranmoney,f.[gweight]
+	from view_gets a
+	left join view_get b on a.accy=b.accy and a.noa=b.noa
+	left join view_vccs c on a.noa=c.noa and a.nor=c.noq
+	left join view_vcc d on c.accy=d.accy and c.noa=d.noa
+	left join view_uccb e on a.uno=e.uno
+	outer apply (select sum(isnull([gweight],0)) [gweight] from view_gets where accy=a.accy and noa=a.noa and (len(isnull(uno,''))>0 or dime!=0)) f
+	where d.noa is not null
+	and len(isnull(a.uno,''))>0
+	and isnull(d.datea,'') between @t_bdate and @t_edate
+	and isnull(d.custno,'') between @t_bcustno and @t_ecustno
+
+	--   有運費時,重量不可為0, -99999錯誤提示用 
+	--   進貨的單價一律為台幣
+	update #z_anavccpk01 set stotal = round(isnull(a.[weight],0) * isnull(a.sprice,0),0)--* case when isnull(a.floata,0)=0 then 1 else a.floata end
+		,tranmoney =case when a.[vccweight]=0 then -99999 else round(a.vcctranmoney*a.[weight]/a.[vccweight],0) end
+	from #z_anavccpk01 a
+	
+	update #z_anavccpk01 set [weight] = case when typea='1' then 1 else -1 end * [weight] 
+		,mount = case when typea='1' then 1 else -1 end * [mount] 
+		,total = case when typea='1' then 1 else -1 end * [total] 
+		,stotal = case when typea='1' then 1 else -1 end * [stotal] 
+	
+	update #z_anavccpk01 set profit = total-stotal-tranmoney,rate = case when total=0 then 0 else round((total-stotal-tranmoney)/total*100,0) end
+	
+
+	insert into #z_anavccpk01(gno,custno,noa,noq,[weight],mount,total,stotal,tranmoney,profit)
+	select '1',custno,'','',SUM([weight]),SUM(mount),SUM(total),SUM(stotal),SUM(tranmoney),SUM(profit) from #z_anavccpk01 group by custno
+	
+	insert into #z_anavccpk01(gno,custno,noa,noq,[weight],mount,total,stotal,tranmoney,profit)
+	select '3',CHAR(255),'','',SUM([weight]),SUM(mount),SUM(total),SUM(stotal),SUM(tranmoney),SUM(profit) from #z_anavccpk01 where gno='2'
+	
+	update #z_anavccpk01 set rr1=b.recno
+	from #z_anavccpk01 a
+	left join (select ROW_NUMBER()over(order by total desc)recno,custno from #z_anavccpk01 where gno='1') b on a.custno=b.custno
+
+	update #z_anavccpk01 set rr2=c.recno
+	from #z_anavccpk01 a
+	left join (select ROW_NUMBER()over(partition by custno order by noa,noq) recno,noa,noq,custno from #z_anavccpk01) c on a.noa=c.noa and a.noq=c.noq and a.custno=c.custno
+
+	--if(len(@t_detail)=0)
+	--begin
+		delete #z_anavccpk01 where gno='2'
+	--end
+	--else
+	--begin
+	--	update #z_anavccpk01 set gno='4' where gno='1'
+	--end
+	
+	update #z_anavccpk01 set gno='5' where profit<0 and gno='1'
+	update #z_anavccpk01 set gno='6' where profit<0 and gno='4'
+	
+	set @cmd = "日期："+@t_bdate+" ～ "+@t_edate
+	
+	select gno
+	,ROW_NUMBER()over(order by case when rr1 is null then char(255) else ''end,rr1,rr2) rr
+	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+@cmd+'</a>' titlea
+	,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+b.nick +'</a>' nick
+	,dbo.getComma(a.[weight],0) a3
+	,dbo.getComma(a.total,0) a4
+	,dbo.getComma(a.stotal,0) a5
+	,case when a.tranmoney=0 then '' else dbo.getComma(a.tranmoney,0) end a6
+	,dbo.getComma(a.profit,0) a7
+	,case when isnull(a.total,0)=0  then null else cast(round(isnull(a.profit,0)/isnull(a.total,0)*100,2) as decimal(20,2)) end a8
+	,ghref = 'z_unobd?$uno?'
+	from #z_anavccpk01 a
+	left join cust b on a.custno=b.noa
+	order by case when rr1 is null then char(255) else ''end,rr1,rr2;

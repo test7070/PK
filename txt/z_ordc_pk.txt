@@ -1,0 +1,94 @@
+z_ordc_pk01:--z_ordc_pk01	
+	SET QUOTED_IDENTIFIER OFF 
+	declare @t_path nvarchar(max)= '[1]'
+	declare @t_db nvarchar(max)= '[2]'
+	declare @t_noa nvarchar(max)= case when '#non'=[3] then '' else [3] end
+	----------------------------------------------------------------------------------
+	declare @tmp table(
+		sel int identity(1,1),
+		gno nvarchar(10),
+		
+		odate nvarchar(20),
+		tggno nvarchar(20),
+		tgg nvarchar(30),
+		tel nvarchar(50),
+		fax nvarchar(50),
+		addr nvarchar(100),
+		conn nvarchar(20),
+		memo nvarchar(50),
+		
+		accy nvarchar(10),
+		noa nvarchar(20),
+		noq nvarchar(10),
+		size nvarchar(50),
+		mount float,
+		[weight] float,
+		price float,
+		[money] float,
+		datea nvarchar(20),
+		memos nvarchar(max)
+	)
+	insert into @tmp(gno,odate,tggno,tgg,tel,fax,addr,conn,memo
+		,accy,noa,noq,size,mount,[weight],price,[money],datea,memos)
+	select '1',b.odate,b.tggno,b.tgg,b.tel,b.fax,b.addr,'',b.memo
+		,a.accy,a.noa,a.no2,a.size,a.mount,a.[weight],a.price,a.[total],a.datea,a.memo
+	from view_ordcs a
+	left join view_ordc b on a.accy=b.accy and a.noa=b.noa
+	where a.noa=@t_noa
+---------------------------------------------------------------------------------------------------------------
+	insert into @tmp(gno,tggno,odate,noa,tgg,tel,fax,addr,[mount],[weight],[money])
+	select '3',tggno,odate,noa,tgg,tel,fax,addr,SUM(ISNULL([mount],0)),SUM(ISNULL([weight],0)),SUM(ISNULL([money],0))
+	from @tmp a
+	group by gno,tggno,odate,noa,tgg,tel,fax,addr
+	
+	
+	declare @nrow int = 5
+	declare @odate nvarchar(10)
+	declare @tggno nvarchar(20)
+	declare @tgg nvarchar(100)
+	declare @tel nvarchar(50)
+	declare @fax nvarchar(50)
+	declare @addr nvarchar(100)
+	declare @n int
+	-- 補空白行
+	
+    declare cursor_table cursor for
+    select tggno,tgg,tel,fax,addr,odate,count(1) from @tmp group by tggno,tgg,tel,fax,addr,odate
+    open cursor_table
+    fetch next from cursor_table
+    into @tggno,@tgg,@tel,@fax,@addr,@odate,@n
+    while(@@FETCH_STATUS <> -1)
+    begin
+        while @n%@nrow!=0
+        begin
+			insert into @tmp(gno,tggno,tgg,tel,fax,addr,odate)
+            select '2',@tggno,@tgg,@tel,@fax,@addr,@odate
+            set @n = @n + 1
+        end
+        fetch next from cursor_table
+        into @tggno,@tgg,@tel,@fax,@addr,@odate,@n
+    end
+    close cursor_table
+    deallocate cursor_table
+	
+	select * 
+		,'<img src="'+@t_path+'getlogo.aspx?noa=JC01'+CHAR(38)+'db='+@t_db+'" style="height:120px"/>' logo
+		--,'' logo
+		,ROW_NUMBER()over(partition by tggno order by gno,tggno,datea,noa,noq) rr
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.tggno +'</a>' a01
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.tgg +'</a>' a02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.tel +'</a>' a03
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.fax +'</a>' a04
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.conn +'</a>' a05
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.odate +'</a>' a06
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.memo +'</a>' a07
+		
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.size +'</a>' b01
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.mount,-1) +'</a>' b02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.[weight],-1) +'</a>' b03
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.price,-1) +'</a>' b04
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(a.[money],-1) +'</a>' b05
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.datea +'</a>' b06
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+a.memos +'</a>' b07
+	from @tmp a
+	order by gno,tggno,datea,noa,noq;
