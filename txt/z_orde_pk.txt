@@ -17,6 +17,7 @@ declare @tmp1 table(
 	odate nvarchar(10),
 	datea nvarchar(10),
 	nick nvarchar(50),
+	sales nvarchar(20),
 	custorde nvarchar(50),
 	comptel nvarchar(100),
 	addr nvarchar(max),
@@ -41,7 +42,7 @@ declare @tmp1 table(
 )
 
 insert into @tmp1
-select '0',a.noa,a.odate,b.datea,a.nick,a.custorde+ '   ' + a.contract,
+select '0',a.noa,a.odate,b.datea,a.nick,a.sales,a.custorde+ '   ' + a.contract,
 	   case when LEN(dbo.split(a.addr2,'/',0)) > 0 then dbo.split(a.addr2,'/',0) + '/' + dbo.split(a.addr2,'/',1)else + dbo.split(a.addr2,'/',1) end,
 	   dbo.split(a.addr2,'/',2),a.memo,--簽單號碼
 	   b.ucolor,b.scolor,
@@ -64,6 +65,7 @@ declare @tmp2 table(
 	datea nvarchar(10),
 	nick nvarchar(50),
 	custorde nvarchar(50),
+	sales nvarchar(20),
 	comptel nvarchar(100),
 	addr nvarchar(max),
 	memo nvarchar(max),
@@ -107,8 +109,8 @@ begin
 	begin
 		set @srecno = 1 
 		
-		insert into @tmp2(gno,noa,odate,datea,nick,custorde,comptel,addr,memo,s_ucolor1,s_scolor1,s_pno1,s_size1,s_mount1,s_munit1,s_weight1,s_price1,s_punit1,s_memo1) 
-		select gno,noa,odate,datea,nick,custorde,comptel,addr,memo,s_ucolor,s_scolor,s_pno,REPLACE (s_size,'~#$',"'"),s_mount,s_munit,s_weight,s_price,s_punit,s_memo
+		insert into @tmp2(gno,noa,odate,datea,nick,sales,custorde,comptel,addr,memo,s_ucolor1,s_scolor1,s_pno1,s_size1,s_mount1,s_munit1,s_weight1,s_price1,s_punit1,s_memo1) 
+		select gno,noa,odate,datea,nick,sales,custorde,comptel,addr,memo,s_ucolor,s_scolor,s_pno,REPLACE (s_size,'~#$',"'"),s_mount,s_munit,s_weight,s_price,s_punit,s_memo
 		from @tmp1 where idno = @idno1 
 		
 		set @noa2 = @noa1 
@@ -397,7 +399,7 @@ update @tmp2 set s_price8 = null where s_price8 = 0
 update @tmp2 set s_price9 = null where s_price9 = 0
 update @tmp2 set s_price10 = null where s_price10 = 0 
 
-select gno,noa,odate,datea,nick,custorde,comptel,addr,memo,
+select gno,noa,odate,datea,nick,sales,custorde,comptel,addr,memo,
 	   s_ucolor1,s_ucolor2,s_ucolor3,s_ucolor4,s_ucolor5,s_ucolor6,s_ucolor7,s_ucolor8,s_ucolor9,s_ucolor10,
 	   s_scolor1,s_scolor2,s_scolor3,s_scolor4,s_scolor5,s_scolor6,s_scolor7,s_scolor8,s_scolor9,s_scolor10,
 	   s_pno1,s_pno2,s_pno3,s_pno4,s_pno5,s_pno6,s_pno7,s_pno8,s_pno9,s_pno10,	
