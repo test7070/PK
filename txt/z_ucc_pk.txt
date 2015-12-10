@@ -28,13 +28,13 @@ z_ucc_pk02:--z_ucc_pk02
 	--ina
 	insert into @tmp(uno,storeno,[weight],[money])
 	select a.uno
-	,isnull(b.storeno,'')
+	,isnull(a.storeno,'')
 	,SUM(ISNULL(a.[weight],0)),SUM(ISNULL(a.total,0))
 	from view_inas a
 	left join view_ina b on b.accy=a.accy and a.noa=b.noa
 	where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
 	and b.datea<=@t_edate
-	group by a.uno,isnull(b.storeno,'')
+	group by a.uno,isnull(a.storeno,'')
 	--cut
 	insert into @tmp(uno,storeno,[weight],[money])
 	select a.bno
@@ -127,12 +127,12 @@ z_ucc_pk02:--z_ucc_pk02
 
 	---------------------------------------------------------------------------------------------------------
 	declare cursor_table cursor for
-	select a.uno,isnull(b.storeno,''),SUM( case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end) 
+	select a.uno,isnull(a.storeno,''),SUM( case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end) 
 	from view_gets a
 	left join view_get b on a.accy=b.accy and a.noa=b.noa
 	where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
 	and b.datea<=@t_edate
-	group by a.uno,isnull(b.storeno,'')
+	group by a.uno,isnull(a.storeno,'')
 	open cursor_table
 	fetch next from cursor_table
 	into @uno,@storeno,@weight
