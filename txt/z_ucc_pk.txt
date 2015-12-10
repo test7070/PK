@@ -194,7 +194,7 @@ z_ucc_pk02:--z_ucc_pk02
 		deallocate cursor_table
 		--get
 		declare cursor_table cursor for
-		select a.uno,isnull(b.storeno,'')
+		select a.uno,isnull(a.storeno,'')
 			,-1*case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end 
 			,a.accy,a.noa,a.noq,a.productno,a.product,a.size
 			,a.mount,a.unit,b.datea
