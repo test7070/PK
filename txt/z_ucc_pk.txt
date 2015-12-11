@@ -153,7 +153,8 @@ z_ucc_pk02:--z_ucc_pk02
 	deallocate cursor_table
 	
 	update @tmpa set eweight = isnull([weight],0)-ISNULL(vccweight,0)-ISNULL(getweight,0)
-		,emoney = isnull([money],0)-ISNULL(vccmoney,0)-ISNULL(getmoney,0)
+		--,emoney = isnull([money],0)-ISNULL(vccmoney,0)-ISNULL(getmoney,0)
+	update @tmpa set emoney = round(isnull(price,0)*isnull(eweight,0),0)
 	--------------------------------------------------------------------------------------------------
 	declare @accy nvarchar(20)
 	declare @noa nvarchar(20)
