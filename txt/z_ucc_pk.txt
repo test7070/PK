@@ -864,6 +864,45 @@ z_ucc_pk01:--z_ucc_pk01
 		from #z_ucc_pk01 a
 		left join style b on a.style=b.noa
 	end
+	--找原批號
+	declare @sel int
+	declare @uno nvarchar(30)
+	declare @string nvarchar(30)
+	declare @isexist int
+	declare @uno2 nvarchar(30)
+	
+	declare cursor_table cursor for
+	select sel,ltrim(rtrim(uno)) from #z_ucc_pk01 where tablea='cuts'
+	open cursor_table
+	fetch next from cursor_table
+	into @sel,@uno
+	while(@@FETCH_STATUS <> -1)
+	begin
+		set @string=left(@uno,len(@uno)-1)
+		while LEN(@string)>0
+		begin		
+			select @isexist=0,@uno2=''
+			select @isexist=1,@uno2=uno2 from view_rc2s where uno=@string
+			if @isexist=0
+			begin
+				select @isexist=1,@uno2=uno2 from view_inas where uno=@string
+			end
+			if @isexist=1
+			begin
+				update #z_ucc_pk01 set uno2=@uno2 where sel=@sel
+				set @string=''
+			end
+			else
+			begin
+				set @string=left(@string,len(@string)-1)
+			end
+		end
+		fetch next from cursor_table
+		into @sel,@uno
+	end
+	close cursor_table
+	deallocate cursor_table
+
 	--寄庫
 	update #z_ucc_pk01 set custno=c.custno
 	from #z_ucc_pk01 a
