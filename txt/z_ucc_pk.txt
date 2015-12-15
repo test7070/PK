@@ -914,8 +914,15 @@ z_ucc_pk01:--z_ucc_pk01
 		 
 		update #z_ucc_pk01 set weight2=b.[weight]
 		from #z_ucc_pk01 a
-		outer apply (select SUM(isnull([weight],0)) [weight] 
-			from view_ordct where accy=a.accy and noa=a.noa and no2=a.no2) b
+		outer apply (select SUM(isnull(x.[weight],0)) [weight] 
+			from view_ordct x 
+			left join view_ordcs y on x.accy=y.accy and x.noa=y.noa	and x.no2=y.no2
+			left join view_ordc z on x.accy=z.accy and x.noa=z.noa
+			left join view_ordes yy on x.ordeno=yy.noa and x.no4=yy.no2
+			left join view_orde zz on x.ordeno=zz.noa
+			where x.accy=a.accy and x.noa=a.noa and x.no2=a.no2
+			and isnull(y.enda,0)=0 and isnull(z.enda,0)=0
+			and isnull(yy.enda,0)=0 and isnull(zz.enda,0)=0) b
 		where tablea='ordcs'
 		
 		update #z_ucc_pk01 set weight3 = isnull([weight],0) - isnull([weight2],0) where tablea='ordcs'
