@@ -819,7 +819,9 @@ z_ucc_pk01:--z_ucc_pk01
 		tlength float,
 		
 		weight2 float,--已受訂
-		weight3 float--可受訂
+		weight3 float,--可受訂
+		
+		uno2 nvarchar(30) --原批號
 	)
 	set @t_waste = UPPER(@t_waste)
 	
@@ -829,12 +831,12 @@ z_ucc_pk01:--z_ucc_pk01
 			,productno,product,dime,width,lengthb,radius,spec,style
 			,class,typea,[source],hard,waste,mount,[weight],mweight,size,memo,zinc
 			,scolor,ucolor,unit,kind,itype,custno,ordeno,no2,eweight,emount,laststoreno
-			,sprice,sprice2)
+			,sprice,sprice2,uno2)
 		select '1',uno,datea,tablea,[action],accy,noa,noq
 			,productno,product,dime,width,lengthb,radius,spec,style
 			,class,typea,[source],hard,waste,mount,[weight],mweight,size,memo,zinc
 			,scolor,ucolor,unit,kind,itype,custno,ordeno,no2,eweight,emount,laststoreno
-			,sprice,sprice2
+			,sprice,sprice2,uno2
 		from (select b.*, ISNULL( y.eweight, b.weight) eweight ,ISNULL( y.emount ,b.mount) emount,
 				case when ltrim(rtrim(isnull(y.cngstoreno,''))) = '' then b.storeno else y.cngstoreno end laststoreno
 			from uccy y
@@ -970,6 +972,7 @@ z_ucc_pk01:--z_ucc_pk01
 		,case when b.store is null then a.laststoreno else b.store end store
 		,a.[source]
 		,a.uno
+		,a.uno2
 		,a.product
 		,a.productno prono
 		,a.cstyle
