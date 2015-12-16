@@ -157,6 +157,9 @@
 						type : '8', //[36] 27
 						name : 'xdetail',
 						value : "1@明細".split(',')
+					}, {
+						type : '6', //[37] 28
+						name : 'xuno'
 					}]
 				});
 				q_popAssign();
@@ -164,7 +167,9 @@
 				q_langShow();
 				$('#Xoption').find('input[type=checkbox]').eq(1).prop('checked',true);
 				$('#Xoption').find('input[type=checkbox]').eq(2).prop('checked',true);
-				
+				$('#Xuno').css('width','98%');
+                $('#txtXuno').css('width','85%');
+                
 				$('#txtYdate').mask('999/99/99');
 				$('#txtYdate').val(q_date());
 				$('#txtYdate').datepicker();
