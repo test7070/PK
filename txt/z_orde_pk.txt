@@ -33,12 +33,12 @@ declare @tmp1 table(
 	s_weight float,
 	s_price float,
 	s_punit nvarchar(10),
-	s_memo nvarchar(max),
+	s_memo nvarchar(max)
 	
-	t_uno nvarchar(30),
-	t_pno nvarchar(30),
-	t_size nvarchar(max),
-	t_mount float	
+	--t_uno nvarchar(30),
+	--t_pno nvarchar(30),
+	--t_size nvarchar(max),
+	--t_mount float	
 )
 
 insert into @tmp1
@@ -49,13 +49,14 @@ select '0',a.noa,a.odate,b.datea,a.nick,a.sales,a.custorde+ '   ' + a.contract,
 	   case when LEN(b.productno)>0 then b.productno else b.product end,
 	   b.size,b.mount,b.unit2,
 	   case when CHARINDEX('show',@t_show)>0 then b.weight else null end,
-	   b.price,b.unit,b.memo,
-	   c.uno,c.productno,CAST(d.dime as nvarchar(10))+'x'+CAST(d.width as nvarchar(10))+'x'+CAST(d.lengthb as nvarchar(10)),c.mount
+	   b.price,b.unit,b.memo
+	   --c.uno,c.productno,CAST(d.dime as nvarchar(10))+'x'+CAST(d.width as nvarchar(10))+'x'+CAST(d.lengthb as nvarchar(10)),c.mount
 from view_orde a
 left join view_ordes b on a.noa = b.noa
-left join view_ordet c on b.noa = c.noa and b.no2 = c.no3 
-left join view_uccb d on c.uno = d.uno
+--left join view_ordet c on b.noa = c.noa and b.no2 = c.no3 
+--left join view_uccb d on c.uno = d.uno
 where (a.noa between @t_bnoa and @t_enoa)
+order by a.noa,b.no2
 
 declare @tmp2 table(
 	gno nvarchar(1),
@@ -287,84 +288,84 @@ end
 close cursor_table 
 deallocate cursor_table 
 
-declare @uno nvarchar(30) 
-declare @no int
-declare @trecno int
+--declare @uno nvarchar(30) 
+--declare @no int
+--declare @trecno int
 
-set @noa2 = 'zzzzzzzzzz' 
-set @idno2 = 1 
+--set @noa2 = 'zzzzzzzzzz' 
+--set @idno2 = 1 
 
-declare cursor_table cursor for 
-select noa,idno from @tmp1 where LEN(t_uno) > 0 order by noa,idno 
-open cursor_table 
-fetch next from cursor_table 
-into @noa1,@idno1
-while(@@FETCH_STATUS <> -1) 
-begin
-	set @no = (select MIN(idno) from @tmp2 where noa = @noa1)
-	if(@noa2 != @noa1 or @trecno%5 = 1) 
-	begin
-		set @trecno = 1 	
+--declare cursor_table cursor for 
+--select noa,idno from @tmp1 where LEN(t_uno) > 0 order by noa,idno 
+--open cursor_table 
+--fetch next from cursor_table 
+--into @noa1,@idno1
+--while(@@FETCH_STATUS <> -1) 
+--begin
+--	set @no = (select MIN(idno) from @tmp2 where noa = @noa1)
+--	if(@noa2 != @noa1 or @trecno%5 = 1) 
+--	begin
+--		set @trecno = 1 	
 		
-		update @tmp2 set t_uno1 = (select t_uno from @tmp1 where idno = @idno1),
-						 t_pno1 = (select t_pno from @tmp1 where idno = @idno1),
-						 t_size1 = (select t_size from @tmp1 where idno = @idno1),
-						 t_mount1 = (select t_mount from @tmp1 where idno = @idno1)				 				 
-		where idno = @no 
+--		update @tmp2 set t_uno1 = (select t_uno from @tmp1 where idno = @idno1),
+--						 t_pno1 = (select t_pno from @tmp1 where idno = @idno1),
+--						 t_size1 = (select t_size from @tmp1 where idno = @idno1),
+--						 t_mount1 = (select t_mount from @tmp1 where idno = @idno1)				 				 
+--		where idno = @no 
 				
-		set @noa2 = @noa1 
-		set @trecno = @trecno + 1 
-		set @idno2 = @idno2 + 1 
-	end 
-	else if(@trecno = 2) 
-	begin 		
-		update @tmp2 set t_uno2 = (select t_uno from @tmp1 where idno = @idno1), 
-						 t_pno2 = (select t_pno from @tmp1 where idno = @idno1),
-						 t_size2 = (select t_size from @tmp1 where idno = @idno1),
-						 t_mount2 = (select t_mount from @tmp1 where idno = @idno1)				 				 
-		where idno = @no 
+--		set @noa2 = @noa1 
+--		set @trecno = @trecno + 1 
+--		set @idno2 = @idno2 + 1 
+--	end 
+--	else if(@trecno = 2) 
+--	begin 		
+--		update @tmp2 set t_uno2 = (select t_uno from @tmp1 where idno = @idno1), 
+--						 t_pno2 = (select t_pno from @tmp1 where idno = @idno1),
+--						 t_size2 = (select t_size from @tmp1 where idno = @idno1),
+--						 t_mount2 = (select t_mount from @tmp1 where idno = @idno1)				 				 
+--		where idno = @no 
 				
-		set @noa2 = @noa1 
-		set @trecno = @trecno + 1 
-	end	
-	else if(@trecno = 3) 
-	begin 		
-		update @tmp2 set t_uno3 = (select t_uno from @tmp1 where idno = @idno1), 
-						 t_pno3 = (select t_pno from @tmp1 where idno = @idno1),
-						 t_size3 = (select t_size from @tmp1 where idno = @idno1),
-						 t_mount3 = (select t_mount from @tmp1 where idno = @idno1)				 				 
-		where idno = @no 
+--		set @noa2 = @noa1 
+--		set @trecno = @trecno + 1 
+--	end	
+--	else if(@trecno = 3) 
+--	begin 		
+--		update @tmp2 set t_uno3 = (select t_uno from @tmp1 where idno = @idno1), 
+--						 t_pno3 = (select t_pno from @tmp1 where idno = @idno1),
+--						 t_size3 = (select t_size from @tmp1 where idno = @idno1),
+--						 t_mount3 = (select t_mount from @tmp1 where idno = @idno1)				 				 
+--		where idno = @no 
 				
-		set @noa2 = @noa1 
-		set @trecno = @trecno + 1 
-	end	
-	else if(@trecno = 4) 
-	begin 		
-		update @tmp2 set t_uno4 = (select t_uno from @tmp1 where idno = @idno1), 
-						 t_pno4 = (select t_pno from @tmp1 where idno = @idno1),
-						 t_size4 = (select t_size from @tmp1 where idno = @idno1),
-						 t_mount4 = (select t_mount from @tmp1 where idno = @idno1)				 				 
-		where idno = @no 
+--		set @noa2 = @noa1 
+--		set @trecno = @trecno + 1 
+--	end	
+--	else if(@trecno = 4) 
+--	begin 		
+--		update @tmp2 set t_uno4 = (select t_uno from @tmp1 where idno = @idno1), 
+--						 t_pno4 = (select t_pno from @tmp1 where idno = @idno1),
+--						 t_size4 = (select t_size from @tmp1 where idno = @idno1),
+--						 t_mount4 = (select t_mount from @tmp1 where idno = @idno1)				 				 
+--		where idno = @no 
 				
-		set @noa2 = @noa1 
-		set @trecno = @trecno + 1 
-	end	else if(@trecno = 5) 
-	begin 		
-		update @tmp2 set t_uno5 = (select t_uno from @tmp1 where idno = @idno1), 
-						 t_pno5 = (select t_pno from @tmp1 where idno = @idno1),
-						 t_size5 = (select t_size from @tmp1 where idno = @idno1),
-						 t_mount5 = (select t_mount from @tmp1 where idno = @idno1)				 				 
-		where idno = @no 
+--		set @noa2 = @noa1 
+--		set @trecno = @trecno + 1 
+--	end	else if(@trecno = 5) 
+--	begin 		
+--		update @tmp2 set t_uno5 = (select t_uno from @tmp1 where idno = @idno1), 
+--						 t_pno5 = (select t_pno from @tmp1 where idno = @idno1),
+--						 t_size5 = (select t_size from @tmp1 where idno = @idno1),
+--						 t_mount5 = (select t_mount from @tmp1 where idno = @idno1)				 				 
+--		where idno = @no 
 				
-		set @noa2 = @noa1 
-		set @trecno = @trecno + 1 
-	end	
+--		set @noa2 = @noa1 
+--		set @trecno = @trecno + 1 
+--	end	
 	
-	fetch next from cursor_table 
-	into @noa1,@idno1 	
-end 
-close cursor_table 
-deallocate cursor_table 
+--	fetch next from cursor_table 
+--	into @noa1,@idno1 	
+--end 
+--close cursor_table 
+--deallocate cursor_table 
  
 update @tmp2 set s_mount1 = null where s_mount1 = 0
 update @tmp2 set s_mount2 = null where s_mount2 = 0
