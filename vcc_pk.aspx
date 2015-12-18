@@ -52,6 +52,7 @@
 				['txtProductno_', 'btnProduct_', 'ucc', 'noa,product', 'txtProductno_,txtProduct_', 'ucc_b.aspx'],
 				['txtUno_', 'btnUno_', 'view_uccc2', 'uno,productno,class,spec,style,product', '0txtUno_', 'uccc_seek_b2.aspx?;;;1=0', '95%', '60%'],
 				['txtStoreno2_', 'btnStoreno2_', 'store', 'noa,store', 'txtStoreno2_,txtStore2_', 'store_b.aspx'],
+				['txtStoreno_', 'btnStoreno_', 'store', 'noa,store', 'txtStoreno_,txtStore_', 'store_b.aspx'],
 				['txtCardealno', 'lblCardeal', 'cardeal', 'noa,comp', 'txtCardealno,txtCardeal', 'cardeal_b.aspx']
 				, ['txtStyle_', 'btnStyle_', 'style', 'noa,product', 'txtStyle_', 'style_b.aspx']
 			);
@@ -1408,8 +1409,6 @@
 				as['datea'] = abbm2['datea'];
 				as['tggno'] = abbm2['tggno'];
 				as['kind'] = abbm2['kind'];
-				if (abbm2['storeno'])
-					as['storeno'] = abbm2['storeno'];
 
 				t_err = '';
 				if (as['price'] != null && (dec(as['price']) > 99999999 || dec(as['price']) < -99999999))
@@ -2057,7 +2056,7 @@
 					<td align="center" style="width:60px;">寄Y<BR>代Z</td>
 					<td align="center" style="width:80px;"><a id='lblStore2_st'> </a></td>
 					<td align="center" style="width:180px;"><a id='lblMemos_st'></a></td>
-					
+					<td align="center" style="width:50px;"><a>領料倉</a></td>
 				</tr>
 				<tr style='background:#cad3ff;'>
 					<td align="center">
@@ -2119,7 +2118,11 @@
 						<input id="txtNo2.*" type="text" style="width:20%;" />
 						<input id="recno.*" type="hidden" />
 					</td>
-					
+					<td style="">
+						<input class="btn" id="btnStoreno.*" type="button" value='.' style=" font-weight: bold;width:1%;float:left;display:none;" />
+						<input id="txtStoreno.*" type="text" style="width:95%;" />
+						<input id="txtStore.*" type="text" style='width: 95%;'/>
+					</td>
 				</tr>
 			</table>
 		</div>

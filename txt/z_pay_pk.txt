@@ -75,6 +75,9 @@ z_pay_pk02:--z_pay_pk02 廠商對帳單(明細、日期)
 	declare @typea nvarchar(20)
 	declare @datea nvarchar(20)
 	
+	declare @lcno nvarchar(30)
+	declare @floata float
+	
 	declare @result table(
 		sel int identity(1,1),
 		gno nvarchar(10),
@@ -120,22 +123,34 @@ z_pay_pk02:--z_pay_pk02 廠商對帳單(明細、日期)
 	begin
 		
 		declare cursor_table2 cursor for
-		select noa,ordeno,typea,datea 
+		select noa,ordeno,typea,datea,lcno,floata
 		from view_rc2
 		where tggno=@tggno 
 		and ISNULL(datea,'') between @t_bdate and @t_edate
 		and left(noa,3)!='00Z'
 		union all
-		select noa,'',typea,datea 
+		select noa,'',typea,datea,'','' 
 		from bccin
 		where tggno=@tggno 
 		and ISNULL(datea,'') between @t_bdate and @t_edate
 		order by datea,noa
 		open cursor_table2
 		fetch next from cursor_table2
-		into @noa,@ordeno,@typea,@datea
+		into @noa,@ordeno,@typea,@datea,@lcno,@floata
 		while(@@FETCH_STATUS <> -1)
 		begin
+			--報單號碼
+			if LEN(@lcno)>0 or isnull(@floata,0)!=0
+			insert into @result(gno,pno,noq,tggno
+				,typea,datea,rc2no,memo)
+			select '1','1','',@tggno
+			,case when a.typea='1' then '進' else '退' end
+			,a.datea,a.noa
+			,case when LEN(@lcno)>0 then @lcno+'  ' else '' end
+				+case when isnull(@floata,0)!=0 then '匯率：'+dbo.getComma(@floata,4) else '' end
+			from view_rc2 a
+			where a.noa=@noa
+				
 			--進貨明細
 			insert into @result(gno,pno,noq,tggno
 				,typea,datea,rc2no,productno,product,mount,unit2,[weight],unit,price,moneys)
@@ -227,7 +242,7 @@ z_pay_pk02:--z_pay_pk02 廠商對帳單(明細、日期)
 			select '5','1',@tggno,@noa,CHAR(255),'合計：',@moneys
 			
 			fetch next from cursor_table2
-			into @noa,@ordeno,@typea,@datea
+			into @noa,@ordeno,@typea,@datea,@lcno,@floata
 		end
 		close cursor_table2
 		deallocate cursor_table2

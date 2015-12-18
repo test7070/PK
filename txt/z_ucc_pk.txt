@@ -2,6 +2,7 @@ z_ucc_pk02:--z_ucc_pk02
 	SET QUOTED_IDENTIFIER OFF
 	declare @t_edate nvarchar(20)=case when '#non'=[34] then '' else [34] end
 	declare @t_detail nvarchar(20) = case when '#non'=[36] then '' else [36] end
+	declare @t_uno nvarchar(max) = case when '#non'=[37] then '' else [37] end
 	------------------------------------------------------
 	declare @tmp table(
 		uno nvarchar(30),
@@ -28,13 +29,13 @@ z_ucc_pk02:--z_ucc_pk02
 	--ina
 	insert into @tmp(uno,storeno,[weight],[money])
 	select a.uno
-	,isnull(b.storeno,'')
+	,isnull(a.storeno,'')
 	,SUM(ISNULL(a.[weight],0)),SUM(ISNULL(a.total,0))
 	from view_inas a
 	left join view_ina b on b.accy=a.accy and a.noa=b.noa
 	where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
 	and b.datea<=@t_edate
-	group by a.uno,isnull(b.storeno,'')
+	group by a.uno,isnull(a.storeno,'')
 	--cut
 	insert into @tmp(uno,storeno,[weight],[money])
 	select a.bno
@@ -127,12 +128,12 @@ z_ucc_pk02:--z_ucc_pk02
 
 	---------------------------------------------------------------------------------------------------------
 	declare cursor_table cursor for
-	select a.uno,isnull(b.storeno,''),SUM( case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end) 
+	select a.uno,isnull(a.storeno,''),SUM( case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end) 
 	from view_gets a
 	left join view_get b on a.accy=b.accy and a.noa=b.noa
 	where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
 	and b.datea<=@t_edate
-	group by a.uno,isnull(b.storeno,'')
+	group by a.uno,isnull(a.storeno,'')
 	open cursor_table
 	fetch next from cursor_table
 	into @uno,@storeno,@weight
@@ -153,7 +154,8 @@ z_ucc_pk02:--z_ucc_pk02
 	deallocate cursor_table
 	
 	update @tmpa set eweight = isnull([weight],0)-ISNULL(vccweight,0)-ISNULL(getweight,0)
-		,emoney = isnull([money],0)-ISNULL(vccmoney,0)-ISNULL(getmoney,0)
+		--,emoney = isnull([money],0)-ISNULL(vccmoney,0)-ISNULL(getmoney,0)
+	update @tmpa set emoney = round(isnull(price,0)*isnull(eweight,0),0)
 	--------------------------------------------------------------------------------------------------
 	declare @accy nvarchar(20)
 	declare @noa nvarchar(20)
@@ -194,7 +196,7 @@ z_ucc_pk02:--z_ucc_pk02
 		deallocate cursor_table
 		--get
 		declare cursor_table cursor for
-		select a.uno,isnull(b.storeno,'')
+		select a.uno,isnull(a.storeno,'')
 			,-1*case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end 
 			,a.accy,a.noa,a.noq,a.productno,a.product,a.size
 			,a.mount,a.unit,b.datea
@@ -296,6 +298,8 @@ z_ucc_pk02:--z_ucc_pk02
 		
 	end
 	
+	if len(@t_uno)>0
+		delete @tmpa where not uno=@t_uno
 	------------------------------------------------------------------------------------------------------
 	update @tmpa set store=b.store
 	from @tmpa a
@@ -307,7 +311,7 @@ z_ucc_pk02:--z_ucc_pk02
 	from @tmpa where gno='1'
 
 --select * from @tmpa where uno='XX304L-1' order by uno,storeno,ISNULL(pno,'0')
-
+	
 	select ROW_NUMBER()over(order by gno,uno) rr
 		,gno
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+uno+'</a>' a01
@@ -330,7 +334,7 @@ z_ucc_pk02:--z_ucc_pk02
 		,datea b02
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(weight2,-1)+'</a>' b03
 	from @tmpa
-	order by uno,storeno,ISNULL(pno,'0');
+	order by uno,storeno,ISNULL(pno,'0'),datea;
 	
 z_ucc_pk02_old:--z_ucc_pk02_old
 	SET QUOTED_IDENTIFIER OFF
@@ -818,7 +822,9 @@ z_ucc_pk01:--z_ucc_pk01
 		tlength float,
 		
 		weight2 float,--已受訂
-		weight3 float--可受訂
+		weight3 float,--可受訂
+		
+		uno2 nvarchar(30) --原批號
 	)
 	set @t_waste = UPPER(@t_waste)
 	
@@ -828,12 +834,12 @@ z_ucc_pk01:--z_ucc_pk01
 			,productno,product,dime,width,lengthb,radius,spec,style
 			,class,typea,[source],hard,waste,mount,[weight],mweight,size,memo,zinc
 			,scolor,ucolor,unit,kind,itype,custno,ordeno,no2,eweight,emount,laststoreno
-			,sprice,sprice2)
+			,sprice,sprice2,uno2)
 		select '1',uno,datea,tablea,[action],accy,noa,noq
 			,productno,product,dime,width,lengthb,radius,spec,style
 			,class,typea,[source],hard,waste,mount,[weight],mweight,size,memo,zinc
 			,scolor,ucolor,unit,kind,itype,custno,ordeno,no2,eweight,emount,laststoreno
-			,sprice,sprice2
+			,sprice,sprice2,uno2
 		from (select b.*, ISNULL( y.eweight, b.weight) eweight ,ISNULL( y.emount ,b.mount) emount,
 				case when ltrim(rtrim(isnull(y.cngstoreno,''))) = '' then b.storeno else y.cngstoreno end laststoreno
 			from uccy y
@@ -861,6 +867,45 @@ z_ucc_pk01:--z_ucc_pk01
 		from #z_ucc_pk01 a
 		left join style b on a.style=b.noa
 	end
+	--找原批號
+	declare @sel int
+	declare @uno nvarchar(30)
+	declare @string nvarchar(30)
+	declare @isexist int
+	declare @uno2 nvarchar(30)
+	
+	declare cursor_table cursor for
+	select sel,ltrim(rtrim(uno)) from #z_ucc_pk01 where tablea='cuts'
+	open cursor_table
+	fetch next from cursor_table
+	into @sel,@uno
+	while(@@FETCH_STATUS <> -1)
+	begin
+		set @string=left(@uno,len(@uno)-1)
+		while LEN(@string)>0
+		begin		
+			select @isexist=0,@uno2=''
+			select @isexist=1,@uno2=uno2 from view_rc2s where uno=@string
+			if @isexist=0
+			begin
+				select @isexist=1,@uno2=uno2 from view_inas where uno=@string
+			end
+			if @isexist=1
+			begin
+				update #z_ucc_pk01 set uno2=@uno2 where sel=@sel
+				set @string=''
+			end
+			else
+			begin
+				set @string=left(@string,len(@string)-1)
+			end
+		end
+		fetch next from cursor_table
+		into @sel,@uno
+	end
+	close cursor_table
+	deallocate cursor_table
+
 	--寄庫
 	update #z_ucc_pk01 set custno=c.custno
 	from #z_ucc_pk01 a
@@ -911,8 +956,15 @@ z_ucc_pk01:--z_ucc_pk01
 		 
 		update #z_ucc_pk01 set weight2=b.[weight]
 		from #z_ucc_pk01 a
-		outer apply (select SUM(isnull([weight],0)) [weight] 
-			from view_ordct where accy=a.accy and noa=a.noa and no2=a.no2) b
+		outer apply (select SUM(isnull(x.[weight],0)) [weight] 
+			from view_ordct x 
+			left join view_ordcs y on x.accy=y.accy and x.noa=y.noa	and x.no2=y.no2
+			left join view_ordc z on x.accy=z.accy and x.noa=z.noa
+			left join view_ordes yy on x.ordeno=yy.noa and x.no4=yy.no2
+			left join view_orde zz on x.ordeno=zz.noa
+			where x.accy=a.accy and x.noa=a.noa and x.no2=a.no2
+			and isnull(y.enda,0)=0 and isnull(z.enda,0)=0
+			and isnull(yy.enda,0)=0 and isnull(zz.enda,0)=0) b
 		where tablea='ordcs'
 		
 		update #z_ucc_pk01 set weight3 = isnull([weight],0) - isnull([weight2],0) where tablea='ordcs'
@@ -969,6 +1021,7 @@ z_ucc_pk01:--z_ucc_pk01
 		,case when b.store is null then a.laststoreno else b.store end store
 		,a.[source]
 		,a.uno
+		,a.uno2
 		,a.product
 		,a.productno prono
 		,a.cstyle

@@ -20,6 +20,7 @@ z_uccpkk01:--z_uccpkk01
 		,sprice float
 		,sprice2 float
 		,isprice bit
+		,wprice float
 	)
 --rc2
 	--排除進口報單的
@@ -41,8 +42,8 @@ z_uccpkk01:--z_uccpkk01
 	from view_inas a
 	left join view_ina b on a.accy=b.accy and a.noa=b.noa
 --cuts
-	insert into @tmp(tablea,accy,noa,noq,uno,bno,isprice)
-	select 'cuts',a.accy,a.noa,a.noq,b.uno,a.bno,0
+	insert into @tmp(tablea,accy,noa,noq,uno,bno,isprice,wprice)
+	select 'cuts',a.accy,a.noa,a.noq,b.uno,a.bno,0,a.wprice
 	from view_cuts a
 	left join view_cut b on a.accy=b.accy and a.noa=b.noa
 	where len(isnull(a.bno,''))>0
@@ -63,7 +64,7 @@ z_uccpkk01:--z_uccpkk01
 	declare @sprice float
 	declare @sprice2 float
 	declare @isprice bit
-	
+
 	while @n>0
 	begin
 		set @n=@n-1
@@ -77,16 +78,16 @@ z_uccpkk01:--z_uccpkk01
 			set @isprice=0
 			if @isprice=0 and exists(select * from @tmp where uno=@uno and isprice=1)
 			begin
-				select @price=0
-				select @price=price from @tmp where uno=@uno and isprice=1
-				update @tmp set price=@price,sprice=@price,sprice2=@price,isprice=1 where sel=@sel
+				select @sprice=0,@sprice2=0
+				select @sprice=isnull(sprice,0),@sprice2=isnull(sprice2,0) from @tmp where uno=@uno and isprice=1
+				update @tmp set sprice=@sprice+isnull(wprice,0),sprice2=@sprice2,isprice=1 where sel=@sel
 				set @isprice=1
 			end
 			if @isprice=0 and exists(select * from @tmp where bno=@uno and isprice=1)
 			begin
-				select @price=0
-				select @price=price from @tmp where bno=@uno and isprice=1
-				update @tmp set price=@price,sprice=@price,sprice2=@price,isprice=1 where sel=@sel
+				select @sprice=0,@sprice2=0
+				select @sprice=isnull(sprice,0),@sprice2=isnull(sprice2,0)from @tmp where bno=@uno and isprice=1
+				update @tmp set sprice=@sprice+isnull(wprice,0),sprice2=@sprice2,isprice=1 where sel=@sel
 				set @isprice=1
 			end
 			

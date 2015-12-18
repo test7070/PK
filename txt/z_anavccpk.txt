@@ -531,7 +531,7 @@ z_anavccpk01:--z_anavccpk01
 		dime float,
 		width float,
 		style nvarchar(20),
-		size nvarchar(50),
+		size nvarchar(max),
 		mount float,
 		[weight] float,
 		price float,
@@ -549,7 +549,7 @@ z_anavccpk01:--z_anavccpk01
 	declare @productno nvarchar(30)
 	declare @dime float
 	declare @width float
-	declare @size nvarchar(50)
+	declare @size nvarchar(max)
 	declare @mount float
 	declare @weight float
 	declare @price float
