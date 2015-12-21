@@ -187,6 +187,7 @@
                 q_cmbParse("cmbTrantype",q_getPara('sys.tran'));
                 q_cmbParse("cmbTaxtype", q_getPara('sys.taxtype'));
                 q_cmbParse("combUcolor", ',A240,SUS','s');
+                q_cmbParse("cmbKind", q_getPara('sys.stktype'));
                 
                 $('#btnOrdei').hide();
                 var t_where = "where=^^ 1=1^^";
@@ -422,7 +423,6 @@
                         $('#chkIsproj').attr('checked',true);
                         $('#dbbt').hide();
                         $('#txtNoa').val('AUTO');
-                        $('#cmbKind').val(q_getPara('vcc.kind'));
                         $('#txtOdate').val(q_date());
                         if ($('#cmbStype').find("option:selected").text() == '外銷')
                             $('#btnOrdei').show();
@@ -1392,7 +1392,10 @@
                         	<input id="txtOdate"  type="text"  class="txt c1"/>
                         	<input id="txtKind"  type="text"  style="display:none;"/>
                         </td>
-                        <td><select id="cmbStype" class="txt c1"></select></td>
+                        <td>
+                        	<select id="cmbStype" class="txt c1"></select>
+                        	<select id="cmbKind" style="display:none;"></select>
+                        </td>
                         <td><span> </span><a id='lblDatea' class="lbl"> </a></td>
                         <td><input id="txtDatea"  type="text"  class="txt c1"/></td>
                         <td><span> </span><a id='lblCustorde' class="lbl"> </a></td>
