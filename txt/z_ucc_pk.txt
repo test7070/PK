@@ -918,7 +918,10 @@ z_ucc_pk01:--z_ucc_pk01
 	from #z_ucc_pk01 a
 	left join view_ordet b on a.uno=b.uno
 	left join view_orde c on b.accy=c.accy and b.noa=c.noa
+	left join view_ordes d on b.accy=d.accy and b.noa=d.noa and b.no2=d.no2
 	where c.noa is not null
+	and not ISNULL(c.enda,0)=1
+	and not ISNULL(d.enda,0)=1
 	
 	if CHARINDEX(',03,',','+@t_option+',')>0 and (len(@t_itype)=0 or @t_itype='1')
 	begin
