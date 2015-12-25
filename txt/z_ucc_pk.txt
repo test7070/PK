@@ -859,6 +859,8 @@ z_ucc_pk01:--z_ucc_pk01
 		and (len(@t_style)=0 or charindex(','+a.style+',',','+@t_style+',')>0)
 		and (len(@t_waste)=0 or upper(a.waste) = @t_waste)
 		and (len(@t_spec)=0 or isnull(a.class,'') = @t_spec)
+		and (len(@t_source)=0 or isnull(a.source,'') = @t_source)
+		
 		--and (len(@t_style2)=0 or CHARINDEX(','+a.style+',',','+@t_style2+',')>0)
 		--and (len(@t_productno2)=0 or CHARINDEX(','+a.productno+',',','+@t_productno2+',')>0)
 		and ISNULL(a.productno,'') between @t_bproductno3 and @t_eproductno3
