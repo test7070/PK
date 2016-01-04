@@ -275,14 +275,14 @@
 				});
 				//=====================================================================
 				/* 若非本會計年度則無法存檔 */
-				$('#txtDatea').focusout(function() {
+				/*$('#txtDatea').focusout(function() {
 					if ($(this).val().substr(0, 3) != r_accy) {
 						$('#btnOk').attr('disabled', 'disabled');
 						alert(q_getMsg('lblDatea') + '非本會計年度。');
 					} else {
 						$('#btnOk').removeAttr('disabled');
 					}
-				});
+				});*/
 				$('#btnVcceImport').click(function() {
 					var t_ordeno = $('#txtOrdeno').val();
 					var t_custno = $('#txtCustno').val();
@@ -1000,11 +1000,11 @@
 					Unlock(1);
 					return;
 				}
-				if ($('#txtDatea').val().substring(0, 3) != r_accy) {
+				/*if ($('#txtDatea').val().substring(0, 3) != r_accy) {
 					alert('年度異常錯誤，請切換到【' + $('#txtDatea').val().substring(0, 3) + '】年度再作業。');
 					Unlock(1);
 					return;
-				}
+				}*/
 
 				//判斷起算日,寫入帳款月份
 				/*if (!check_startdate && emp($('#txtMon').val())) {
