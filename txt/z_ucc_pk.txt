@@ -916,11 +916,11 @@ z_ucc_pk01:--z_ucc_pk01
 	where c.itype='3'
 	
 	--訂單
-	update #z_ucc_pk01 set ordeno=b.noa,no2=b.no2,custno=c.custno
+	update #z_ucc_pk01 set ordeno=b.noa,no2=b.no3,custno=c.custno
 	from #z_ucc_pk01 a
 	left join view_ordet b on a.uno=b.uno
 	left join view_orde c on b.accy=c.accy and b.noa=c.noa
-	left join view_ordes d on b.accy=d.accy and b.noa=d.noa and b.no2=d.no2
+	left join view_ordes d on b.accy=d.accy and b.noa=d.noa and b.no3=d.no2
 	where c.noa is not null
 	and not ISNULL(c.enda,0)=1
 	and not ISNULL(d.enda,0)=1
