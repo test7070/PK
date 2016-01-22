@@ -117,7 +117,7 @@
 				});
 				$('#btnCubm').click(function(e) {
                 	if(q_cur==1){return;}
-                    q_box("cubm.aspx?;;;noa='" + $('#txtNoa').val() + "'", 'cubm', "95%", "95%", q_getMsg("popCubm"));
+                    q_box("cubm_pk.aspx?;;;orderno='" + $('#txtNoa').val() + "'", 'cubm', "95%", "95%", q_getMsg("popCubm"));
                 });
 			}
 
