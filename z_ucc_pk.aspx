@@ -199,13 +199,13 @@
 				$('#Xstktype select').val('A1').change();
 				setDefaultValue();
 				size_change();
-				$('#Xitype .cmb').change(function() {
+				/*$('#Xitype .cmb').change(function() {
 					if ($('#Xitype .cmb').val() == '1') {
 						$('#Xtggno').hide();
 					} else {
 						$('#Xtggno').show();
 					}
-				});
+				});*/
 				$('.report').click(function() {
 					size_change();
 					$('#Xorderstatus select').change();
