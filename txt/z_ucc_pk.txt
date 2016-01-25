@@ -133,6 +133,8 @@ z_ucc_pk03:--z_ucc_pk03
 		,ordctnoq nvarchar(10)
 		,omount2 float
 		,oweight2 float
+		
+		,xweight float --可受訂重
 	)
 	
 	if CHARINDEX(',02,',','+@t_option+',')>0
@@ -202,11 +204,10 @@ z_ucc_pk03:--z_ucc_pk03
 		from @tmp a
 		left join view_ordet b on a.uno=b.uno
 		where b.noa is not null
-		and not exists(select top 1 noa from view_orde where accy=b.accy and noa=b.noa and (isnull(enda,0)=1 or isnull(cancel,0)=1))
-		and not exists(select top 1 noa from view_ordes where accy=b.accy and no2=b.no3 and (isnull(enda,0)=1 or isnull(cancel,0)=1))
+		and not exists(select noa from view_orde where accy=b.accy and noa=b.noa and (isnull(enda,0)=1 or isnull(cancel,0)=1))
+		and not exists(select noa from view_ordes where accy=b.accy and noa=b.noa and no2=b.no3 and (isnull(enda,0)=1 or isnull(cancel,0)=1))
 		and a.uno=@uno
-		
-		
+
 		if @n=1
 		begin
 			update @tmp set ordeno=b.noa,ordesno2=b.no3,ordetno2=b.no2,omount=b.mount,oweight=b.[weight]
@@ -233,8 +234,6 @@ z_ucc_pk03:--z_ucc_pk03
 			order by uno desc,ordeno desc,ordesno2 desc,ordetno2 desc
 			
 			update @tmp set gno='4' where sel=@n	
-				
-			
 		end
 	
 		fetch next from cursor_table
@@ -348,6 +347,11 @@ z_ucc_pk03:--z_ucc_pk03
 		,SUM(isnull(omount2,0)),SUM(isnull(oweight2,0))
 	from @tmp
 
+	update @tmp set xweight=ISNULL(a.eweight,0)-ISNULL(b.oweight,0)
+	from @tmp a
+	left join (select uno,SUM(ISNULL(oweight,0)+ISNULL(oweight2,0)) oweight from @tmp group by uno) b on a.uno=b.uno
+	where a.recno2=1
+
 	select  trecno rr,gno
 		,datea a01--入庫日期
 		,store a02--倉庫
@@ -374,7 +378,7 @@ z_ucc_pk03:--z_ucc_pk03
 		,dbo.getComma(oweight,-1) a23--訂單重
 		,case when len(ISNULL(ordcno,''))=0 then '' else ordcno+'-'+ordctnoq end a24--採購編號
 		,dbo.getComma(oweight2,-1) a25--採購重
-		,'' a26--可受訂
+		,dbo.getComma(xweight,-1) a26--可受訂
 	from @tmp
 	order by style,productno,dime,width,uno,recno,recno2;
 
