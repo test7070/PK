@@ -160,6 +160,9 @@
 					}, {
 						type : '6', //[37] 28
 						name : 'xuno'
+					}, {
+						type : '6', //[38] 29
+						name : 'ystore'
 					}]
 				});
 				q_popAssign();

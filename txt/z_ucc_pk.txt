@@ -1101,6 +1101,8 @@ z_ucc_pk01:--z_ucc_pk01
 	declare @t_eproductno3 nvarchar(max) = case when '#non'=[32] then '' else [32] end
 	declare @t_option nvarchar(max) = case when '#non'=[33] then '' else [33] end
 	declare @t_source nvarchar(max) = case when '#non'=[35] then '' else [35] end
+	
+	declare @t_ystore nvarchar(max) = case when '#non'=[38] then '' else [38] end
 	------------------------------------------------------------------------------------------------
 	declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,@t_bwidth float,@t_ewidth float,@t_blengthb float,@t_elengthb float
@@ -1236,7 +1238,8 @@ z_ucc_pk01:--z_ucc_pk01
 		and ISNULL(a.lengthb,0) between @t_blengthb and @t_elengthb
 		and ISNULL(a.radius,0) between @t_bradius and @t_eradius
 		--and ISNULL(a.productno,'') between @t_bproductno and @t_eproductno
-		and ISNULL(a.laststoreno,'') between @t_bstoreno and @t_estoreno
+		--and ISNULL(a.laststoreno,'') between @t_bstoreno and @t_estoreno
+		and (len(@t_ystore)=0 or charindex(','+a.laststoreno+',',','+@t_ystore+',')>0)
 		and ISNULL(a.custno,'') between @t_bcustno and @t_ecustno
 		and (len(@t_kind)=0 or ISNULL(a.kind,'')=@t_kind)
 		and (len(@t_itype)=0 or ISNULL(a.itype,'')=@t_itype)
