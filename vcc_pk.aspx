@@ -437,8 +437,8 @@
 							$('#txtOrdeno').val(b_ret[0].noa);
 							var t_where = "where=^^ noa='" + b_ret[0].noa + "'";
 							q_gt('view_orde', t_where, 0, 0, 0, "", r_accy);
-							AddRet = q_gridAddRow(bbsHtm, 'tbbs', 'txtProductno,txtProduct,txtRadius,txtDime,txtWidth,txtLengthb,txtUnit,txtOrdeno,txtNo2,txtUno,txtMount,txtWeight,txtTranmoney,txtPrice,txtSize,txtStyle,txtItem,txtClass', b_ret.length, b_ret
-							, 'productno,product,radius,dime,width,lengthb,unit,noa,no2,uno,mount,weight,mount,price,size,style,unit2,class', 'txtProductno');
+							AddRet = q_gridAddRow(bbsHtm, 'tbbs', 'txtProductno,txtProduct,txtRadius,txtDime,txtWidth,txtLengthb,txtUnit,txtOrdeno,txtNo2,txtUno,txtMount,txtWeight,txtTranmoney,txtPrice,txtSize,txtStyle,txtItem,txtClass,txtScolor', b_ret.length, b_ret
+							, 'productno,product,radius,dime,width,lengthb,unit,noa,no2,uno,mount,weight,mount,price,size,style,unit2,class,scolor', 'txtProductno');
 							/// 最後 aEmpField 不可以有【數字欄位】
 							for (var i = 0; i < AddRet.length; i++) {
 								$('#txtMount_' + i).change();
@@ -2040,6 +2040,7 @@
 					<td align="center" style="width:50px;"><a>序</a></td>
 					<td align="center" style="width:230px;"><a id="lblUno_st" > </a></td>
 					<td align="center" style="width:120px;"><a>品號<BR>品名</a></td>
+					<td align="center" style="width:80px;"><a>國別</a></td>
 					<td align="center" style="width:30px;"><a id='lblStyle_st'> </a></td>
 					<td align="center" style="width:80px;"><a>等級</a></td>
 					<td align="center" id="Size"><a id='lblSize_help'> </a><BR><a id='lblSize_st'> </a></td>
@@ -2073,6 +2074,7 @@
 						<input type="text" id="txtProduct.*" style="width:95%;" />
 						<input class="btn" id="btnProduct.*" type="button" style="display:none;"/>
 					</td>
+					<td><input id="txtScolor.*" type="text" style='width: 95%;'/></td>
 					<td><input type="text" id="txtStyle.*" style="width:95%;text-align:center;" />
 						<input id="btnStyle.*" type="button" style="display:none;" value="."/>
 					</td>
