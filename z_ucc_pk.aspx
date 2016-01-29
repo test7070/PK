@@ -160,6 +160,9 @@
 					}, {
 						type : '6', //[37] 28
 						name : 'xuno'
+					}, {
+						type : '6', //[38] 29
+						name : 'ystore'
 					}]
 				});
 				q_popAssign();
@@ -199,13 +202,13 @@
 				$('#Xstktype select').val('A1').change();
 				setDefaultValue();
 				size_change();
-				$('#Xitype .cmb').change(function() {
+				/*$('#Xitype .cmb').change(function() {
 					if ($('#Xitype .cmb').val() == '1') {
 						$('#Xtggno').hide();
 					} else {
 						$('#Xtggno').show();
 					}
-				});
+				});*/
 				$('.report').click(function() {
 					size_change();
 					$('#Xorderstatus select').change();
