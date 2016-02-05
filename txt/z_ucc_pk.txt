@@ -379,6 +379,7 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,case when len(ISNULL(ordcno,''))=0 then '' else ordcno+'-'+ordctnoq end a24--採購編號
 		,dbo.getComma(oweight2,-1) a25--採購重
 		,dbo.getComma(xweight,-1) a26--可受訂
+		,place a27--儲位
 	from @tmp
 	order by style,productno,dime,width,uno,recno,recno2;
 

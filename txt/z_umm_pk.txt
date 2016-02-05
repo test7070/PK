@@ -1,4 +1,4 @@
-z_umm_pk06:--z_umm_pk06  客戶請款單(明細) A5橫印  日期   ref.z_umm_pk04
+z_umm_pk06:--z_umm_pk06  客戶請款單(明細) A5橫印  日期   ref.z_umm_pk04 
 	SET QUOTED_IDENTIFIER OFF 
 	declare @cmd nvarchar(max) 
 	
