@@ -819,7 +819,7 @@
 					t_buno = ' 　';
 					t_datea = $('#txtDatea').val();
 					t_style = $('#txtStyle_' + n).val();
-					if($('#txtUno_' + n).val().length == 0 && $('#txtProductno_'+n).val().toUpperCase()!='OEM' && $('#txtStyle_' + n).val().toUpperCase()>='A' && $('#txtStyle_' + n).val().toUpperCase()<='M'){
+					if($('#txtUno_' + n).val().length == 0 && $('#txtProductno_'+n).val().toUpperCase()!='代工費' && $('#txtStyle_' + n).val().toUpperCase()>='A' && $('#txtStyle_' + n).val().toUpperCase()<='M'){
 						q_func('qtxt.query.getuno_'+n, 'uno.txt,getuno_bydate,' + t_buno + ';' + t_datea + ';' + t_style + ';');	
 					}else{
 						getUno(n+1);
