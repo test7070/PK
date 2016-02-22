@@ -362,6 +362,7 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,store a02--倉庫
 		,[source] a03--鋼廠
 		,uno a04--批號
+		,case when left(uno,1)='*' then '' else 'z_unobd?$a04?' end ghref
 		,cstyle a05--品名
 		,productno a06--材質
 		,[class] a07--表面
