@@ -234,13 +234,11 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 			left join view_ordes d on b.accy=d.accy and b.noa=d.noa and b.no3=d.no2
 			where b.noa is not null 
 			and a.sel=@sel
-			
-			select top 1 @n=sel
-			from @tmp 
-			where uno=@uno and recno=@recno
-			order by recno2 desc
-			--order by uno desc,ordeno desc,ordesno2 desc,ordetno2 desc	
-			update @tmp set gno='4' where sel=@n	
+
+			update @tmp set gno=case when b.recno2>1 then '2' else '1' end
+			from @tmp a
+			outer apply(select MAX(recno2) recno2 from @tmp where recno=a.recno) b
+			where a.sel=@sel
 		--end
 	
 		fetch next from cursor_table
@@ -248,7 +246,7 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 	end
 	close cursor_table
 	deallocate cursor_table
-	
+
 	update @tmp set custno=b.custno,cust=c.nick,msg=a.msg+' 受訂'
 	from @tmp a
 	left join view_orde b on a.ordeno=b.noa
