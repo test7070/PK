@@ -38,6 +38,8 @@ z_ucc_pk03:--z_ucc_pk03
 	declare @t_eproductno3 nvarchar(max) = case when '#non'=[32] then '' else [32] end
 	declare @t_option nvarchar(max) = case when '#non'=[33] then '' else [33] end
 	declare @t_source nvarchar(max) = case when '#non'=[35] then '' else [35] end
+	
+	declare @t_ystore nvarchar(max) = case when '#non'=[38] then '' else [38] end
 declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,@t_bwidth float,@t_ewidth float,@t_blengthb float,@t_elengthb float
 	if left(@t_kind,1)='A'
@@ -167,8 +169,10 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		and ISNULL(a.eweight,0)>0 
 		and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',b.productno)=0))
 		
-		delete @tmp where not(storeno between @t_bstoreno and @t_estoreno)
 		
+		delete @tmp where not(storeno between @t_bstoreno and @t_estoreno)
+			or not(len(@t_ystore)=0 or charindex(','+storeno+',',','+@t_ystore+',')>0)
+			
 		update @tmp set store=ISNULL(b.store,'')
 			,cust=ISNULL(c.nick,'')
 		from @tmp a
