@@ -360,7 +360,10 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 	from @tmp a
 	left join (select uno,SUM(ISNULL(oweight,0)+ISNULL(oweight2,0)) oweight from @tmp group by uno) b on a.uno=b.uno
 	where a.recno2=1
-
+	
+	--結案的不顯示
+	delete @tmp where iscancel=1 or isend = 1 
+	
 	select  trecno rr,gno
 		,datea a01--入庫日期
 		,store a02--倉庫
