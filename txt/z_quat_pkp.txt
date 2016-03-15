@@ -72,7 +72,7 @@ z_quat_pkp01:--z_quat_pkp01
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+tel+'</a>' a09
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+fax+'</a>' a10
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+conn+'</a>' a11
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+odate+'</a>' a12
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">日期：'+odate+'</a>' a12
 		
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+cast(ROW_NUMBER()over(order by sel) as nvarchar)+'</a>' b01
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+isnull(product,'')+' '+replace(ISNULL(size,''),'~#$',"'")+'</a>' b02
