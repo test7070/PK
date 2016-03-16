@@ -23,7 +23,7 @@
 			});
 			function q_gfPost() {
 				//傑期 因為型太多,所以只顯示A~N
-				q_gt('style', "where=^^noa between 'A' and 'N'^^", 0, 0, 0, "");
+				q_gt('style', "where=^^(noa between 'A' and 'N') or noa='X'^^", 0, 0, 0, "");
 			}
 
 			function q_gtPost(t_name) {
