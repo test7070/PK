@@ -72,6 +72,10 @@
                         type : '8',//[12]  8
                         name : 'xoption01',
                         value : '明細'.split('&')
+                    }, {
+                        type : '8',//[13]  9
+                        name : 'xstype',
+                        value : q_getPara('vccst.stype').split(',')
                     }]
 				});
 				q_popAssign();
