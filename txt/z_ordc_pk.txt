@@ -3,6 +3,138 @@ z_ordc_pk01:--z_ordc_pk01
 	declare @t_path nvarchar(max)= '[1]'
 	declare @t_db nvarchar(max)= '[2]'
 	declare @t_noa nvarchar(max)= case when '#non'=[3] then '' else [3] end
+	----------------------------------------------------------------------------------------
+	declare @tmp table(
+		sel int identity(1,1)
+		,gno nvarchar(10)
+		,pno int 
+		,cno nvarchar(20)
+		,acomp nvarchar(30)
+		,acompEng nvarchar(30)
+		,atel nvarchar(20)
+		,afax nvarchar(20)
+		,addr nvarchar(max)
+		,email nvarchar(50)
+		,memo nvarchar(max)
+		,worker nvarchar(max)
+		
+		,accy nvarchar(10)
+		,noa nvarchar(20)
+		,noq nvarchar(50)
+		,odate nvarchar(20)
+		,datea nvarchar(20)
+		,custno nvarchar(20)
+		,cust nvarchar(50)
+		,tel nvarchar(50)
+		,fax nvarchar(50)
+		,conn nvarchar(50)
+		,[money] float
+		,tax float
+		,total float
+		,salesno nvarchar(20)
+		,sales nvarchar(20)
+		
+		,productno nvarchar(30)
+		,product nvarchar(50)
+		,size nvarchar(max)
+		,mount float
+		,unit2 nvarchar(20)
+		,[weight] float
+		,unit nvarchar(20)
+		,price float
+		,moneys float
+		,memos nvarchar(max)
+		
+		,kind nvarchar(20)
+	)
+
+	insert into @tmp(gno,pno,cno,acomp,acompEng,atel,afax,addr,email
+		,accy,noa,noq,odate,datea,custno,cust,tel,fax,conn,[money],tax,total,salesno,sales
+		,productno,product,size,mount,unit2,[weight],unit,price,moneys,memos
+		,kind)
+	select '1',1,a.cno,c.acomp,c.ename,c.tel,c.fax,c.addr,c.email
+		,a.accy,a.noa,b.no2,a.odate,a.datea,a.tggno,a.tgg,a.tel,a.fax,a.postname,a.[money],a.tax,a.total,a.salesno,a.sales
+		,b.productno,b.product
+		,case when len(b.size)>0 then replace(ISNULL(b.size,''),'~#$',"'") else dbo.csize(a.kind,b.dime,b.width,b.lengthb,b.radius) end
+		,b.mount,b.unit2,b.[weight],b.unit,b.price,b.total,b.memo
+		,a.kind
+	from view_ordc a
+	left join view_ordcs b on a.accy=b.accy and a.noa=b.noa
+	left join acomp c on a.cno=c.noa
+	where a.noa=@t_noa
+	order by b.no2
+	------------------------------------------------------------------------
+	--小計
+	declare @money float = 0
+	select @money = [money] from view_ordc where noa=@t_noa
+	insert into @tmp(gno,pno)values('2',2)
+	insert into @tmp(gno,pno,[money])values('3',3,@money)
+	------------------------------------------------------------------------
+	--備註
+	declare @memo nvarchar(max) = ''
+	select @memo=memo from view_ordc where noa=@t_noa
+	set @memo = LTRIM(rtrim(@memo))
+	if LEN(@memo)>0
+		insert into @tmp(gno,pno,memo)values('4',4,'')
+	while LEN(@memo)>0 
+	begin
+		if CHARINDEX('chr(10)',@memo)>0
+		begin
+			insert into @tmp(gno,pno,memo)values('4',4,LEFT(@memo,CHARINDEX('chr(10)',@memo)-1))
+			set @memo = SUBSTRING(@memo,charindex('chr(10)',@memo)+7,LEN(@memo))
+		end
+		else
+		begin
+			insert into @tmp(gno,pno,memo)values('4',4,@memo)
+			set @memo = ''
+		end
+	end
+	
+	-----------------------------------------------------------------------
+	insert into @tmp(gno,pno,memo)values('4',4,'')
+	--製單人
+	declare @worker nvarchar(max)
+	select @worker = worker from view_ordc where noa=@t_noa
+	
+	insert into @tmp(gno,pno,[worker])values('5',5,@worker)
+	------------------------------------------------------------------------
+	
+	select gno
+		,'<img style="width:100px" src="'+@t_path+'getlogo.aspx?noa=JC01'+CHAR(38)+'db='+@t_db+'"/>' logo
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+acomp+'</a>' a01
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+acompEng+'</a>' a02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+atel+'</a>' a03
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+afax+'</a>' a04
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+addr+'</a>' a05
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+email+'</a>' a06
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+noa+'</a>' a07
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+cust+'</a>' a08
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+tel+'</a>' a09
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+fax+'</a>' a10
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+conn+'</a>' a11
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">日期：'+odate+'</a>' a12
+		
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+cast(ROW_NUMBER()over(order by sel) as nvarchar)+'</a>' b01
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+isnull(product,'')+' '+ISNULL(size,'')+'</a>' b02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+case when ISNULL(mount,0)=0 then '' else dbo.getComma(mount,-1)+ISNULL(unit2,'') end+'</a>' b03
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+case when ISNULL([weight],0)=0 then '' else dbo.getComma([weight],-1)+ISNULL(unit,'') end+'</a>' b04
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+case when ISNULL(price,0)=0 then '' else dbo.getComma(price,-1) end+'</a>' b05
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+case when ISNULL(moneys,0)=0 then '' else dbo.getComma(moneys,-1) end+'</a>' b06
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+datea+'</a>' b07
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+memos+'</a>' b08
+		
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma([money],-1)+'</a>' c01
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+memo+'</a>' c02
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+worker+'</a>' c03
+	from @tmp order by pno,sel;
+
+
+
+z_ordc_pkxx01:--z_ordc_pk01	
+	SET QUOTED_IDENTIFIER OFF 
+	declare @t_path nvarchar(max)= '[1]'
+	declare @t_db nvarchar(max)= '[2]'
+	declare @t_noa nvarchar(max)= case when '#non'=[3] then '' else [3] end
 	----------------------------------------------------------------------------------
 	declare @tmp table(
 		sel int identity(1,1),
