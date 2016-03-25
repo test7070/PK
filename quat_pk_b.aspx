@@ -76,15 +76,14 @@
 					<th align="center" style="width:2%;"><input type="checkbox" id="checkAllCheckbox"/></th>
 					<td align="center" style="width:8%;">單號</td>
 					<td align="center" style="width:10%;">品名</td>
-					<td align="center" style="width:5%;">厚</td>
-					<td align="center" style="width:5%;">寬</td>
-					<td align="center" style="width:5%;">長</td>
-					<td align="center" style="width:5%;">短徑</td>
+					<td align="center" style="width:4%;">厚</td>
+					<td align="center" style="width:4%;">寬</td>
+					<td align="center" style="width:4%;">長</td>
+					<td align="center" style="width:4%;">短徑</td>
 					<td align="center" style="width:5%;">規格</td>
-					<td align="center" style="width:5%;">數量</td>
 					<td align="center" style="width:4%;">數量<BR>單位</td>
-					<td align="center" style="width:5%;">重量</td>
 					<td align="center" style="width:4%;">重量<BR>單位</td>
+					<td align="center" style="width:4%;">單價</td>
 					<td align="center" style="width:8%;">備註</td>
 					<td align="center" style="width:5%;">已訂數量<BR>已訂重量</td>
 					<td align="center" style="width:5%;">未訂數量<BR>未訂重量</td>
@@ -97,16 +96,14 @@
 					<th align="center" style="width:2%;"></th>
 					<td align="center" style="width:8%;">單號</td>
 					<td align="center" style="width:10%;">品名</td>
-					<td align="center" style="width:5%;">厚</td>
-					<td align="center" style="width:5%;">寬</td>
-					<td align="center" style="width:5%;">長</td>
-					<td align="center" style="width:5%;">短徑</td>
+					<td align="center" style="width:4%;">厚</td>
+					<td align="center" style="width:4%;">寬</td>
+					<td align="center" style="width:4%;">長</td>
+					<td align="center" style="width:4%;">短徑</td>
 					<td align="center" style="width:5%;">規格</td>
-					<td align="center" style="width:5%;">數量</td>
 					<td align="center" style="width:4%;">數量<BR>單位</td>
-					<td align="center" style="width:5%;">重量</td>
 					<td align="center" style="width:4%;">重量<BR>單位</td>
-					<td align="center" style="width:5%;">單價</td>
+					<td align="center" style="width:4%;">單價</td>
 					<td align="center" style="width:8%;">備註</td>
 					<td align="center" style="width:5%;">已訂數量<BR>已訂重量</td>
 					<td align="center" style="width:5%;">未訂數量<BR>未訂重量</td>
@@ -122,15 +119,19 @@
 						<input id="txtProductno.*" type="text" style="float:left;width:95%;"  readonly="readonly" />
 						<input id="txtProduct.*" type="text" style="float:left;width:95%;"  readonly="readonly" />
 					</td>
-					<td style="width:5%;"><input id="txtDime.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtRadius.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtWidth.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtLengthb.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
+					<td style="width:4%;"><input id="txtDime.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
+					<td style="width:4%;"><input id="txtRadius.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
+					<td style="width:4%;"><input id="txtWidth.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
+					<td style="width:4%;"><input id="txtLengthb.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
 					<td style="width:5%;"><input id="txtSpec.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtMount.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:4%;"><input id="txtUnit2.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtWeight.*" type="text" style="float:left;width:100%;"   readonly="readonly" /></td>
-					<td style="width:4%;"><input id="txtUnit.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
+					<td style="width:4%;">
+						<input id="txtMount.*" type="text" style="float:left;width:100%;"  readonly="readonly" />
+						<input id="txtUnit2.*" type="text" style="float:left;width:100%;"  readonly="readonly" />
+					</td>
+					<td style="width:4%;">
+						<input id="txtWeight.*" type="text" style="float:left;width:100%;"   readonly="readonly" />
+						<input id="txtUnit.*" type="text" style="float:left;width:100%;"  readonly="readonly" />
+					</td>
 					<td style="width:4%;"><input id="txtPrice.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
 					<td style="width:8%;"><input id="txtMemo.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
 					<td style="width:5%;">
