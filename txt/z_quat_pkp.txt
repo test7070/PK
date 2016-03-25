@@ -128,7 +128,7 @@ z_quat_pkp01:--z_quat_pkp01
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+case when ISNULL([weight],0)=0 then '' else dbo.getComma([weight],-1)+ISNULL(unit,'') end+'</a>' b04
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+case when ISNULL(price,0)=0 then '' else dbo.getComma(price,-1) end+'</a>' b05
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+case when ISNULL(moneys,0)=0 then '' else dbo.getComma(moneys,-1) end+'</a>' b06
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+odate+'</a>' b07
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+datea+'</a>' b07
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+memos+'</a>' b08
 		
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma([money],-1)+'</a>' c01
