@@ -199,7 +199,12 @@
                 $('#lblQuat').click(function() {
                     if(!(q_cur==1 || q_cur ==2))
                         return;
-                    btnQuat();
+                    var t_noa = $('#txtNoa').val();
+                	var t_custno = $('#txtCustno').val();
+                	var t_where ='';
+                	q_box("quat_pk_b.aspx?" + r_userno + ";" + r_name + ";" + q_time + ";" + t_where+";"+";"+JSON.stringify({ordeno:t_noa,custno:t_custno,page:'orde_pk'}), "quat_orde", "95%", "95%", '');
+                	
+                    //btnQuat();
                 });
                 $('#btnOrdem').click(function() {
                     q_box("ordem_b_st.aspx?" + r_userno + ";" + r_name + ";" + q_time + ";noa='" + $('#txtNoa').val() + "';" + r_accy + ";" + q_cur, 'ordem', "95%", "95%", q_getMsg('popOrdem'));
@@ -285,6 +290,21 @@
             function q_boxClose(s2) {///   q_boxClose 2/4 /// 查詢視窗、客戶視窗、訂單視窗  關閉時執行
                 var ret;
                 switch (b_pop) {/// 重要：不可以直接 return ，最後需執行 originalClose();
+                	case 'quat_orde':
+                        if (b_ret != null) {
+                        	as = b_ret;
+                    		//q_gridAddRow(bbsHtm, 'tbbs', 'txtQuatno,txtNo3,txtProductno,txtProduct,txtDime,txtRadius,txtWidth,txtLengthb,cmbSpec,txtScolor,txtClass,txtUcolor,txtZinc,txtHard,txtSource,txtUno,txtUnit,txtUnit2,txtMount,txtWeight,txtPrice'
+                        	//, as.length, as, 'noa,no3,productno,product,dime,radius,width,lengthb,spec,scolor,class,ucolor,zinc,hard,source,uno,unit,unit2,emount,eweight,price', '','');
+                        	
+                        	q_gridAddRow(bbsHtm, 'tbbs', 'txtProductno,txtProduct,txtSpec,txtSize,txtRadius,txtDime,txtWidth,txtLengthb,txtUnit,txtUnit2,txtQuatno,txtNo3,txtPrice,txtMount,txtWeight,txtClass,txtTheory,txtStyle', b_ret.length, b_ret
+                        	, 'productno,product,spec,size,radius,dime,width,lengthb,unit,unit2,noa,no3,price,emount,eweight,class,theory,style', 'txtProductno,txtProduct,txtSpec');
+                        	
+                        	var t_quatno = $('#txtQuatno_0').length>0?$('#txtQuatno_0').val():'';
+                        	q_gt('view_quat', "where=^^ noa='"+t_quatno+"' ^^", 0, 0, 0, JSON.stringify({action:'importQuat'}));
+                        }else{
+                        	Unlock(1);
+                        }
+                        break;
                     case 'quats':
                         if (q_cur > 0 && q_cur < 4) {
                             b_ret = getb_ret();
