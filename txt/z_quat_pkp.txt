@@ -69,43 +69,43 @@ z_quat_pkp01:--z_quat_pkp01
 	select @n = count(1) from @tmp
 	while @n<=5
 	begin
-		insert into @tmp(gno,pno)values('1',1)
+		insert into @tmp(gno,pno)values('2',2)
 		set @n = @n + 1
 	end
 	
 	--小計
 	declare @money float = 0
 	select @money = [money] from view_quat where noa=@t_noa
-	insert into @tmp(gno,pno)values('2',2)
-	insert into @tmp(gno,pno,[money])values('3',3,@money)
+	insert into @tmp(gno,pno)values('3',3)
+	insert into @tmp(gno,pno,[money])values('4',4,@money)
 	------------------------------------------------------------------------
 	--備註
 	declare @memo nvarchar(max) = ''
 	select @memo=memo from view_quat where noa=@t_noa
 	set @memo = LTRIM(rtrim(@memo))
 	if LEN(@memo)>0
-		insert into @tmp(gno,pno,memo)values('4',4,'')
+		insert into @tmp(gno,pno,memo)values('5',5,'')
 	while LEN(@memo)>0 
 	begin
 		if CHARINDEX('chr(10)',@memo)>0
 		begin
-			insert into @tmp(gno,pno,memo)values('4',4,LEFT(@memo,CHARINDEX('chr(10)',@memo)-1))
+			insert into @tmp(gno,pno,memo)values('5',5,LEFT(@memo,CHARINDEX('chr(10)',@memo)-1))
 			set @memo = SUBSTRING(@memo,charindex('chr(10)',@memo)+7,LEN(@memo))
 		end
 		else
 		begin
-			insert into @tmp(gno,pno,memo)values('4',4,@memo)
+			insert into @tmp(gno,pno,memo)values('5',5,@memo)
 			set @memo = ''
 		end
 	end
 	
 	-----------------------------------------------------------------------
-	insert into @tmp(gno,pno,memo)values('4',4,'')
+	insert into @tmp(gno,pno,memo)values('5',5,'')
 	--製單人
 	declare @worker nvarchar(max)
 	select @worker = worker from view_quat where noa=@t_noa
 	
-	insert into @tmp(gno,pno,[worker])values('5',5,@worker)
+	insert into @tmp(gno,pno,[worker])values('6',6,@worker)
 	
 	select gno
 		,'<img style="width:100px" src="'+@t_path+'getlogo.aspx?noa=JC01'+CHAR(38)+'db='+@t_db+'"/>' logo
