@@ -150,7 +150,9 @@ z_pay_pk02:--z_pay_pk02 廠商對帳單(明細、日期)
 				+case when isnull(@floata,0)!=0 then '匯率：'+dbo.getComma(@floata,4) else '' end
 			from view_rc2 a
 			where a.noa=@noa
-				
+			
+			---------------------------------------------------------------------------------------------
+	--2016/03/28 傑期  進貨單,單價一律顯示台幣,進口報單轉來的已經轉為台幣了,一般手動輸入的 固定 轉為台幣,取到小數3位
 			--進貨明細
 			insert into @result(gno,pno,noq,tggno
 				,typea,datea,rc2no,productno,product,mount,unit2,[weight],unit,price,moneys)
@@ -162,10 +164,11 @@ z_pay_pk02:--z_pay_pk02 廠商對帳單(明細、日期)
 				+isnull(b.size,'')
 			,b.mount,b.unit2
 			,b.[weight],b.unit
-			,b.price
+			,round(ISNULL(b.price,0)* case when ISNULL(a.floata,0)=0 or c.rc2no is not null then 1 else a.floata end,3)
 			,b.total
 			from view_rc2 a
 			left join view_rc2s b on a.noa=b.noa
+			outer apply (select * from deli where rc2no=a.noa) c
 			where a.noa=@noa
 			and b.noa is not null
 			order by b.noq
@@ -179,10 +182,11 @@ z_pay_pk02:--z_pay_pk02 廠商對帳單(明細、日期)
 				+isnull(b.size,'')
 			,b.mount,b.unit2
 			,b.[weight],b.unit
-			,b.price
+			,round(ISNULL(b.price,0)* case when ISNULL(a.floata,0)=0 or c.rc2no is not null then 1 else a.floata end,3)
 			,b.total
 			from view_rc2 a
 			left join view_rc2s b on a.noa=b.noa
+			outer apply (select * from deli where rc2no=a.noa) c
 			where a.noa=@noa
 			and b.noa is not null
 			order by b.noq
