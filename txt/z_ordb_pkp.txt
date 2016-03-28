@@ -53,7 +53,9 @@ z_ordb_pkp01:--z_ordb_pkp01
 		,productno,product,size,mount,unit2,[weight],unit,price,moneys,memos
 		,kind)
 	select '1',1,a.cno,c.acomp,c.ename,c.tel,c.fax,c.addr,c.email
-		,a.accy,a.noa,b.no2,a.odate,a.datea,a.tggno,a.tgg,a.tel,a.fax,a.sales,a.[money],a.tax,a.total,a.salesno,a.sales
+		,a.accy,a.noa,b.no2,a.odate,a.datea,a.tggno,a.tgg,a.tel,a.fax
+		,d.namea
+		,a.[money],a.tax,a.total,a.salesno,a.sales
 		,b.productno,b.product
 		,case when len(b.size)>0 then replace(ISNULL(b.size,''),'~#$',"'") else dbo.csize(a.kind,b.dime,b.width,b.lengthb,b.radius) end
 		,b.mount,b.unit2,b.[weight],b.unit,b.price,b.total,b.memo
@@ -61,6 +63,7 @@ z_ordb_pkp01:--z_ordb_pkp01
 	from view_ordb a
 	left join view_ordbs b on a.accy=b.accy and a.noa=b.noa
 	left join acomp c on a.cno=c.noa
+	outer apply (select top 1 * from conn where noa=a.tggno) d
 	where a.noa=@t_noa
 	order by b.no2
 	------------------------------------------------------------------------
@@ -75,13 +78,13 @@ z_ordb_pkp01:--z_ordb_pkp01
 	
 	--小計
 	declare @money float = 0
-	select @money = [money] from view_ordb where noa=@t_noa
+	select @money = [money] from view_quat where noa=@t_noa
 	insert into @tmp(gno,pno)values('3',3)
 	insert into @tmp(gno,pno,[money])values('4',4,@money)
 	------------------------------------------------------------------------
 	--備註
 	declare @memo nvarchar(max) = ''
-	select @memo=memo from view_ordb where noa=@t_noa
+	select @memo=memo from view_quat where noa=@t_noa
 	set @memo = LTRIM(rtrim(@memo))
 	if LEN(@memo)>0
 		insert into @tmp(gno,pno,memo)values('5',5,'')
@@ -103,7 +106,7 @@ z_ordb_pkp01:--z_ordb_pkp01
 	insert into @tmp(gno,pno,memo)values('5',5,'')
 	--製單人
 	declare @worker nvarchar(max)
-	select @worker = worker from view_ordb where noa=@t_noa
+	select @worker = worker from view_quat where noa=@t_noa
 	
 	insert into @tmp(gno,pno,[worker])values('6',6,@worker)
 	
