@@ -122,6 +122,12 @@ z_rc2_pkp01:--z_rc2_pkp01
 
 	update @tmp set ckind=b.namea
 	from @tmp a left join @listKind b on a.kind= b.noa
+	---------------------------------------------------------------------------------------------
+	--2016/03/28 傑期  進貨單,單價一律顯示台幣,進口報單轉來的已經轉為台幣了,一般手動輸入的 固定 轉為台幣,取到小數3位
+	update @tmp set price = round(ISNULL(a.price,0)* case when ISNULL(a.floata,0)=0 then 1 else a.floata end,3)
+	from @tmp a
+	outer apply (select * from deli where rc2no=a.noa) b
+	where b.rc2no is null
 	----------------------------------------------------------------------------------------------
 	declare @noa nvarchar(20)
 	declare @m int
