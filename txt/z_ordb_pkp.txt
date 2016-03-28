@@ -75,13 +75,13 @@ z_ordb_pkp01:--z_ordb_pkp01
 	
 	--小計
 	declare @money float = 0
-	select @money = [money] from view_quat where noa=@t_noa
+	select @money = [money] from view_ordb where noa=@t_noa
 	insert into @tmp(gno,pno)values('3',3)
 	insert into @tmp(gno,pno,[money])values('4',4,@money)
 	------------------------------------------------------------------------
 	--備註
 	declare @memo nvarchar(max) = ''
-	select @memo=memo from view_quat where noa=@t_noa
+	select @memo=memo from view_ordb where noa=@t_noa
 	set @memo = LTRIM(rtrim(@memo))
 	if LEN(@memo)>0
 		insert into @tmp(gno,pno,memo)values('5',5,'')
@@ -103,7 +103,7 @@ z_ordb_pkp01:--z_ordb_pkp01
 	insert into @tmp(gno,pno,memo)values('5',5,'')
 	--製單人
 	declare @worker nvarchar(max)
-	select @worker = worker from view_quat where noa=@t_noa
+	select @worker = worker from view_ordb where noa=@t_noa
 	
 	insert into @tmp(gno,pno,[worker])values('6',6,@worker)
 	
