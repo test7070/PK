@@ -109,6 +109,7 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,lengthb float
 		,radius float
 		,size nvarchar(50)
+		,spec nvarchar(50)
 		,mount float
 		,[weight] float
 		,price float
@@ -144,12 +145,12 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 	begin
 		insert into @tmp(gno,datea,storeno,[source],uno,place,style,productno,product,[class]
 			,dime,width,lengthb,radius,size,mount,[weight],price,emount,eweight,memo
-			,custno,uno2,tdime,twidth,tlength)
+			,custno,uno2,tdime,twidth,tlength,spec)
 		select '1',b.datea
 			,case when ltrim(rtrim(isnull(a.cngstoreno,''))) = '' then b.storeno else a.cngstoreno end storeno
 			,b.[source],a.uno,b.place,b.style,b.productno,b.product,b.[class]
 			,b.dime,b.width,b.lengthb,b.radius,b.size,b.mount,b.[weight],b.sprice,a.emount,a.eweight,b.memo
-			,b.custno,b.uno2,b.tdime,b.twidth,b.tlength
+			,b.custno,b.uno2,b.tdime,b.twidth,b.tlength,b.spec
 		from uccy a
 		left join view_uccb b on a.uno=b.uno
 		where ISNULL(b.datea,'') between @t_bdate and @t_edate
@@ -263,11 +264,11 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		--採購
 		insert into @tmp(gno,recno,recno2,datea,storeno,[source],uno,place,style,productno,product,[class]
 			,dime,width,lengthb,radius,size,mount,[weight],emount,[eweight],price,memo
-			,ordcno,ordcsno2,msg)
+			,ordcno,ordcsno2,msg,spec)
 		select '5',ROW_NUMBER()over(order by '*'+a.noa+'-'+a.no2),1
 			,b.datea,'',a.[source],'*'+a.noa+'-'+a.no2,'',a.style,a.productno,a.product,a.[class]
 			,a.dime,a.width,a.lengthb,a.radius,a.size,a.mount,a.[weight],a.mount,a.[weight],a.price,a.memo
-			,a.noa,a.no2,'採購'
+			,a.noa,a.no2,'採購',a.spec
 		from view_ordcs a
 		left join view_ordc b on a.accy=b.accy and a.noa=b.noa
 		where ISNULL(b.enda,0)=0
@@ -377,6 +378,7 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,dbo.getComma(width,-1) a09--寬
 		,dbo.getComma(lengthb,-1) a10--長
 		,size a11--尺寸
+		
 		,dbo.getComma(emount,-1) a12--庫存數
 		,dbo.getComma(eweight,-1) a13--庫存重
 		,dbo.getComma(price,-1) a14--單價
@@ -395,6 +397,7 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,dbo.getComma(oweight2,-1) a25--採購重
 		,dbo.getComma(xweight,-1) a26--可受訂
 		,place a27--儲位
+		,spec a28
 	from @tmp
 	order by style,productno,dime,width,uno,recno,recno2;
 
