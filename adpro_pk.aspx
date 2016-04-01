@@ -16,7 +16,7 @@
 
 			var q_name = "adpro";
 			var q_readonly = ['txtNoa'];
-			var bbmNum = [];
+			var bbmNum = [['txtDime', 10, 2, 1],['txtWidth', 10, 1, 1],['txtLengthb', 10, 0, 1],['txtRadius', 10, 2, 1],['txtMount', 10, 0, 1],['txtWeight', 10, 0, 1]];
 			var bbmMask = [];
 			q_sqlCount = 6;
 			brwCount = 6;
@@ -49,7 +49,6 @@
 			function mainPost() {
 				bbmMask = [];
 				q_mask(bbmMask);
-				bbmNum = [['txtWeight', 10, 2, 1],['txtMount', 10, 2, 1]];
 				
 				$('#txtMon').blur(function() {
 					if((q_cur==1 || q_car==2) &&emp($('#txtDatea').val())&&!emp($('#txtMon').val()))
@@ -374,35 +373,35 @@
 						<td><input id="txtNoa"  type="text" class="txt c1" /></td>
 					</tr>
 					<tr>
-						<td><span> </span><a id='lblProduct' class="lbl"> </a></td>
-						<td>
+						<td><span> </span><a id='lblProduct' class="lbl">品名</a></td>
+						<td colspan="3">
 							<input id="txtProductno" type="text" class="txt" style="width:50%;" />
 							<input id="txtProduct" type="text" class="txt" style="width:50%;" />
 						</td>
 					</tr>
 					<tr>
-						<td><span> </span><a id='lblDime' class="lbl"> </a></td>
-						<td><input id="txtDime"  type="text" class="txt c1 num" /></td>
+						<td><span> </span><a id='lblDime' class="lbl">厚</a></td>
+						<td colspan="1"><input id="txtDime"  type="text" class="txt c1 num" /></td>
 					</tr>
 					<tr>
-						<td><span> </span><a id='lblWidth' class="lbl"> </a></td>
-						<td><input id="txtWidth"  type="text" class="txt c1 num" /></td>
+						<td><span> </span><a id='lblWidth' class="lbl">寬</a></td>
+						<td colspan="1"><input id="txtWidth"  type="text" class="txt c1 num" /></td>
 					</tr>
 					<tr>
-						<td><span> </span><a id='lblLengthb' class="lbl"> </a></td>
-						<td><input id="txtLengthb"  type="text" class="txt c1 num" /></td>
+						<td><span> </span><a id='lblLengthb' class="lbl">長</a></td>
+						<td colspan="1"><input id="txtLengthb"  type="text" class="txt c1 num" /></td>
 					</tr>
 					<tr>
-						<td><span> </span><a id='lblRadius' class="lbl"> </a></td>
-						<td><input id="txtRadius"  type="text" class="txt c1 num" /></td>
+						<td><span> </span><a id='lblRadius' class="lbl">短徑</a></td>
+						<td colspan="1"><input id="txtRadius"  type="text" class="txt c1 num" /></td>
 					</tr>
 					<tr>
-						<td><span> </span><a id='lblMount' class="lbl"> </a></td>
-						<td><input id="txtMount" type="text" class="txt num c1" /></td>
+						<td><span> </span><a class="lbl">數量</a></td>
+						<td colspan="1"><input id="txtMount" type="text" class="txt num c1" /></td>
 					</tr>
 					<tr>
-						<td><span> </span><a id='lblWeight' class="lbl"> </a></td>
-						<td><input id="txtWeight" type="text" class="txt num c1" /></td>
+						<td><span> </span><a class="lbl">重量</a></td>
+						<td colspan="1"><input id="txtWeight" type="text" class="txt num c1" /></td>
 					</tr>
 
 				</table>
