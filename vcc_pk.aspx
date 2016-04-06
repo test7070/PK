@@ -1428,6 +1428,31 @@
 
 			function refresh(recno) {
 				_refresh(recno);
+				var obj_vcc = $('.weight_vcc');
+				var obj_get = $('.weight_get');
+				if(obj_vcc.length==obj_get.length)
+	                for(var i=0;i<obj_vcc.length;i++){
+	                	try{
+	                		weight_vcc = parseFloat(obj_vcc.eq(i).html());
+	                		weight_get = parseFloat(obj_get.eq(i).html());
+	                		if(weight_get==0 && weight_vcc==0){
+	                			obj_vcc.eq(i).parent().children().css('color','black');
+	                		}else if(weight_get>=weight_vcc*0.9){
+	                			//領完        10%
+	                			obj_vcc.eq(i).parent().children().css('color','darkred');
+	                		}else if(weight_get!=0){
+	                			//尚未領完
+	                			obj_vcc.eq(i).parent().children().css('color','green');
+	                		}else{
+	                			obj_vcc.eq(i).parent().children().css('color','blue');
+	                		}
+	                	}catch(e){
+	                		obj_vcc.eq(i).parent().children().css('color','pink');
+	                	}
+	                }
+				
+				
+				
 				if (r_rank < 9) {
 					$('#btnImportVcce').css('display', 'none');
 				}
@@ -1862,12 +1887,16 @@
 						<td align="center" style="width:80px; color:black;"><a id='vewDatea'> </a></td>
 						<td align="center" style="width:100px; color:black;"><a id='vewNoa'> </a></td>
 						<td align="center" style="width:80px; color:black;"><a id='vewNick'> </a></td>
+						<td style="display:none;"></td>
+						<td style="display:none;"></td>
 					</tr>
 					<tr>
 						<td><input id="chkBrow.*" type="checkbox" style=''/></td>
 						<td align="center" id='datea'>~datea</td>
 						<td align="center" id='noa'>~noa</td>
 						<td align="center" id='nick'>~nick</td>
+						<td class="weight_vcc" style="display:none;" id='weight'>~weight</td>
+						<td class="weight_get" style="display:none;" id='cartrips'>~cartrips</td>
 					</tr>
 				</table>
 			</div>
@@ -2012,7 +2041,7 @@
 						<td><input id="txtPrice" type="text" class="txt num c1" /></td>
 						<td><span> </span><a id='lblTranmoney' class="lbl"> </a></td>
 						<td><input id="txtTranmoney" type="text" class="txt num c1" /></td>
-						<td></td>
+						<td><input id="txtCartrips" type="text" style="display:none;" /></td>
 						<td><input id="btnGet" type="button" value='領料'/></td>
 					</tr>
 					<tr>
