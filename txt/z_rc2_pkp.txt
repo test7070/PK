@@ -312,7 +312,7 @@ z_rc2_pkp01:--z_rc2_pkp01
 			,unit b04
 			,mounts b05
 			,weights b06
-			,price b07
+			,round(price*case when floata=0 then 1 else floata end,3) b07
 			,totals b08
 			,memos b09
 			--,case when len(spec)>8 then '<span style="font-size:8px'+char(59)+'">'+spec+'</span>' else spec end ba1
