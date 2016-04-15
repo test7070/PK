@@ -235,7 +235,7 @@
 				q_cmbParse("combPaytype", q_getPara('rc2.paytype'));
 				q_cmbParse("cmbTrantype", q_getPara('sys.tran'));
 				q_cmbParse("cmbTaxtype", q_getPara('sys.taxtype'));
-				q_cmbParse("cmbKind", q_getPara('sys.stktype'));
+				q_cmbParse("cmbKind", q_getPara('sys.stktype')+',2@物料');
 				
 				//限制帳款月份的輸入 只有在備註的第一個字為*才能手動輸入					
 				$('#txtMemo').change(function(){
