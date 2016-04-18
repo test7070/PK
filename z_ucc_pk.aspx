@@ -241,6 +241,8 @@
 				$('#Xbproduct3 select').change(function(e){
 					$('#Xeproduct3 select').val($('#Xbproduct3 select').val());
 				});
+				
+				$('#q_report').find('span.radio').eq(2).click();
 			}
 
 			function q_boxClose(s2) {
