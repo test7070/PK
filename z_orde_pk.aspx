@@ -34,7 +34,10 @@
                     },{//1-1  [3][4]
                         type : '1',
                         name : 'xnoa'
-                    },{//1-2 [5]
+                    },{//1-1  [5]
+                        type : '6',
+                        name : 'ynoa'
+                    },{//1-2 [6]
                         type : '8',
                         name : 'xoption01',
                         value : q_getMsg('toption01').split('&')
@@ -48,6 +51,7 @@
                 if(t_key[1] != undefined){
                 	$('#txtXnoa1').val(t_key[1]);
                 	$('#txtXnoa2').val(t_key[1]);
+                	$('#txtYnoa').val(t_key[1]);
                 }
             }
 

@@ -1,3 +1,190 @@
+z_orde_pk02:--z_orde_pk02
+	SET QUOTED_IDENTIFIER OFF
+	declare @cmd nvarchar(max)
+	declare @t_noa nvarchar(20) = case when '#non'=[5] then '' else [5] end	
+	declare @t_show nvarchar(max) = case when '#non'=[6] then '' else [6] end	
+	------------------------------------------------------------------------------
+	declare @tmps table(
+		sel int identity(1,1)
+		,accy nvarchar(20)
+		,noa nvarchar(20)
+		,no2 nvarchar(20)
+		,scolor nvarchar(20)
+		,ucolor nvarchar(20)
+		,productno nvarchar(30)
+		,product nvarchar(50)
+		,size nvarchar(50)
+		,mount float
+		,unit2 nvarchar(20)
+		,[weight] float
+		,unit nvarchar(20)
+		,price float
+		,memo nvarchar(max)
+	)
+	
+	insert into @tmps(accy,noa,no2,scolor,ucolor,productno,product,size,mount,unit2,[weight],unit,price,memo)
+	select a.accy,a.noa,b.no2,b.scolor,b.ucolor,b.productno,b.product
+		,replace(b.size,'~#$',"'")
+		,b.mount,b.unit2,b.[weight],b.unit,b.price,b.memo
+	from view_orde a
+	left join view_ordes b on a.accy=b.accy and a.noa=b.noa
+	where a.noa = @t_noa
+	order by a.noa,b.no2
+	-----------------------------------------------------------------------------------------
+	declare @tmpt table(
+		sel int identity(1,1)
+		,noa nvarchar(20)
+		,no2 nvarchar(10)
+		,no3 nvarchar(10)
+		,place nvarchar(20)--儲位
+		,productno nvarchar(20)--材質
+		,size nvarchar(max)--規格(厚x寬x長)+(等級)+(規格)
+		,memo nvarchar(max)
+	)
+	insert into @tmpt(noa,no2,no3,place,productno,size,memo)
+	select a.noa,a.no2,a.no3,c.place,c.productno
+		,CAST(a.dime as nvarchar)+'x'+CAST(a.width as nvarchar)+'x'+CAST(a.lengthb as nvarchar)+' '+c.[class]+' '+c.spec 
+		,a.memo
+	from view_ordet a
+	left join view_ordes b on a.noa=b.noa and a.no3=b.no2
+	left join view_uccb c on a.uno=c.uno
+	where a.noa = @t_noa
+	order by a.noa,a.no3,a.no2
+	
+	-----------------------------------------------------------------------------------
+	IF OBJECT_ID('tempdb..#z_orde_pk01')is not null
+	BEGIN
+		drop table #z_orde_pk01
+	END
+	create table #z_orde_pk01(
+		sel int identity(1,1)
+		,gno nvarchar(10)
+		,page int
+		,noa nvarchar(20)
+		,sales nvarchar(20)
+		,odate nvarchar(20)
+		,custorde nvarchar(50)
+		,datea nvarchar(20)
+		,comptel nvarchar(50)
+		,nick nvarchar(50)
+		,addr nvarchar(50)
+		,memo nvarchar(max)
+	)
+	declare @n int=0
+	set @cmd = 'alter table #z_orde_pk01 add '
+	while @n<10
+	begin
+		set @n = @n + 1
+		set @cmd = @cmd +case when @n!=1 then ',' else '' end+ 'ucolor'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(20)'
+			+',scolor'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(20)'
+			+',productno'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(20)'
+			+',product'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(20)'
+			+',size'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(50)'
+			+',mount'+right('00'+CAST(@n as nvarchar),2)+' float'
+			+',unit2'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(20)'
+			+',xmount'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(30)'
+			+',weight'+right('00'+CAST(@n as nvarchar),2)+' float'
+			+',unit'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(20)'
+			+',xweight'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(30)'
+			+',price'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(20)'
+			+',memo'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(max)'	
+	end
+	set @n = 0
+	while @n<13
+	begin
+		set @n = @n + 1
+		set @cmd = @cmd +',tp'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(20)'	
+			+',tproductno'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(20)'
+			+',tsize'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(50)'
+			+',tmemo'+right('00'+CAST(@n as nvarchar),2)+' nvarchar(max)'
+	end
+	execute sp_executesql @cmd
+
+	----------------------------------------------------------------------------------------------------
+	declare @scolor nvarchar(20)
+	declare @ucolor nvarchar(20)
+	declare @productno nvarchar(20)
+	declare @product nvarchar(50)
+	declare @size nvarchar(50)
+	declare @mount float
+	declare @unit2 nvarchar(20)
+	declare @weight float
+	declare @unit nvarchar(20)
+	declare @price float
+	declare @memo nvarchar(max)
+	declare @place nvarchar(20)
+
+	declare @m int
+	--ordes
+	set @n = 0
+	declare cursor_table cursor for 
+	select scolor,ucolor,productno,product,size,mount,unit2,[weight],unit,price,memo from @tmps order by sel
+	open cursor_table 
+	fetch next from cursor_table 
+	into @scolor,@ucolor,@productno,@product,@size,@mount,@unit2,@weight,@unit,@price,@memo
+	while(@@FETCH_STATUS <> -1) 
+	begin 
+		if @n%10=0
+		begin
+			insert into #z_orde_pk01(gno,noa,page)values('0',@t_noa,floor(@n/10)+1)
+		end
+		set @m = @n%10 + 1
+		set @cmd = "update #z_orde_pk01 set ucolor"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@ucolor,scolor"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@scolor
+			,productno"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@productno,product"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@product,size"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@size
+			,mount"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@mount,unit2"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@unit2,weight"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@weight,unit"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@unit
+			,price"+RIGHT('00'+CAST(@m as nvarchar),2)+"=case when isnull(@price,0)=0 then '' else dbo.getComma(@price,-1) end,memo"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@memo
+			,xmount"+RIGHT('00'+CAST(@m as nvarchar),2)+"=dbo.getComma(@mount,-1)+@unit2
+			,xweight"+RIGHT('00'+CAST(@m as nvarchar),2)+"=case when len(@t_show)>0 then dbo.getComma(@weight,-1)+'KG' else '' end
+			where page=floor(@n/10)+1"
+		execute sp_executesql @cmd,N'@n int,@t_show nvarchar(max),@scolor nvarchar(20),@ucolor nvarchar(20),@productno nvarchar(20),@product nvarchar(50)
+			,@size nvarchar(50),@mount float,@unit2 nvarchar(20),@weight float,@unit nvarchar(20),@price float,@memo nvarchar(max)'
+			,@n=@n,@t_show=@t_show,@scolor=@scolor,@ucolor=@ucolor,@productno=@productno,@product=@product
+			,@size=@size,@mount=@mount,@unit2=@unit2,@weight=@weight,@unit=@unit,@price=@price,@memo=@memo
+		set @n=@n+1
+		
+		fetch next from cursor_table 
+		into @scolor,@ucolor,@productno,@product,@size,@mount,@unit2,@weight,@unit,@price,@memo
+	end 
+	close cursor_table 
+	deallocate cursor_table 
+	
+	--ordet
+	set @n = 0
+	declare cursor_table cursor for 
+	select place,productno,size,memo from @tmpt order by sel
+	open cursor_table 
+	fetch next from cursor_table 
+	into @place,@productno,@size,@memo
+	while(@@FETCH_STATUS <> -1) 
+	begin 
+		if @n%10=0
+		begin
+			if not exists(select * from #z_orde_pk01 where page = floor(@n/10)+1)
+				insert into #z_orde_pk01(gno,noa,page)values('0',@t_noa,floor(@n/10)+1)
+		end
+		set @m = @n%10 + 1
+		set @cmd = "update #z_orde_pk01 set tp"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@place
+			,tproductno"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@productno,tsize"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@size,tmemo"+RIGHT('00'+CAST(@m as nvarchar),2)+"=@memo
+			where page=floor(@n/10)+1"
+		execute sp_executesql @cmd,N'@n int,@place nvarchar(20),@productno nvarchar(20),@size nvarchar(50),@memo nvarchar(max)'
+			,@n=@n,@place=@place,@productno=@productno,@size=@size,@memo=@memo
+		set @n=@n+1
+		
+		fetch next from cursor_table 
+		into @place,@productno,@size,@memo
+	end 
+	close cursor_table 
+	deallocate cursor_table 
+	-----------------------------------------------------
+	update #z_orde_pk01 set sales=b.sales,odate=b.odate,custorde=b.custorde
+		,datea=b.datea,comptel=b.tel,nick=b.nick,addr=b.addr,memo=b.memo
+	from #z_orde_pk01 a
+	left join view_orde b on a.noa=b.noa
+	
+	select * from #z_orde_pk01 order by sel
+	
+	drop table #z_orde_pk01;
+
 z_orde_pk01:--z_orde_pk01
 
 declare @t_bnoa nvarchar(20)
@@ -6,7 +193,7 @@ declare @t_show nvarchar(10)
 
 set @t_bnoa = case when '#non'=[3] then '' else [3] end
 set @t_enoa = case when '#non'=[4] then char(255) else [4] end
-set @t_show = case when '#non'=[5] then char(255) else [5] end
+set @t_show = case when '#non'=[6] then char(255) else [6] end
 ---------------------------------------------------------------------------------
 SET QUOTED_IDENTIFIER OFF
 
