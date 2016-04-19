@@ -142,7 +142,7 @@ z_ucc_pk04:--z_ucc_pk04
 	select b.datea
 		,case when ltrim(rtrim(isnull(a.cngstoreno,''))) = '' then b.storeno else a.cngstoreno end storeno
 		,b.[source],a.uno,isnull(b.place,''),b.style,b.productno,b.product,b.[class]
-		,b.dime,b.width,b.lengthb,b.radius,b.size,b.mount,b.[weight],b.sprice,a.emount,a.eweight,b.memo
+		,b.dime,b.width,b.lengthb,b.radius,replace(b.size,'~#$',"'"),b.mount,b.[weight],b.sprice,a.emount,a.eweight,b.memo
 		,b.custno,b.uno2,b.tdime,b.twidth,b.tlength,b.spec
 	from uccy a
 	left join view_uccb b on a.uno=b.uno
