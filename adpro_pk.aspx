@@ -49,7 +49,7 @@
 			function mainPost() {
 				bbmMask = [];
 				q_mask(bbmMask);
-				
+				document.title='安全存量';
 				$('#txtMon').blur(function() {
 					if((q_cur==1 || q_car==2) &&emp($('#txtDatea').val())&&!emp($('#txtMon').val()))
                     $('#txtDatea').val($('#txtMon').val()+'/01');
