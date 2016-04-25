@@ -32,7 +32,7 @@
                     },{//[2]
 						type : '0',
 						name : 'xkind',
-                        value : q_getPara('sys.stktype')
+                        value : q_getPara('sys.stktype')+',2@物料,3@委外'
                     }, {//[3]
                         type : '1',
                         name : 'xnoa'
