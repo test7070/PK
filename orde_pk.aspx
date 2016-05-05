@@ -190,8 +190,7 @@
                 q_cmbParse("cmbKind", q_getPara('sys.stktype'));
                 
                 $('#btnOrdei').hide();
-                var t_where = "where=^^ 1=1^^";
-				q_gt('custaddr', t_where, 0, 0, 0, "");
+               
                 //外銷訂單按鈕隱藏
                 q_gt('spec', '', 0, 0, 0, "", r_accy);
                 
@@ -947,8 +946,6 @@
                 });
                 $('#txtKind').val('A1');
                 q_gt('acomp', '', 0, 0, 0, 'getAcomp', r_accy);
-                var t_where = "where=^^ 1=1^^";
-				q_gt('custaddr', t_where, 0, 0, 0, "");
             }
 
             function btnModi() {
