@@ -495,6 +495,7 @@ z_umm_pk05:--z_umm_pk05  客戶請款單(明細)  日期
 		select @topay=SUM(ISNULL(opay,0)-ISNULL(unopay,0))
 		from umm 
 		where custno=@custno
+		and datea<=@t_eummdate
 		/*select @mm02 mm02,@mm03 mm03,@mm04 mm04,@mm05 mm05,@mm06 mm06,@mm07 mm07,@mm08 mm08,@mm09 mm09
 		select isnull(@ttotal,0)本期應收
 			,isnull(@tumm,0)本期收款
