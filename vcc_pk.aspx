@@ -215,8 +215,7 @@
 				q_cmbParse("cmbTaxtype", q_getPara('sys.taxtype'));
 				q_cmbParse("cmbKind", q_getPara('sys.stktype'));
 				q_gt('spec', '', 0, 0, 0, "", r_accy);
-				var t_where = "where=^^ 1=1 ^^";
-				q_gt('custaddr', t_where, 0, 0, 0, "");
+				
 				//=======================================================
 				//限制帳款月份的輸入 只有在備註的第一個字為*才能手動輸入
 				/*$('#txtMemo').change(function() {
@@ -1352,8 +1351,6 @@
 					opacity : 0
 				});
 				q_gt('acomp', '', 0, 0, 0, 'getAcomp', r_accy);
-				var t_where = "where=^^ 1=1 ^^";
-				q_gt('custaddr', t_where, 0, 0, 0, "");
 			}
 
 			function btnModi() {
