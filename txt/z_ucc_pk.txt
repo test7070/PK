@@ -572,7 +572,7 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,dbo.getComma(dime,-1) a08--厚
 		,dbo.getComma(width,-1) a09--寬
 		,dbo.getComma(lengthb,-1) a10--長
-		,size a11--尺寸
+		,replace(size,"~#$","'") a11--尺寸
 		
 		,dbo.getComma(emount,-1) a12--庫存數
 		,dbo.getComma(eweight,-1) a13--庫存重
