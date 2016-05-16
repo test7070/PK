@@ -295,8 +295,8 @@
                     		//q_gridAddRow(bbsHtm, 'tbbs', 'txtQuatno,txtNo3,txtProductno,txtProduct,txtDime,txtRadius,txtWidth,txtLengthb,cmbSpec,txtScolor,txtClass,txtUcolor,txtZinc,txtHard,txtSource,txtUno,txtUnit,txtUnit2,txtMount,txtWeight,txtPrice'
                         	//, as.length, as, 'noa,no3,productno,product,dime,radius,width,lengthb,spec,scolor,class,ucolor,zinc,hard,source,uno,unit,unit2,emount,eweight,price', '','');
                         	
-                        	q_gridAddRow(bbsHtm, 'tbbs', 'txtProductno,txtProduct,txtSpec,txtSize,txtRadius,txtDime,txtWidth,txtLengthb,txtUnit,txtUnit2,txtQuatno,txtNo3,txtPrice,txtMount,txtWeight,txtClass,txtTheory,txtStyle', b_ret.length, b_ret
-                        	, 'productno,product,spec,size,radius,dime,width,lengthb,unit,unit2,noa,no3,price,emount,eweight,class,theory,style', 'txtProductno,txtProduct,txtSpec');
+                        	q_gridAddRow(bbsHtm, 'tbbs', 'txtProductno,txtProduct,txtSpec,txtSize,txtRadius,txtDime,txtWidth,txtLengthb,txtUnit,txtUnit2,txtQuatno,txtNo3,txtPrice,txtMount,txtWeight,txtClass,txtTheory,txtStyle,txtUcolor,txtScolor', b_ret.length, b_ret
+                        	, 'productno,product,spec,size,radius,dime,width,lengthb,unit,unit2,noa,no3,price,emount,eweight,class,theory,style,ucolor,scolor', 'txtProductno,txtProduct,txtSpec');
                         	
                         	var t_quatno = $('#txtQuatno_0').length>0?$('#txtQuatno_0').val():'';
                         	q_gt('view_quat', "where=^^ noa='"+t_quatno+"' ^^", 0, 0, 0, JSON.stringify({action:'importQuat'}));
@@ -829,7 +829,7 @@
                     if (!$('#btnMinus_' + j).hasClass('isAssign')) {
                     	$('#combUcolor_' + j).click(function() {
                     		if(q_cur==1 || q_cur==2){
-                    			var n = $(this).attr('id').replace('combUcolor_','');
+                    			var n = $(this).attr('id').replace(/^(.*)_(\d+)$/,'$2');
                     			if($(this).val().length>0)
                         			$('#txtUcolor_'+n).val($(this).val());
                     		}
