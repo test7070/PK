@@ -56,11 +56,27 @@
 				q_getFormat();
 				bbmMask = [['txtDatea', r_picd]];
 				q_mask(bbmMask);
+				
+				$('#btnOrdesImport').click(function() {
+					if (q_cur == 1 || q_cur == 2) {
+						t_where ='';
+						q_box("orde_pk_b.aspx?" + r_userno + ";" + r_name + ";" + q_time + ";" + t_where+";"+";"+JSON.stringify({no:t_noa,page:'cubm_pk'}), "orde_cubm", "95%", "95%", '');
+					}
+				});
 			}
 
 			function q_boxClose(s2) {
 				var ret;
 				switch (b_pop) {
+					case 'orde_cubm':
+                        if (b_ret != null) {
+                        	as = b_ret;
+                    		q_gridAddRow(bbsHtm, 'tbbs', 'txtOrdeno,txtNo2,txtCustno,txtCust,txtSpec,txtClass,txtSize,txtCubno'
+                        	, as.length, as, 'noa,no2,custno,nick,spec,class,size,makeno', 'txtOrdeno','');             	
+                        }else{
+                        	Unlock(1);
+                        }
+                        break;
 					case q_name + '_s':
 						q_boxClose2(s2);
 						break;
@@ -433,6 +449,7 @@
 						<td><input id="txtWorker"  type="text" class="txt c1"/></td>
 						<td><span> </span><a id='lblWorker2' class="lbl"> </a></td>
 						<td><input id="txtWorker2"  type="text" class="txt c1"/></td>
+						<td><input id="btnOrdesImport" type="button" value="訂單匯入"/></td>
 					</tr>
 				</table>
 			</div>
