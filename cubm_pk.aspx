@@ -56,7 +56,7 @@
 
 			function mainPost() {
 				q_getFormat();
-				bbmMask = [['txtDatea', r_picd]];
+				bbmMask = [['txtDatea', r_picd],['txtBtime','99:99'],['txtEtime','99:99']];
 				q_mask(bbmMask);
 				
 				$('#btnOrdesImport').click(function() {
@@ -410,7 +410,7 @@
 						<td align="center" style="width:20px; color:black;"><a id='vewChk'> </a></td>
 						<td align="center" style="width:80px; color:black;"><a id='vewDatea'> </a></td>
 						<td align="center" style="width:100px; color:black;"><a id='vewNoa'> </a></td>
-						<td align="center" style="width:80px; color:black;"><a id='vewMech'> </a></td>
+						<td align="center" style="width:80px; color:black;"><a id='vewMech'>機台</a></td>
 					</tr>
 					<tr>
 						<td><input id="chkBrow.*" type="checkbox" style=''/></td>
@@ -441,6 +441,14 @@
 						<td colspan="4">
 							<input id="txtMechno" type="text" style="float:left;width:25%;"/>
 							<input id="txtMech" type="text" style="float:left;width:75%;"/>
+						</td>
+					</tr>
+					<tr>
+						<td><span> </span><a id='lblTime' class="lbl">時間</a></td>
+						<td colspan="2">
+							<input id="txtBtime" type="text" class="txt" style="float:left;width:40%;"/>
+							<a style="float:left;"> ～ </a>
+							<input id="txtEtime" type="text" class="txt" style="float:left;width:40%;"/>
 						</td>
 					</tr>
 					<tr>

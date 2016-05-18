@@ -105,8 +105,8 @@
 					<td style="width:2%;"><a id="lblNo.*" style="font-weight: bold;text-align: center;display: block;width:2%;" readonly="readonly"> </a></td>
 					<td style="width:7%;"><input id="txtDatea.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
 					<td style="width:15%;">
-						<input id="txtNoa.*" type="text" style="float:left;width:80%;"  readonly="readonly" />
-						<input id="txtNo2.*" type="text" style="float:left;width:15%;"  readonly="readonly" />
+						<input id="txtNoa.*" type="text" style="float:left;width:70%;"  readonly="readonly" />
+						<input id="txtNo2.*" type="text" style="float:left;width:25%;"  readonly="readonly" />
 					</td>
 					<td style="width:8%;"><input id="txtCust.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
 					<td style="width:10%;"><input id="txtProduct.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
