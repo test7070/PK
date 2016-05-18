@@ -29,7 +29,9 @@
 			brwNowPage = 0;
 			brwKey = 'noa';
 
-			aPop = new Array();
+			aPop = new Array(
+				['txtMechno', 'lblMech', 'mech', 'noa,mech', 'txtMechno,txtMech', 'mech_b.aspx']
+			);
 			brwCount2 = 5;
 			
 			$(document).ready(function() {
@@ -59,6 +61,7 @@
 				
 				$('#btnOrdesImport').click(function() {
 					if (q_cur == 1 || q_cur == 2) {
+						t_noa = $('#txtNoa').val();
 						t_where ='';
 						q_box("orde_pk_b.aspx?" + r_userno + ";" + r_name + ";" + q_time + ";" + t_where+";"+";"+JSON.stringify({no:t_noa,page:'cubm_pk'}), "orde_cubm", "95%", "95%", '');
 					}
@@ -71,8 +74,8 @@
 					case 'orde_cubm':
                         if (b_ret != null) {
                         	as = b_ret;
-                    		q_gridAddRow(bbsHtm, 'tbbs', 'txtOrdeno,txtNo2,txtCustno,txtCust,txtSpec,txtClass,txtSize,txtCubno'
-                        	, as.length, as, 'noa,no2,custno,nick,spec,class,size,makeno', 'txtOrdeno','');             	
+                    		q_gridAddRow(bbsHtm, 'tbbs', 'txtOrdeno,txtNo2,txtProductno,txtProduct,txtSize,txtMount,txtWeight'
+                        	, as.length, as, 'noa,no2,productno,product,size,mount,weight', 'txtOrdeno','');             	
                         }else{
                         	Unlock(1);
                         }

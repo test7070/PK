@@ -30,21 +30,9 @@
 	            	t_para = JSON.parse(decodeURIComponent(q_getId()[5]));
 	            	
 	            	if(t_para.page=='cubm_pk'){
-	            		q_name = "orde_cub"
-	            		t_content = "where=^^['"+t_para.cubno+"','"+t_para.page+"')^^";
-	            	}else if(t_para.page=='cuc_rk'){
-	            		q_name = "orde_cuc"
-	            		t_content = "where=^^['"+t_para.cucno+"','"+t_para.page+"')^^";
-	            	}else if(t_para.page=='cud_rk'){
-	            		q_name = "orde_cud"
-	            		t_content = "where=^^['"+t_para.cudno+"','"+t_para.page+"')^^";
-	            	}else if(t_para.page=='cut_rk'){
-	            		q_name = "orde_cut"
-	            		t_content = "where=^^['"+t_para.cutno+"','"+t_para.page+"')^^";
-	            	}else{
-	            		t_content = "where=^^['"+t_para.vccno+"','"+t_para.custno+"','"+t_para.page+"')^^";
+	            		q_name = "orde_cubm";
+	            		t_content = "where=^^['"+t_para.no+"','"+t_para.page+"')^^";
 	            	}
-	            	 
 	            }catch(e){
 	            }    
                 brwCount = -1;
@@ -63,11 +51,8 @@
             function q_gtPost(t_name) {
 				switch (t_name) {
 					case q_name:
-						//if (isLoadGt == 1) {
-							abbs = _q_appendData(q_name, "", true);
-							isLoadGt = 0;
-							refresh();
-						//}
+						abbs = _q_appendData(q_name, "", true);
+						refresh();
 						break;
 				}
 			}
@@ -79,88 +64,69 @@
 		<style type="text/css">
 		</style>
 	</head>
-
-
 		
 	<body>
 		<div  id="dFixedTitle" style="overflow-y: scroll;">
 			<table id="tFixedTitle" class='tFixedTitle'  border="2"  cellpadding='2' cellspacing='1' style='width:100%;'  >
 				<tr style='color:white; background:#003366;' >
 					<th align="center" style="width:2%;"><input type="checkbox" id="checkAllCheckbox"/></th>
-					<td align="center" style="width:10%;">單號</td>
-					<td align="center" style="width:5%;">客戶</td>
-					<td align="center" style="width:15%;">品名</td>
-					<td align="center" style="width:5%;">厚</td>
-					<td align="center" style="width:5%;">皮膜厚</td>
-					<td align="center" style="width:5%;">寬</td>
-					<td align="center" style="width:5%;">長</td>
-					<td align="center" style="width:5%;">單位</td>
-					<td align="center" style="width:10%;">皮膜</td>
-					<td align="center" style="width:5%;">背面<br>處理</td>
-					<td align="center" style="width:5%;">保護膜(一)</td>
-					<td align="center" style="width:5%;">保護膜(二)</td>
+					<td align="center" style="width:2%;"> </td>
+					<td align="center" style="width:7%;">預交日期</td>
+					<td align="center" style="width:15%;">訂單號碼</td>
+					<td align="center" style="width:8%;">客戶</td>
+					<td align="center" style="width:10%;">品名</td>
+					<td align="center" style="width:8%;">規範<BR>國別</td>
+					<td align="center" style="width:15%;">尺寸</td>
 					<td align="center" style="width:5%;">數量</td>
+					<td align="center" style="width:5%;">單位</td>
 					<td align="center" style="width:5%;">重量</td>
-					<td align="center" style="width:5%;">單價</td>
-					<td align="center" style="width:8%;">備註</td>
+					<td align="center" style="width:5%;">單位</td>
 				</tr>
 			</table>
 		</div>
 		<div id="dbbs" style="overflow: scroll;height:450px;" >
 			<table id="tbbs" class='tbbs' border="2" cellpadding='2' cellspacing='1' style='width:100%;' >
 				<tr style="display:none;">
-					<th align="center" style="width:2%;"></th>
-					<td align="center" style="width:10%;">單號</td>
-					<td align="center" style="width:5%;">客戶</td>
-					<td align="center" style="width:15%;">品名</td>
-					<td align="center" style="width:5%;">厚</td>
-					<td align="center" style="width:5%;">皮膜厚</td>
-					<td align="center" style="width:5%;">寬</td>
-					<td align="center" style="width:5%;">長</td>
-					<td align="center" style="width:5%;">單位</td>
-					<td align="center" style="width:10%;">皮膜</td>
-					<td align="center" style="width:5%;">背面<br>處理</td>
-					<td align="center" style="width:5%;">保護膜(一)</td>
-					<td align="center" style="width:5%;">保護膜(二)</td>
+					<th align="center" style="width:2%;"> </th>
+					<td align="center" style="width:2%;"> </td>
+					<td align="center" style="width:7%;">預交日期</td>
+					<td align="center" style="width:15%;">訂單號碼</td>
+					<td align="center" style="width:8%;">客戶</td>
+					<td align="center" style="width:10%;">品名</td>
+					<td align="center" style="width:8%;">規範<BR>國別</td>
+					<td align="center" style="width:15%;">尺寸</td>
 					<td align="center" style="width:5%;">數量</td>
+					<td align="center" style="width:5%;">單位</td>
 					<td align="center" style="width:5%;">重量</td>
-					<td align="center" style="width:5%;">單價</td>
-					<td align="center" style="width:8%;">備註</td>
+					<td align="center" style="width:5%;">單位</td>
 				</tr>
 				<tr style='background:#cad3ff;'>
 					<td style="width:2%;"><input type="checkbox" class="ccheck" id="chkSel.*"/></td>
-					<td style="width:10%;">
-						<input id="txtAccy.*" type="text" style="display:none;"  readonly="readonly" />
-						<input id="txtNoa.*" type="text" style="float:left;width:75%;"  readonly="readonly" />
-						<input id="txtNo2.*" type="text" style="float:left;width:25%;"  readonly="readonly" />
-					</td>
-					<td style="width:5%;"><input id="txtNick.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
+					<td style="width:2%;"><a id="lblNo.*" style="font-weight: bold;text-align: center;display: block;width:2%;" readonly="readonly"> </a></td>
+					<td style="width:7%;"><input id="txtDatea.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
 					<td style="width:15%;">
-						<input id="txtProductno.*" type="text" style="float:left;width:30%;"  readonly="readonly" />
-						<input id="txtProduct.*" type="text" style="float:left;width:65%;"  readonly="readonly" />
+						<input id="txtNoa.*" type="text" style="float:left;width:80%;"  readonly="readonly" />
+						<input id="txtNo2.*" type="text" style="float:left;width:15%;"  readonly="readonly" />
 					</td>
-					<td style="width:5%;"><input id="txtDime.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtRadius.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtWidth.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtLengthb.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtUnit.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:10%;">
-						<input id="txtSpec.*" type="text" style="float:left;width:50%;"  readonly="readonly" />
-						<input id="txtClass.*" type="text" style="float:left;width:50%;"  readonly="readonly" />
+					<td style="width:8%;"><input id="txtCust.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
+					<td style="width:10%;"><input id="txtProduct.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
+					<td style="width:8%;">
+						<input id="txtUcolor.*" type="text" style="float:left;width:100%;"  readonly="readonly" />
+						<input id="txtScolor.*" type="text" style="float:left;width:100%;"  readonly="readonly" />
 					</td>
-					<td style="width:5%;"><input id="txtUcolor.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;">
-						<input id="txtZinc.*" type="text" style="display:none;"  readonly="readonly" />
-						<input id="txtSource.*" type="text" style="float:left;width:100%;"  readonly="readonly" />
-					</td>
-					<td style="width:5%;">
-						<input id="txtHard.*" type="text" style="display:none;"  readonly="readonly" />
-						<input id="txtUno.*" type="text" style="float:left;width:100%;"  readonly="readonly" />
+					
+					<td style="width:15%;">
+						<input id="txtDime.*" type="text" style="float:left;width:28%;"  readonly="readonly" />
+						<a align="center" style="float:left;width:5%">x</a>
+						<input id="txtWidth.*" type="text" style="float:left;width:28%;"  readonly="readonly" />
+						<a align="center" style="float:left;width:5%">x</a>
+						<input id="txtLengthb.*" type="text" style="float:left;width:28%;"  readonly="readonly" />
+						<input id="txtSize.*" type="text" style="float:left;width:100%;"  readonly="readonly" />
 					</td>
 					<td style="width:5%;"><input id="txtMount.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
+					<td style="width:5%;"><input id="txtUnit2.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
 					<td style="width:5%;"><input id="txtWeight.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtPrice.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:8%;"><input id="txtMemo.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
+					<td style="width:5%;"><input id="txtUnit.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
 				</tr>
 			</table>
 		</div>
