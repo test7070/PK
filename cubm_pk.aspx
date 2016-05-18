@@ -144,6 +144,7 @@
 						
 					});
 				}
+				_bbsAssign();
 			}
 
 			function btnIns() {
