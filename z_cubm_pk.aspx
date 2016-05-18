@@ -15,14 +15,28 @@
 		<script src="css/jquery/ui/jquery.ui.widget.js"> </script>
 		<script src="css/jquery/ui/jquery.ui.datepicker_tw.js"> </script>
 		<script type="text/javascript">
-            $(document).ready(function() {
-            	q_getId();
-                q_gf('', 'z_cubm_pk');       
-            });
             function getLocation(){
             	var parser = document.createElement('a');
 				parser.href = document.URL;
 				return parser.protocol+'//'+parser.host;		
+            }
+            var t_mech = '';
+            $(document).ready(function() {
+            	q_getId();
+            	q_gt('mech', '', 0, 0, 0, "");	
+            });
+            
+            function q_gtPost(t_name) {
+            	switch (t_name) {
+					case 'mech':
+						t_mech = '';
+						var as = _q_appendData("mech", "", true);
+						for ( i = 0; i < as.length; i++) {
+							t_mech += (t_mech.length > 0 ? '&' : '') + as[i].noa + '@' + as[i].mech;
+						}
+						q_gf('', 'z_cubm_pk'); 
+						break;
+				} 
             }
             function q_gfPost() {
 				$('#q_report').q_report({
@@ -36,11 +50,47 @@
 						name : 'db',
 						value : q_db
 					},{
-						type : '6', //[3]     1
-						name : 'noa'
-					}]
+						type : '1', //[3][4]  1
+						name : 'xdate'
+					},{
+                        type : '8',//[5]  2
+                        name : 'xmech',
+                        value : t_mech.split('&')
+                    }]
 				});
 				q_popAssign();
+				q_langShow();
+				
+				$('#txtXdate1').mask('999/99/99');
+				$('#txtXdate1').datepicker();
+				$('#txtXdate2').mask('999/99/99');
+				$('#txtXdate2').datepicker();
+				
+				var t_date,
+                    t_year,
+                    t_month,
+                    t_day;
+                t_date = new Date();
+                t_date.setDate(1);
+                t_year = t_date.getUTCFullYear() - 1911;
+                t_year = t_year > 99 ? t_year + '' : '0' + t_year;
+                t_month = t_date.getUTCMonth() + 1;
+                t_month = t_month > 9 ? t_month + '' : '0' + t_month;
+                t_day = t_date.getUTCDate();
+                t_day = t_day > 9 ? t_day + '' : '0' + t_day;
+                $('#txtXdate1').val(t_year + '/' + t_month + '/' + t_day);
+
+                t_date = new Date();
+                t_date.setDate(35);
+                t_date.setDate(0);
+                t_year = t_date.getUTCFullYear() - 1911;
+                t_year = t_year > 99 ? t_year + '' : '0' + t_year;
+                t_month = t_date.getUTCMonth() + 1;
+                t_month = t_month > 9 ? t_month + '' : '0' + t_month;
+                t_day = t_date.getUTCDate();
+                t_day = t_day > 9 ? t_day + '' : '0' + t_day;
+                $('#txtXdate2').val(t_year + '/' + t_month + '/' + t_day);
+                
 	            var t_para = new Array();
 	            try{
 	            	t_para = JSON.parse(q_getId()[3]);
@@ -59,7 +109,7 @@
                 }
             }
 			//function q_boxClose(s2) {}
-			function q_gtPost(s2) {}
+			
 		</script>
 	</head>
 	<body ondragstart="return false" draggable="false"
