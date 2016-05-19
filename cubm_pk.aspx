@@ -75,7 +75,7 @@
                         if (b_ret != null) {
                         	as = b_ret;
                     		q_gridAddRow(bbsHtm, 'tbbs', 'txtOrdeno,txtNo2,txtProductno,txtProduct,txtSize,txtMount,txtWeight'
-                        	, as.length, as, 'noa,no2,productno,product,size,mount,weight', 'txtOrdeno','');             	
+                        	, as.length, as, 'noa,no2,productno,product,size,mount,weight', '','');             	
                         }else{
                         	Unlock(1);
                         }

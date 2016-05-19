@@ -1,45 +1,79 @@
 z_cubm_pk01:--z_cubm_pk01
-
-SET QUOTED_IDENTIFIER OFF
+	SET QUOTED_IDENTIFIER OFF
+	declare @t_path nvarchar(max) = '[1]'
+	declare @t_db nvarchar(max) = '[2]'
+	declare @t_bdate nvarchar(20) = case when '#non'=[3] then '' else [3] end
+	declare @t_edate nvarchar(20) = case when '#non'=[4] then char(255) else [4] end
+	declare @t_mechno nvarchar(max) = case when '#non'=[5] then '' else [5] end
+	-------------------------------------------------------------------------
+	declare @tmp table(
+		sel int identity(1,1)
+		,gno nvarchar(10)
+		,recno int
+		,mechno nvarchar(20)
+		,mech nvarchar(20)
+		,datea nvarchar(20)
+		,btime nvarchar(20)
+		,etime nvarchar(20)
+		,ordeno nvarchar(20)
+		,no2 nvarchar(10)
+		,custno nvarchar(20)
+		,cust nvarchar(20)
+		,product nvarchar(max)
+		,dime float
+		,width float
+		,lengthb float
+		,size nvarchar(50)
+		,mount float
+		,unit2 nvarchar(20)
+		,[weight] float
+		,unit nvarchar(20)
+		
+		,cutdate nvarchar(20)
+		,cutno nvarchar(20)
+		,cutnoq nvarchar(10)
+	)
+	insert into @tmp(gno,mechno,mech,datea,btime,etime,ordeno,no2)
+	select '1',b.mechno,b.mech,b.datea,b.btime,b.etime,a.ordeno,a.no2
+	from cubms a
+	left join cubm b on a.noa=b.noa
+	where b.datea between @t_bdate and @t_edate
+	and (len(@t_mechno)=0 or charindex(','+b.mechno+',',','+@t_mechno+',')>0)
 	
-declare @t_bdate nvarchar(10)
-declare @t_edate nvarchar(10)
-declare @t_bmech nvarchar(10)
-declare @t_emech nvarchar(10)
-
-set @t_bdate = case when '#non' = [1] then '' else [1] end
-set @t_edate = case when '#non' = [2] then CHAR(255) else [2] end
-set @t_bmech = case when '#non' = [4] then '' else [4] end
-set @t_emech = case when '#non' = [5] then CHAR(255) else [5] end
----------------------------------------------------------------
-declare @tmp table(
-	gno nvarchar(1),
-	noa nvarchar(20),
-	datea nvarchar(10),
-	orderno nvarchar(20),
-	no2 nvarchar(10),
-	uno nvarchar(30),
-	mechno nvarchar(20),
-	mech nvarchar(20),
-	btime nvarchar(30),
-	etime nvarchar(30),
-	gmount float,
-	gweight float,
-	length float,
-	mount float,
-	weight float,
-	worker nvarchar(20),
-	worker2 nvarchar(20),
-	trantype nvarchar(20),
-	memo nvarchar(max)
-)
-
-insert into @tmp
-select '0',noa,datea,orderno,no2,uno,mechno,mech,btime,etime,gmount,gweight,length,mount,weight,worker,worker2,trantype,memo
-from cubm
-where (datea between @t_bdate and @t_edate) and (mechno between @t_bmech and @t_emech)
-
-insert into @tmp(gno,datea,gmount,gweight,length,mount,weight)
-select '1',datea,SUM(gmount),SUM(gweight),SUM(length),SUM(mount),SUM(weight) from @tmp group by datea
-
-select * from @tmp order by datea,gno;
+	update @tmp set custno=c.custno,cust=c.nick
+		,product=b.product,dime=b.dime,width=b.width,lengthb=b.lengthb,size=replace(b.size,'~#$',"'")
+		,mount=b.mount,unit2=b.unit2,[weight]=b.[weight],unit=b.unit
+	from @tmp a
+	left join view_ordes b on a.ordeno=b.noa and a.no2=b.no2 
+	left join view_orde c on b.accy=c.accy and b.noa=c.noa
+	
+	--  一筆明細只能匯入一次裁剪單
+	update @tmp set cutdate = c.datea,cutno=b.noa,cutnoq=b.noq
+	from @tmp a
+	left join view_cuts b on a.ordeno=b.ordeno and a.no2=b.no2
+	left join view_cut c on b.accy=c.accy and b.noa=c.noa
+	
+	update @tmp set recno=b.recno
+	from @tmp a
+	left join (select sel,ROW_NUMBER()over(order by mechno,datea,btime,etime,ordeno,no2) recno from @tmp ) b on a.sel=b.sel
+	
+	select gno
+		,recno rr
+		,mech a01
+		,datea a02
+		,case when len(btime)>0 and len(etime)>0 then btime+' ~ '+etime else btime+etime end a03
+		,ordeno+'-'+no2 a04
+		,cust a05
+		,product a06
+		,dbo.getComma(dime,-1) a07
+		,dbo.getComma(width,-1) a08
+		,dbo.getComma(lengthb,-1) a09
+		,size a10
+		,dbo.getComma(mount,-1) a11
+		,unit2 a12 
+		,dbo.getComma([weight],-1) a13
+		,unit a14
+		,cutdate a15
+		,case when len(ISNULL(cutno,''))>0 then cutno+'-'+cutnoq else '' end a16
+	from @tmp
+	order by recno;
