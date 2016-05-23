@@ -19,7 +19,7 @@
 			var q_readonly = ['txtNoa','txtWorker','txtWorker2'];
 			var q_readonlys = [];
 			var bbmNum = [];
-			var bbsNum = [['txtWeight', 10, 3, 1], ['txtMount', 10, 2, 1]];
+			var bbsNum = [['txtWeight', 10, 3, 1], ['txtMount', 10, 2, 1],['txtWeight2', 10, 3, 1], ['txtMount2', 10, 2, 1]];
 			var bbmMask = [];
 			var bbsMask = [];
 			q_desc = 1;
@@ -474,6 +474,8 @@
 					<td align="center" style="width:150px;">訂單號碼</td>
 					<td align="center" style="width:150px;"><a>品號<BR>品名</a></td>
 					<td align="center" style="width:200px;">尺寸</td>
+					<td align="center" style="width:80px;">件數</td>
+					<td align="center" style="width:80px;">公斤</td>
 					<td align="center" style="width:80px;">數量</td>
 					<td align="center" style="width:80px;">重量</td>
 					<td align="center" style="width:150px;">備註</td>
@@ -494,6 +496,8 @@
 						<input class="btn" id="btnProduct.*" type="button" style="display:none;"/>
 					</td>
 					<td><input type="text" id="txtSize.*" style="width:95%;text-align:center;" /></td>
+					<td><input id="txtMount2.*" type="text" class="txt num" style="width:95%;"/></td>
+					<td><input id="txtWeight2.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td><input id="txtMount.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td><input id="txtWeight.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td><input id="txtMemo.*" type="text" style="width:95%;"/></td>
