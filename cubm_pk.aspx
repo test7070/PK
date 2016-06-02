@@ -57,6 +57,7 @@
 			function mainPost() {
 				q_getFormat();
 				bbmMask = [['txtDatea', r_picd],['txtBtime','99:99'],['txtEtime','99:99']];
+				bbsMask = [['txtBtime','99:99'],['txtEtime','99:99']];
 				q_mask(bbmMask);
 				
 				$('#btnOrdesImport').click(function() {
@@ -359,7 +360,7 @@
 				margin: -1px;
 			}
 			.dbbs {
-				width: 1200px;
+				width: 1350px;
 			}
 			.tbbs a {
 				font-size: medium;
@@ -444,7 +445,7 @@
 							<input id="txtMech" type="text" style="float:left;width:75%;"/>
 						</td>
 					</tr>
-					<tr>
+					<tr style="display:none;">
 						<td><span> </span><a id='lblTime' class="lbl">時間</a></td>
 						<td colspan="2">
 							<input id="txtBtime" type="text" class="txt" style="float:left;width:40%;"/>
@@ -478,6 +479,7 @@
 					<td align="center" style="width:80px;">重量</td>
 					<td align="center" style="width:80px;">米數</td>
 					<td align="center" style="width:80px;">公斤</td>
+					<td align="center" style="width:150px;">時間</td>
 					<td align="center" style="width:150px;">備註</td>
 				</tr>
 				<tr  style='background:#cad3ff;'>
@@ -500,6 +502,11 @@
 					<td><input id="txtWeight.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td><input id="txtMount2.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td><input id="txtWeight2.*" type="text" class="txt num" style="width:95%;"/></td>
+					<td>
+						<input type="text" id="txtBtime.*" style="float:left;width:40%;text-align:center;" />
+						<a style="float:left;width:10%;text-align:center;">~</a>
+						<input type="text" id="txtEtime.*" style="float:left;width:40%;text-align:center;" />
+					</td>
 					<td><input id="txtMemo.*" type="text" style="width:95%;"/></td>
 				</tr>
 			</table>
