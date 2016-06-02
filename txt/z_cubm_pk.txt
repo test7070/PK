@@ -34,7 +34,7 @@ z_cubm_pk01:--z_cubm_pk01
 		,cutnoq nvarchar(10)
 	)
 	insert into @tmp(gno,mechno,mech,datea,btime,etime,ordeno,no2)
-	select '1',b.mechno,b.mech,b.datea,b.btime,b.etime,a.ordeno,a.no2
+	select '1',b.mechno,b.mech,b.datea,a.btime,a.etime,a.ordeno,a.no2
 	from cubms a
 	left join cubm b on a.noa=b.noa
 	where b.datea between @t_bdate and @t_edate
