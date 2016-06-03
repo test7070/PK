@@ -625,6 +625,9 @@
             function q_stPost() {
                 if (!(q_cur == 1 || q_cur == 2))
                     return false;
+                //檢查ORDET的鋼捲庫存是否足夠,不夠時顯示警告
+                q_func('qtxt.query.ordet_uccy', 'orde_pk.txt,ordet_uccy,' + r_accy + ';' + encodeURI($('#txtNoa').val()));
+                
                 q_gt('orde',"where=^^ noa='"+$.trim($('#txtNoa').val())+"'^^", 0, 0, 0, 'refreshEnd2', r_accy);
                 Unlock(1);
                 
@@ -636,6 +639,21 @@
             }
             function q_funcPost(t_func, result) {
                 switch(t_func) {
+                	case 'qtxt.query.ordet_uccy':
+                		var t_msg = '';
+                		var as = _q_appendData("tmp0", "", true, true);
+                        if(as[0]!=undefined){
+                        	for(var i=0;i<as.length;i++){
+                        		if(as[i].eweight<as[i].weight){
+                        			if(t_msg.length==0)
+                        				t_msg = '【庫存不足】';
+                        			t_msg += (t_msg.length>0?'\n':'') + as[i].uno + ' 庫存:'+as[i].eweight;
+                        		}
+                        	}
+                        }
+                        if(t_msg.length>0)
+                        	alert(t_msg);
+                		break;
                     case 'qtxt.query.conform':
                         var as = _q_appendData("tmp0", "", true, true);
                         if(as[0]!=undefined){

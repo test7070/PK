@@ -1,0 +1,25 @@
+ordet_uccy:-- orde_pk.txt ordet_uccy
+	SET QUOTED_IDENTIFIER OFF
+	declare @t_accy nvarchar(max) = [1]  --預防第一個參數為空會出錯
+	declare @t_noa nvarchar(max) = [2]
+	-----------------------------------------------------------------
+	-- 檢查 ORDET 上的批號, UCCY 是否還有庫存
+	declare @tmp table(
+		sel int identity(1,1)
+		,uno nvarchar(30)
+		,mount float
+		,[weight] float
+		,emount float
+		,eweight float
+	)
+	insert into @tmp(uno,mount,[weight])
+	select uno,SUM(ISNULL(mount,0)) mount,SUM(ISNULL([weight],0)) [weight]
+	from view_ordet a
+	where a.noa=@t_noa
+	group by uno
+	
+	update @tmp set emount=ISNULL(b.emount,0),eweight=ISNULL(b.eweight,0)
+	from @tmp a
+	left join uccy b on a.uno=b.uno
+	
+	select * from @tmp;
