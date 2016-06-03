@@ -19,7 +19,7 @@
 			var q_readonly = ['txtNoa','txtWorker','txtWorker2'];
 			var q_readonlys = [];
 			var bbmNum = [];
-			var bbsNum = [['txtWeight', 10, 3, 1], ['txtMount', 10, 2, 1],['txtWeight2', 10, 3, 1], ['txtMount2', 10, 2, 1]];
+			var bbsNum = [['txtWeight', 10, 3, 1], ['txtMount', 10, 2, 1],['txtWeight2', 10, 3, 1], ['txtMount2', 10, 2, 1], ['txtMount3', 10, 2, 1]];
 			var bbmMask = [];
 			var bbsMask = [];
 			q_desc = 1;
@@ -480,6 +480,7 @@
 					<td align="center" style="width:80px;">米數</td>
 					<td align="center" style="width:80px;">公斤</td>
 					<td align="center" style="width:150px;">時間</td>
+					<td align="center" style="width:80px;">完工數量</td>
 					<td align="center" style="width:150px;">備註</td>
 				</tr>
 				<tr  style='background:#cad3ff;'>
@@ -489,7 +490,7 @@
 					</td>
 					<td><a id="lblNo.*" style="font-weight: bold;text-align: center;display: block;"> </a></td>
 					<td>
-						<input id="txtOrdeno.*" type="text" style="width:75%;float:left;" />
+						<input id="txtOrdeno.*" type="text" style="width:70%;float:left;" />
 						<input type="text" id="txtNo2.*" style="width:20%;float:left;" />						
 					</td>
 					<td>
@@ -507,6 +508,7 @@
 						<a style="float:left;width:10%;text-align:center;">~</a>
 						<input type="text" id="txtEtime.*" style="float:left;width:40%;text-align:center;" />
 					</td>
+					<td><input id="txtMount3.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td><input id="txtMemo.*" type="text" style="width:95%;"/></td>
 				</tr>
 			</table>

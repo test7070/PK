@@ -14,11 +14,10 @@
             var isBott = false;
             var txtfield = [], afield, t_data, t_htm, t_bbsTag = 'tbbs';
        		brwCount = -1;
-			brwCount2 = -1;
+			brwCount2 = 0;
             $(document).ready(function() {
                 main();
             });
-            /// end ready
 
             function main() {
                 if (dataErr) {
@@ -35,8 +34,7 @@
 	            	}
 	            }catch(e){
 	            }    
-                brwCount = -1;
-                mainBrow(0, t_content);
+                mainBrow(6, t_content);
             }
 			function mainPost() {
 				$('#btnTop').hide();
@@ -60,6 +58,11 @@
             function refresh() {
                 _refresh();
             }
+            function bbsAssign() {
+				for(var i=0;i<q_bbsCount;i++)
+                	$('#lblNo_'+i).text(i+1);
+				_bbsAssign();
+			}
 		</script>
 		<style type="text/css">
 		</style>
@@ -72,7 +75,7 @@
 					<th align="center" style="width:2%;"><input type="checkbox" id="checkAllCheckbox"/></th>
 					<td align="center" style="width:2%;"> </td>
 					<td align="center" style="width:7%;">預交日期</td>
-					<td align="center" style="width:15%;">訂單號碼</td>
+					<td align="center" style="width:13%;">訂單號碼</td>
 					<td align="center" style="width:8%;">客戶</td>
 					<td align="center" style="width:10%;">品名</td>
 					<td align="center" style="width:8%;">規範<BR>國別</td>
@@ -81,6 +84,8 @@
 					<td align="center" style="width:5%;">單位</td>
 					<td align="center" style="width:5%;">重量</td>
 					<td align="center" style="width:5%;">單位</td>
+					<td align="center" style="width:7%;">完工數量</td>
+					<td align="center" style="width:5%;">未完工</td>
 				</tr>
 			</table>
 		</div>
@@ -90,7 +95,7 @@
 					<th align="center" style="width:2%;"> </th>
 					<td align="center" style="width:2%;"> </td>
 					<td align="center" style="width:7%;">預交日期</td>
-					<td align="center" style="width:15%;">訂單號碼</td>
+					<td align="center" style="width:13%;">訂單號碼</td>
 					<td align="center" style="width:8%;">客戶</td>
 					<td align="center" style="width:10%;">品名</td>
 					<td align="center" style="width:8%;">規範<BR>國別</td>
@@ -99,12 +104,14 @@
 					<td align="center" style="width:5%;">單位</td>
 					<td align="center" style="width:5%;">重量</td>
 					<td align="center" style="width:5%;">單位</td>
+					<td align="center" style="width:7%;">完工數量</td>
+					<td align="center" style="width:5%;">未完工</td>
 				</tr>
 				<tr style='background:#cad3ff;'>
 					<td style="width:2%;"><input type="checkbox" class="ccheck" id="chkSel.*"/></td>
-					<td style="width:2%;"><a id="lblNo.*" style="font-weight: bold;text-align: center;display: block;width:2%;" readonly="readonly"> </a></td>
+					<td style="width:2%;"><a id="lblNo.*" style="font-weight: bold;text-align: center;" readonly="readonly"> </a></td>
 					<td style="width:7%;"><input id="txtDatea.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:15%;">
+					<td style="width:13%;">
 						<input id="txtNoa.*" type="text" style="float:left;width:70%;"  readonly="readonly" />
 						<input id="txtNo2.*" type="text" style="float:left;width:25%;"  readonly="readonly" />
 					</td>
@@ -123,10 +130,12 @@
 						<input id="txtLengthb.*" type="text" style="float:left;width:28%;"  readonly="readonly" />
 						<input id="txtSize.*" type="text" style="float:left;width:100%;"  readonly="readonly" />
 					</td>
-					<td style="width:5%;"><input id="txtMount.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtUnit2.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtWeight.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
-					<td style="width:5%;"><input id="txtUnit.*" type="text" style="float:left;width:100%;"  readonly="readonly" /></td>
+					<td style="width:5%;"><input id="txtMount.*" type="text" style="float:left;width:100%;text-align: right;"  readonly="readonly" /></td>
+					<td style="width:5%;"><input id="txtUnit2.*" type="text" style="float:left;width:100%;text-align: right;"  readonly="readonly" /></td>
+					<td style="width:5%;"><input id="txtWeight.*" type="text" style="float:left;width:100%;text-align: right;"  readonly="readonly" /></td>
+					<td style="width:5%;"><input id="txtUnit.*" type="text" style="float:left;width:100%;text-align: center;"  readonly="readonly" /></td>
+					<td style="width:7%;"><input id="txtMount3.*" type="text" style="float:left;width:100%;text-align: right;"  readonly="readonly" /></td>
+					<td style="width:5%;"><input id="txtEmount.*" type="text" style="float:left;width:100%;text-align: right;"  readonly="readonly" /></td>
 				</tr>
 			</table>
 		</div>
