@@ -644,7 +644,7 @@
                 		var as = _q_appendData("tmp0", "", true, true);
                         if(as[0]!=undefined){
                         	for(var i=0;i<as.length;i++){
-                        		if(as[i].eweight<as[i].weight){
+                        		if(parseFloat(as[i].eweight)<parseFloat(as[i].weight)){
                         			if(t_msg.length==0)
                         				t_msg = '【庫存不足】';
                         			t_msg += (t_msg.length>0?'\n':'') + as[i].uno + ' 庫存:'+as[i].eweight;
