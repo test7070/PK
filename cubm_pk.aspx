@@ -57,7 +57,7 @@
 			function mainPost() {
 				q_getFormat();
 				bbmMask = [['txtDatea', r_picd],['txtBtime','99:99'],['txtEtime','99:99']];
-				bbsMask = [['txtBtime','99:99'],['txtEtime','99:99']];
+				bbsMask = [['txtDatea', r_picd],['txtBtime','99:99'],['txtEtime','99:99']];
 				q_mask(bbmMask);
 				
 				$('#btnOrdesImport').click(function() {
@@ -75,8 +75,8 @@
 					case 'orde_cubm':
                         if (b_ret != null) {
                         	as = b_ret;
-                    		q_gridAddRow(bbsHtm, 'tbbs', 'txtOrdeno,txtNo2,txtProductno,txtProduct,txtSize,txtMount,txtWeight'
-                        	, as.length, as, 'noa,no2,productno,product,size,mount,weight', '','');             	
+                    		q_gridAddRow(bbsHtm, 'tbbs', 'txtOrdeno,txtNo2,txtProductno,txtProduct,txtSize,txtMount,txtWeight,txtCustno,txtCust,txtDatea'
+                        	, as.length, as, 'noa,no2,productno,product,size,mount,weight,custno,cust,datea', '','');             	
                         }else{
                         	Unlock(1);
                         }
@@ -360,7 +360,7 @@
 				margin: -1px;
 			}
 			.dbbs {
-				width: 1350px;
+				width: 1500px;
 			}
 			.tbbs a {
 				font-size: medium;
@@ -473,6 +473,8 @@
 					<td align="center" style="width:30px;"><input class="btn"  id="btnPlus" type="button" value='+' style="font-weight: bold;"  /></td>
 					<td align="center" style="width:20px;"> </td>
 					<td align="center" style="width:150px;">訂單號碼</td>
+					<td align="center" style="width:100px;">日期</td>
+					<td align="center" style="width:100px;">客戶</td>
 					<td align="center" style="width:150px;"><a>品號<BR>品名</a></td>
 					<td align="center" style="width:200px;">尺寸</td>
 					<td align="center" style="width:80px;">數量</td>
@@ -481,6 +483,7 @@
 					<td align="center" style="width:80px;">公斤</td>
 					<td align="center" style="width:150px;">時間</td>
 					<td align="center" style="width:80px;">完工數量</td>
+					<td align="center" style="width:80px;">完工重量</td>
 					<td align="center" style="width:150px;">備註</td>
 				</tr>
 				<tr  style='background:#cad3ff;'>
@@ -492,6 +495,11 @@
 					<td>
 						<input id="txtOrdeno.*" type="text" style="width:70%;float:left;" />
 						<input type="text" id="txtNo2.*" style="width:20%;float:left;" />						
+					</td>
+					<td><input type="text" id="txtDatea.*" style="width:95%;text-align:center;" /></td>
+					<td>
+						<input type="text" id="txtCustno.*" style="display:none;" />
+						<input type="text" id="txtCust.*" style="width:95%;text-align:center;" />
 					</td>
 					<td>
 						<input id="txtProductno.*" type="text" style="width:45%;float:left;" />
@@ -509,6 +517,7 @@
 						<input type="text" id="txtEtime.*" style="float:left;width:40%;text-align:center;" />
 					</td>
 					<td><input id="txtMount3.*" type="text" class="txt num" style="width:95%;"/></td>
+					<td><input id="txtWeight3.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td><input id="txtMemo.*" type="text" style="width:95%;"/></td>
 				</tr>
 			</table>
