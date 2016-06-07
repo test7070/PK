@@ -44,11 +44,15 @@
 				t_edate = $.trim($('#txtEdate').val());
 				t_noa = $.trim($('#txtNoa').val());
 				t_uno = $.trim($('#txtUno').val());
+				t_ordeno = $.trim($('#txtOrdeno').val());
 				
 				var t_where = " 1=1 "
 					+q_sqlPara2("datea", t_bdate, t_edate)
 					+q_sqlPara2("noa", t_noa)
 					+q_sqlPara2("uno", t_uno);
+				if(t_ordeno.length>0)
+		       		t_where += " and exists(select noa from cubms where cumbs.noa=cubm.noa and cubms.ordeno='"+t_ordeno+"')";
+		       		
 				t_where = ' where=^^' + t_where + '^^ ';
 				return t_where;
 			}
@@ -58,7 +62,7 @@
 				color: white;
 				text-align: center;
 				font-weight: bold;
-				BACKGROUND-COLOR: #76a2fe
+				background-color: #76a2fe
 			}
 		</style>
 	</head>
@@ -80,6 +84,10 @@
 				<tr class='seek_tr'>
 					<td class='seek'  style="width:20%;"><a id='lblUno'></a></td>
 					<td><input class="txt" id="txtUno" type="text" style="width:215px; font-size:medium;" /></td>
+				</tr>
+				<tr class='seek_tr'>
+					<td class='seek'  style="width:20%;"><a id='lblNoa'></a></td>
+					<td><input class="txt" id="txtOrdeno" type="text" style="width:215px; font-size:medium;" /></td>
 				</tr>
 			</table>
 			<!--#include file="../inc/seek_ctrl.inc"-->
