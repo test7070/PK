@@ -257,7 +257,13 @@
 				$('#lblOrdc').click(function() {
 					if (!(q_cur == 1 || q_cur == 2))
 						return;
-					lblOrdc();
+					var t_tggno = $.trim($('#txtTggno').val());
+            		var t_kind = $('#cmbKind').val();
+            		var t_noa = $('#txtNoa').val();
+            		var t_where ='';
+            		q_box("ordc_import_pk_b.aspx?" + r_userno + ";" + r_name + ";" + q_time + ";" + t_where+";"+";"+JSON.stringify({tggno:t_tggno,kind:t_kind,noa:t_noa,page:'rc2_pk'}), "ordc_import", "95%", "95%", '');
+            		
+					//lblOrdc();
 				});
 				
 				$('#cmbKind').change(function() {
@@ -359,6 +365,32 @@
 				var
 				ret;
 				switch (b_pop) {/// 重要：不可以直接 return ，最後需執行 originalClose();
+					case 'ordc_import':
+                        if (b_ret != null) {
+                        	as = b_ret;
+                        	var curItem,newArray= new Array();
+                        	for(var i=0;i<as.length;i++){
+                        		if(as[i].cnt>1){
+                        			curItem = as[i];
+                        			curItem.mount=curItem.mount/curItem.cnt;
+                        			curItem.weight=curItem.weight/curItem.cnt;
+                        			curItem.total=round(curItem.total/curItem.cnt,0);
+
+                        			for(var j=0;j<curItem.cnt;j++){
+                        				newArray.push(curItem);
+                        			}
+                        		}else{
+                    				newArray.push(as[i]);
+                        		}
+                        	}
+                        	q_gridAddRow(bbsHtm, 'tbbs', 'txtProductno,txtProduct,txtSpec,combSpec,txtDime,txtWidth,txtLengthb,txtRadius,txtOrdeno,txtNo2,txtPrice,txtMount,txtWeight,txtTotal,txtMemo,txtUnit,txtClass,txtSource,txtScolor,txtUcolor,txtSize,txtUnit2'
+                        	, newArray.length, newArray
+							, 'productno,product,spec,spec,dime,width,lengthb,radius,noa,no2,price,mount,weight,total,memo,unit,class,source,scolor,ucolor,size,unit2', 'txtProductno');        	
+                        	sum();
+                        }else{
+                        	Unlock(1);
+                        }
+                        break;
 					case 'ordcs':
 						if (q_cur > 0 && q_cur < 4) {
 							ordcsArray = getb_ret();
