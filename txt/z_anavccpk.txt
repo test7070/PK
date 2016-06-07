@@ -517,7 +517,11 @@ z_anavccpk01:--z_anavccpk01
 	and a.custno between @t_bcustno and @t_ecustno
 	and (len(@t_stype)=0 or charindex(a.stype,@t_stype)>0)
 	-------------------------------------------------------------------------------------
-	declare @tmpb table(
+	IF OBJECT_ID('tempdb..#z_anavccpk01')is not null
+	BEGIN
+		drop table #z_anavccpk01
+	END
+	create table #z_anavccpk01(
 		sel int identity(1,1),
 		pno nvarchar(10),
 		tablea nvarchar(20),
@@ -575,7 +579,7 @@ z_anavccpk01:--z_anavccpk01
 		into @noq,@uno,@productno,@dime,@width,@size,@mount,@weight,@price,@total
 		while(@@FETCH_STATUS <> -1)
 		begin
-			insert into @tmpb(pno,tablea,accy,noa,noq
+			insert into #z_anavccpk01(pno,tablea,accy,noa,noq
 				,uno,productno,style,size,dime,width,mount,[weight],price,total)
 			select '1','vccs',a.accy,a.noa,a.noq
 				,a.uno,a.productno,a.style,a.size,a.dime,a.width,a.mount,a.[weight],a.price,a.total
@@ -585,7 +589,7 @@ z_anavccpk01:--z_anavccpk01
 			--productno都依出貨單
 			if LEN(@uno)=0
 			begin
-				insert into @tmpb(pno,tablea,accy,noa,noq
+				insert into #z_anavccpk01(pno,tablea,accy,noa,noq
 					,uno,productno,style,dime,width,size,mount,[weight])
 				select '2','gets',a.accy,a.noa,a.nor
 					,a.uno,@productno,a.style,@dime,@width,a.size,a.gmount,a.gweight
@@ -604,8 +608,8 @@ z_anavccpk01:--z_anavccpk01
 	close cursor_table
 	deallocate cursor_table
 	---找成本單價
-	update @tmpb set sprice=isnull(b.sprice,0),stotal=ROUND(isnull(a.[weight],0)*ISNULL(b.sprice,0),0)
-	from @tmpb a
+	update #z_anavccpk01 set sprice=isnull(b.sprice,0),stotal=ROUND(isnull(a.[weight],0)*ISNULL(b.sprice,0),0)
+	from #z_anavccpk01 a
 	left join view_uccb b on a.uno=b.uno
 	-----------------------------------------------------------------------------------------------------
 	declare @tmpc table(
@@ -627,7 +631,7 @@ z_anavccpk01:--z_anavccpk01
 		,sum(case when b.typea='1' then 1 else -1 end * case when tablea='vccs' then 1 else 0 end * isnull(a.[weight],0))
 		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.total,0))
 		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.stotal,0))
-	from @tmpb a
+	from #z_anavccpk01 a
 	left join @tmpa b on a.noa=b.noa
 	left join cust c on b.custno=c.noa
 	group by b.custno,c.nick,a.productno,a.dime
