@@ -91,7 +91,7 @@
 					<td align="center" style="width:80px;">數量單位<BR>計價單位</td>		
 					<td align="center" style="width:60px;">單價</td>
 					<td align="center" style="width:70px;">本次<BR>進貨數</td>
-					<td align="center" style="width:110px;">採購單號</td>
+					<td align="center" style="width:100px;">採購單號</td>
 				</tr>
 			</table>
 		</div>
@@ -111,7 +111,7 @@
 					<td align="center" style="width:80px;">數量單位<BR>計價單位</td>		
 					<td align="center" style="width:60px;">單價</td>
 					<td align="center" style="width:70px;">本次<BR>進貨數</td>
-					<td align="center" style="width:110px;">採購單號</td>
+					<td align="center" style="width:100px;">採購單號</td>
 				</tr>
 				<tr style='background:#cad3ff;'>
 					<td style="width:25px;"><input type="checkbox" class="ccheck" id="chkSel.*"/></td>
@@ -152,9 +152,9 @@
 					</td>
 					<td style="width:60px;"><input type="text" readonly="readonly" id="txtPrice.*" style="float:left;width:95%;text-align: right;"/></td>
 					<td style="width:70px;background-color: pink;"><input type="text" id="txtCnt.*" class="txt num" style="float:left;width:95%;text-align: right;"/></td>
-					<td style="width:110px;">
-						<input type="text" readonly="readonly" id="txtNoa.*" style="float:left;width:65px;"/>
-						<input type="text" readonly="readonly" id="txtNo2.*" style="float:left;width:30px;"/>
+					<td style="width:100px;">
+						<input type="text" readonly="readonly" id="txtNoa.*" style="float:left;width:95%;"/>
+						<input type="text" readonly="readonly" id="txtNo2.*" style="float:left;width:95%;"/>
 					</td>
 				</tr>
 			</table>
