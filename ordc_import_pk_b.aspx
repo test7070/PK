@@ -76,7 +76,7 @@
 	</head>
 	<body>
 		<div id="dFixedTitle" style="overflow-y: scroll;">
-			<table id="tFixedTitle" class='tFixedTitle'  border="2"  cellpadding='2' cellspacing='1' style='width:1205;'  >
+			<table id="tFixedTitle" class='tFixedTitle'  border="2"  cellpadding='2' cellspacing='1' style='width:1250;'  >
 				<tr style='color:white; background:#003366;' >
 					<th align="center" style="width:25px;"><input type="checkbox" id="checkAllCheckbox"/></th>
 					<td align="center" style="width:30px;"> </td>
@@ -96,7 +96,7 @@
 			</table>
 		</div>
 		<div id="dbbs" style="overflow: scroll;height:450px;" >
-			<table id="tbbs" class='tbbs' border="2" cellpadding='2' cellspacing='1' style='width:1205;' >
+			<table id="tbbs" class='tbbs' border="2" cellpadding='2' cellspacing='1' style='width:1250;' >
 				<tr style="display:none;">
 					<th align="center" style="width:25px;"> </th>
 					<td align="center" style="width:30px;"> </td>
@@ -151,7 +151,7 @@
 						<input type="text" readonly="readonly" id="txtUnit.*" style="float:left;width:95%;text-align: center;"/>
 					</td>
 					<td style="width:60px;"><input type="text" readonly="readonly" id="txtPrice.*" style="float:left;width:95%;text-align: right;"/></td>
-					<td style="width:70px;"><input type="text" id="txtCnt.*" class="txt num" style="float:left;width:95%;text-align: right;"/></td>
+					<td style="width:70px;background-color: pink;"><input type="text" id="txtCnt.*" class="txt num" style="float:left;width:95%;text-align: right;"/></td>
 					<td style="width:110px;">
 						<input type="text" readonly="readonly" id="txtNoa.*" style="float:left;width:65px;"/>
 						<input type="text" readonly="readonly" id="txtNo2.*" style="float:left;width:30px;"/>
