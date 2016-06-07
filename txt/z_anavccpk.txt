@@ -27,7 +27,7 @@ z_anavccpk04:--z_anavccpk04
 	declare @result table(
 		gno nvarchar(10),
 		productno nvarchar(50),
-		products nvarchar(100),
+		products nvarchar(max),
 		dime float,
 		lengthb float,
 		width float,

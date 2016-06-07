@@ -19,7 +19,7 @@
 			var q_readonly = ['txtNoa','txtWorker','txtWorker2'];
 			var q_readonlys = [];
 			var bbmNum = [];
-			var bbsNum = [['txtWeight', 10, 3, 1], ['txtMount', 10, 2, 1],['txtWeight2', 10, 3, 1], ['txtMount2', 10, 2, 1], ['txtMount3', 10, 2, 1]];
+			var bbsNum = [['txtWeight', 10, 3, 1], ['txtMount', 10, 2, 1],['txtWeight2', 10, 3, 1], ['txtMount2', 10, 2, 1],['txtWeight3', 10, 3, 1], ['txtMount3', 10, 2, 1]];
 			var bbmMask = [];
 			var bbsMask = [];
 			q_desc = 1;
