@@ -91,9 +91,11 @@
 				$('#txtXwidth1').css('text-align','right').val('0');
 				$('#txtXwidth2').css('text-align','right').val('9999');
 				
+				$('#chkXstype').children().eq(0).prop('checked',true);//預設 買賣
 				$('#Xbproduct select').change(function(e){
 					$('#Xeproduct select').val($('#Xbproduct select').val());
 				});
+				$('#Xeproduct select').prop('selectedIndex', $('#Xeproduct select').children().length-1);
 				
 				var t_date, t_year, t_month, t_day;
                 t_date = new Date();
