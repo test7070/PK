@@ -51,7 +51,7 @@
 					+q_sqlPara2("noa", t_noa)
 					+q_sqlPara2("uno", t_uno);
 				if(t_ordeno.length>0)
-		       		t_where += " and exists(select noa from cubms where cumbs.noa=cubm.noa and cubms.ordeno='"+t_ordeno+"')";
+		       		t_where += " and exists(select noa from cubms where cubms.noa=cubm.noa and cubms.ordeno='"+t_ordeno+"')";
 		       		
 				t_where = ' where=^^' + t_where + '^^ ';
 				return t_where;
@@ -86,7 +86,7 @@
 					<td><input class="txt" id="txtUno" type="text" style="width:215px; font-size:medium;" /></td>
 				</tr>
 				<tr class='seek_tr'>
-					<td class='seek'  style="width:20%;"><a id='lblNoa'></a></td>
+					<td class='seek'  style="width:20%;"><a id='lblOrdeno'></a></td>
 					<td><input class="txt" id="txtOrdeno" type="text" style="width:215px; font-size:medium;" /></td>
 				</tr>
 			</table>

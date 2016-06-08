@@ -1,0 +1,52 @@
+ALTER function [dbo].[orde_cubm](@noa nvarchar(max), @para nvarchar(max))
+returns @tmp table(
+	sel bit
+	,ser int identity(1,1)
+	,datea nvarchar(10)
+	,accy nvarchar(10)
+	,noa nvarchar(20)
+	,no2 nvarchar(10)
+	,custno nvarchar(20)
+	,cust nvarchar(30)
+	,productno nvarchar(30)
+	,product nvarchar(max)
+	,ucolor nvarchar(20)
+	,scolor nvarchar(20)
+	,dime float
+	,width float
+	,lengthb float
+	,radius float
+	,size nvarchar(50)
+	,mount float -- 訂單數量
+	,unit2 nvarchar(20)
+	,[weight] float
+	,unit nvarchar(20)
+	,mount3 float --已完工
+	,weight3 float
+	,emount float --未完工
+	,eweight float
+) as
+begin
+	insert into @tmp(sel,datea,accy,noa,no2,custno,cust,productno,product
+		,ucolor,scolor,dime,width,lengthb,radius,size,mount,unit2,[weight],unit)
+	select * 
+	from(
+		select case when c.noa is not null then 1 else 0 end sel
+			,a.datea,a.accy,a.noa,a.no2,b.custno,b.nick,a.productno,a.product
+			,a.ucolor,a.scolor,a.dime,a.width,a.lengthb,a.radius,a.size,a.mount,a.unit2,a.[weight],a.unit
+		from view_ordes a
+		left join view_orde b on a.accy=b.accy and a.noa=b.noa
+		outer apply(select top 1 * from cubms where ordeno=a.noa and no2=a.no2 and noa=@noa) c
+		where b.noa is not null
+		and ISNULL(b.enda,0)=0 
+		and ISNULL(a.enda,0)=0) a	
+	order by case when sel=1 then 0 else 1 end,datea,accy,noa,no2
+	
+	update @tmp set mount3=isnull(b.mount3,0),weight3=isnull(b.weight3,0)
+	from @tmp a
+	outer apply(select sum(isnull(mount3,0)) mount3,sum(isnull(weight3,0)) weight3 from cubms where ordeno=a.noa and no2=a.no2)b
+	
+	update @tmp set emount = isnull(mount,0)-isnull(mount3,0),eweight = isnull([weight],0)-isnull(weight3,0)
+	delete @tmp where emount<=0 and eweight<=0
+	return
+end

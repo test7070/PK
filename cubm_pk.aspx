@@ -75,8 +75,8 @@
 					case 'orde_cubm':
                         if (b_ret != null) {
                         	as = b_ret;
-                    		q_gridAddRow(bbsHtm, 'tbbs', 'txtOrdeno,txtNo2,txtProductno,txtProduct,txtSize,txtMount,txtWeight,txtCustno,txtCust,txtDatea'
-                        	, as.length, as, 'noa,no2,productno,product,size,mount,weight,custno,cust,datea', '','');             	
+                    		q_gridAddRow(bbsHtm, 'tbbs', 'txtOrdeno,txtNo2,txtDatea,txtProductno,txtProduct,txtSize,txtMount,txtWeight,txtCustno,txtCust,txtDatea,txtMount3,txtWeight3'
+                        	, as.length, as, 'noa,no2,datea,productno,product,size,mount,weight,custno,cust,datea,emount,eweight', '','');             	
                         }else{
                         	Unlock(1);
                         }
@@ -198,8 +198,10 @@
 				_readonly(t_para, empty);
 				if (t_para) {
                     $('#txtDatea').datepicker('destroy');
+                    $('#btnOrdesImport').prop( "disabled", true );
                 } else {	
                     $('#txtDatea').datepicker();
+                    $('#btnOrdesImport').prop( "disabled", false );
                 }
 			}
 			function btnMinus(id) {
