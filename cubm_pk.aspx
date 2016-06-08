@@ -31,6 +31,7 @@
 
 			aPop = new Array(
 				['txtMechno', 'lblMech', 'mech', 'noa,mech', 'txtMechno,txtMech', 'mech_b.aspx']
+				, ['txtSssno', 'lblSss', 'sss', 'noa,namea', 'txtSssno,txtSname', 'sss_b.aspx']
 			);
 			brwCount2 = 5;
 			
@@ -76,7 +77,7 @@
                         if (b_ret != null) {
                         	as = b_ret;
                     		q_gridAddRow(bbsHtm, 'tbbs', 'txtOrdeno,txtNo2,txtDatea,txtProductno,txtProduct,txtSize,txtMount,txtWeight,txtCustno,txtCust,txtDatea,txtMount3,txtWeight3'
-                        	, as.length, as, 'noa,no2,datea,productno,product,size,mount,weight,custno,cust,datea,emount,eweight', '','');             	
+                        	, as.length, as, 'noa,no2,datea,productno,product,size,mount,weight,custno,cust,datea,emount,eweight', 'txtOrdeno','');             	
                         }else{
                         	Unlock(1);
                         }
@@ -277,7 +278,7 @@
 			}
 			.dview {
 				float: left;
-				width: 300px;
+				width: 400px;
 				border-width: 0px;
 			}
 			.tview {
@@ -413,14 +414,14 @@
 					<tr>
 						<td align="center" style="width:20px; color:black;"><a id='vewChk'> </a></td>
 						<td align="center" style="width:80px; color:black;"><a id='vewDatea'> </a></td>
-						<td align="center" style="width:100px; color:black;"><a id='vewNoa'> </a></td>
-						<td align="center" style="width:80px; color:black;"><a id='vewMech'>機台</a></td>
+						<td align="center" style="width:200px; color:black;"><a id='vewMech'>機台</a></td>
+						<td align="center" style="width:100px; color:black;"><a id='vewSss'>操作人</a></td>
 					</tr>
 					<tr>
 						<td><input id="chkBrow.*" type="checkbox" style=''/></td>
 						<td align="center" id='datea'>~datea</td>
-						<td align="center" id='noa'>~noa</td>
 						<td align="center" id='mech'>~mech</td>
+						<td align="center" id='sname'>~sname</td>
 					</tr>
 				</table>
 			</div>
@@ -453,6 +454,13 @@
 							<input id="txtBtime" type="text" class="txt" style="float:left;width:40%;"/>
 							<a style="float:left;"> ～ </a>
 							<input id="txtEtime" type="text" class="txt" style="float:left;width:40%;"/>
+						</td>
+					</tr>
+					<tr>
+						<td><span> </span><a id='lblSss' class="lbl btn"> </a></td>
+						<td colspan="4">
+							<input id="txtSssno" type="text" style="float:left;width:25%;"/>
+							<input id="txtSname" type="text" style="float:left;width:75%;"/>
 						</td>
 					</tr>
 					<tr>

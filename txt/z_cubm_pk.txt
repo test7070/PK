@@ -183,6 +183,7 @@ z_cubm_pk01:--z_cubm_pk01
 				,x_mount3=b.mount3,x_weight3=b.weight3,x_memo=b.memo
 			from @tmp a
 			left join @tmpb b on b.sel=@sel
+			where a.ordeno=@ordeno and a.ordeno2=@ordeno2 and a.pno=@n
 				
 			fetch next from cursor_table2
 			into @sel,@n
@@ -205,6 +206,7 @@ z_cubm_pk01:--z_cubm_pk01
 			update @tmp set y_ordetnoq=b.ordetnoq,y_uno=b.uno,y_mount=b.mount,y_weight=b.[weight]
 			from @tmp a
 			left join @tmpc b on b.sel=@sel
+			where a.ordeno=@ordeno and a.ordeno2=@ordeno2 and a.pno=@n
 				
 			fetch next from cursor_table2
 			into @sel,@n
