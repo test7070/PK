@@ -2,78 +2,267 @@ z_cubm_pk01:--z_cubm_pk01
 	SET QUOTED_IDENTIFIER OFF
 	declare @t_path nvarchar(max) = '[1]'
 	declare @t_db nvarchar(max) = '[2]'
+	--預交日期
 	declare @t_bdate nvarchar(20) = case when '#non'=[3] then '' else [3] end
 	declare @t_edate nvarchar(20) = case when '#non'=[4] then char(255) else [4] end
-	declare @t_mechno nvarchar(max) = case when '#non'=[5] then '' else [5] end
+	declare @t_bcustno nvarchar(20) = case when '#non'=[5] then '' else [5] end
+	declare @t_ecustno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
+	declare @t_ordeno nvarchar(max) = case when '#non'=[7] then '' else [7] end
 	-------------------------------------------------------------------------
-	declare @tmp table(
+	--訂單 orde
+	declare @tmpa table(
 		sel int identity(1,1)
-		,gno nvarchar(10)
-		,recno int
-		,mechno nvarchar(20)
-		,mech nvarchar(20)
-		,datea nvarchar(20)
-		,btime nvarchar(20)
-		,etime nvarchar(20)
 		,ordeno nvarchar(20)
-		,no2 nvarchar(10)
+		,ordeno2 nvarchar(10)
+		,datea nvarchar(10)--交期
 		,custno nvarchar(20)
-		,cust nvarchar(20)
-		,product nvarchar(max)
+		,cust nvarchar(50)
+		,productno nvarchar(20)
+		,product nvarchar(50)
+		,[class] nvarchar(20) --等級
+		,ucolor nvarchar(20) --規範
+		,scolor nvarchar(20) --國別
 		,dime float
 		,width float
 		,lengthb float
+		,radius float
+		,spec nvarchar(50)
 		,size nvarchar(50)
 		,mount float
-		,unit2 nvarchar(20)
 		,[weight] float
 		,unit nvarchar(20)
-		
-		,cutdate nvarchar(20)
-		,cutno nvarchar(20)
-		,cutnoq nvarchar(10)
+		,unit2 nvarchar(20)
+		,memo nvarchar(max)
 	)
-	insert into @tmp(gno,mechno,mech,datea,btime,etime,ordeno,no2)
-	select '1',b.mechno,b.mech,b.datea,a.btime,a.etime,a.ordeno,a.no2
+	--機台排程 cubm
+	declare @tmpb table(
+		sel int identity(1,1)
+		,ordeno nvarchar(20)
+		,ordeno2 nvarchar(10)
+		,cubmno nvarchar(20)
+		,cubmnoq nvarchar(10)
+		,mechno nvarchar(20)
+		,mech nvarchar(20)
+		,datea nvarchar(10)
+		,btime nvarchar(10)
+		,etime nvarchar(10)
+		,mount2 float
+		,weight2 float
+		,mount3 float
+		,weight3 float
+		,memo nvarchar(max)
+	)
+	--訂單選料 ordet
+	declare @tmpc table(
+		sel int identity(1,1)
+		,ordeno nvarchar(20)
+		,ordeno2 nvarchar(10)
+		,ordetnoq nvarchar(10)
+		,uno nvarchar(30)
+		,mount float
+		,[weight] float
+	)
+	------------------------------------------------------------------------
+	-- cubm
+	insert into @tmpb(ordeno,ordeno2,cubmno,cubmnoq
+		,mechno,mech,datea,btime,etime
+		,mount2,weight2,mount3,weight3,memo)
+	select a.ordeno,a.no2,a.noa,a.noq
+		,b.mechno,b.mech,b.datea,a.btime,a.etime
+		,ISNULL(a.mount2,0),ISNULL(a.weight2,0),ISNULL(a.mount3,0),ISNULL(a.weight3,0),a.memo
 	from cubms a
 	left join cubm b on a.noa=b.noa
-	where b.datea between @t_bdate and @t_edate
-	and (len(@t_mechno)=0 or charindex(','+b.mechno+',',','+@t_mechno+',')>0)
+	left join view_ordes c on a.ordeno=c.noa and a.no2=c.no2
+	left join view_orde d on c.accy=d.accy and c.noa=d.noa
+	where case when len(ISNULL(c.datea,''))>0 then c.datea else d.datea end between @t_bdate and @t_edate 
+	and ISNULL(d.custno,'') between @t_bcustno and @t_ecustno
+	and (len(@t_ordeno)=0 or a.ordeno=@t_ordeno)
+	--and (len(@t_mechno)=0 or charindex(','+b.mechno+',',','+@t_mechno+',')>0) 
+	------------------------------------------------------------------------
+	-- orde
+	insert into @tmpa(datea,ordeno,ordeno2,custno,cust,productno,product,class,ucolor,scolor
+		,dime,width,lengthb,radius,spec,size,mount,[weight],unit,unit2,memo)
+	select case when len(ISNULL(a.datea,''))>0 then a.datea else b.datea end 
+		,a.noa,a.no2,b.custno,b.nick,a.productno,a.product,a.class,a.ucolor,a.scolor
+		,a.dime,a.width,a.lengthb,a.radius,a.spec,a.size,a.mount,a.[weight],a.unit,a.unit2,a.memo
+	from view_ordes a
+	left join view_orde b on a.accy=b.accy and a.noa=b.noa
+	left join (select ordeno,ordeno2 from @tmpb group by ordeno,ordeno2) c on a.noa=c.ordeno and a.no2=c.ordeno2
+	where b.noa is not null
+	and c.ordeno is not null
+	------------------------------------------------------------------------
+	-- ordet
+	insert into @tmpc(ordeno,ordeno2,ordetnoq,uno,mount,[weight])
+	select a.noa,a.no3,a.no2,a.uno,a.mount,a.[weight]
+	from view_ordet a
+	left join (select ordeno,ordeno2 from @tmpb group by ordeno,ordeno2) b on a.noa=b.ordeno and a.no3=b.ordeno2
+	where b.ordeno is not null
+---------------------------------------------------------------------------------------------------------
+	declare @tmp table(
+		sel int identity(1,1)
+		,gno nvarchar(2)
+		,recno int
+		,pno int
+		,ordeno nvarchar(20)
+		,ordeno2 nvarchar(10)
+		,datea nvarchar(10)--交期
+		,custno nvarchar(20)
+		,cust nvarchar(50)
+		,productno nvarchar(20)
+		,product nvarchar(50)
+		,[class] nvarchar(20) --等級
+		,ucolor nvarchar(20) --規範
+		,scolor nvarchar(20) --國別
+		,dime float
+		,width float
+		,lengthb float
+		,radius float
+		,spec nvarchar(50)
+		,size nvarchar(50)
+		,mount float
+		,[weight] float
+		,unit nvarchar(20)
+		,unit2 nvarchar(20)
+		,memo nvarchar(max)
+		
+		,x_cubmno nvarchar(20)
+		,x_cubmnoq nvarchar(10)
+		,x_mechno nvarchar(20)
+		,x_mech nvarchar(20)
+		,x_datea nvarchar(10)
+		,x_btime nvarchar(10)
+		,x_etime nvarchar(10)
+		,x_mount2 float
+		,x_weight2 float
+		,x_mount3 float
+		,x_weight3 float
+		,x_memo nvarchar(max)
+		
+		,y_ordetnoq nvarchar(10)
+		,y_uno nvarchar(30)
+		,y_mount float
+		,y_weight float
+	)
+----------------------------------------------------------------------------------------------------
+	declare @n int
+	declare @sel int
+	declare @ordeno nvarchar(20)
+	declare @ordeno2 nvarchar(10)
 	
-	update @tmp set custno=c.custno,cust=c.nick
-		,product=b.product,dime=b.dime,width=b.width,lengthb=b.lengthb,size=replace(b.size,'~#$',"'")
-		,mount=b.mount,unit2=b.unit2,[weight]=b.[weight],unit=b.unit
-	from @tmp a
-	left join view_ordes b on a.ordeno=b.noa and a.no2=b.no2 
-	left join view_orde c on b.accy=c.accy and b.noa=c.noa
 	
-	--  一筆明細只能匯入一次裁剪單
-	update @tmp set cutdate = c.datea,cutno=b.noa,cutnoq=b.noq
+	declare cursor_table cursor for
+	select ordeno,ordeno2 from @tmpb group by ordeno,ordeno2
+	open cursor_table
+	fetch next from cursor_table
+	into @ordeno,@ordeno2
+	while(@@FETCH_STATUS <> -1)
+	begin
+		--避免訂單遺失
+		insert into @tmp(gno,pno,ordeno,ordeno2)values('1',1,@ordeno,@ordeno2)
+		update @tmp set datea=b.datea,custno=b.custno,cust=b.cust,productno=b.productno,product=b.product
+			,class=b.class,ucolor=b.ucolor,scolor=b.scolor,dime=b.dime,width=b.width,lengthb=b.lengthb
+			,radius=b.radius,spec=b.spec,size=b.size
+			,mount=b.mount,[weight]=b.[weight],unit=b.unit,unit2=b.unit2,memo=b.memo
+		from @tmp a
+		left join @tmpa b on a.ordeno=b.ordeno and a.ordeno2=b.ordeno2
+		
+		-- CUBM
+		declare cursor_table2 cursor for
+		select sel,row_number()over(order by cubmno,cubmnoq) from @tmpb where ordeno=@ordeno and ordeno2=@ordeno2 order by cubmno,cubmnoq
+		open cursor_table2
+		fetch next from cursor_table2
+		into @sel,@n
+		while(@@FETCH_STATUS <> -1)
+		begin
+			if not exists(select sel from @tmp where ordeno=@ordeno and ordeno2=@ordeno2 and pno=@n )
+			begin
+				insert into @tmp(gno,pno,ordeno,ordeno2)values('2',@n,@ordeno,@ordeno2)
+			end
+			update @tmp set x_cubmno=b.cubmno,x_cubmnoq=b.cubmnoq,x_mechno=b.mechno,x_mech=b.mech
+				,x_datea=b.datea,x_btime=b.btime,x_etime=b.etime,x_mount2=b.mount2,x_weight2=b.weight2
+				,x_mount3=b.mount3,x_weight3=b.weight3,x_memo=b.memo
+			from @tmp a
+			left join @tmpb b on b.sel=@sel
+				
+			fetch next from cursor_table2
+			into @sel,@n
+		end
+		close cursor_table2
+		deallocate cursor_table2
+		
+		--ORDET
+		declare cursor_table2 cursor for
+		select sel,row_number()over(order by ordetnoq) from @tmpc where ordeno=@ordeno and ordeno2=@ordeno2 order by ordetnoq
+		open cursor_table2
+		fetch next from cursor_table2
+		into @sel,@n
+		while(@@FETCH_STATUS <> -1)
+		begin
+			if not exists(select sel from @tmp where ordeno=@ordeno and ordeno2=@ordeno2 and pno=@n )
+			begin
+				insert into @tmp(gno,pno,ordeno,ordeno2)values('2',@n,@ordeno,@ordeno2)
+			end
+			update @tmp set y_ordetnoq=b.ordetnoq,y_uno=b.uno,y_mount=b.mount,y_weight=b.[weight]
+			from @tmp a
+			left join @tmpc b on b.sel=@sel
+				
+			fetch next from cursor_table2
+			into @sel,@n
+		end
+		close cursor_table2
+		deallocate cursor_table2
+		
+		fetch next from cursor_table
+		into @ordeno,@ordeno2
+	end
+	close cursor_table
+	deallocate cursor_table	
+	
+	update @tmp set datea=b.datea
 	from @tmp a
-	left join view_cuts b on a.ordeno=b.ordeno and a.no2=b.no2
-	left join view_cut c on b.accy=c.accy and b.noa=c.noa
+	left join @tmpa b on a.ordeno=b.ordeno and a.ordeno2=b.ordeno2
 	
 	update @tmp set recno=b.recno
 	from @tmp a
-	left join (select sel,ROW_NUMBER()over(order by mechno,datea,btime,etime,ordeno,no2) recno from @tmp ) b on a.sel=b.sel
+	left join (select sel,ROW_NUMBER()over(order by datea,ordeno,ordeno2) recno from @tmp where pno=1) b on a.sel=b.sel
+	
+	insert into @tmp(gno,datea,mount,[weight],x_mount2,x_weight2,x_mount3,x_weight3,y_mount,y_weight)
+	select '3',CHAR(255)
+		,sum(ISNULL(mount,0)),sum(ISNULL([weight],0))
+		,sum(ISNULL(x_mount2,0)),sum(ISNULL(x_weight2,0))
+		,sum(ISNULL(x_mount3,0)),sum(ISNULL(x_weight3,0))
+		,sum(ISNULL(y_mount,0)),sum(ISNULL(y_weight,0))
+	from @tmp 
 	
 	select gno
 		,recno rr
-		,mech a01
-		,datea a02
-		,case when len(btime)>0 and len(etime)>0 then btime+' ~ '+etime else btime+etime end a03
-		,ordeno+'-'+no2 a04
-		,cust a05
-		,product a06
-		,dbo.getComma(dime,-1) a07
-		,dbo.getComma(width,-1) a08
-		,dbo.getComma(lengthb,-1) a09
-		,size a10
-		,dbo.getComma(mount,-1) a11
-		,unit2 a12 
-		,dbo.getComma([weight],-1) a13
-		,unit a14
-		,cutdate a15
-		,case when len(ISNULL(cutno,''))>0 then cutno+'-'+cutnoq else '' end a16
-	from @tmp
-	order by recno;
+		,datea a01--預交日期	
+		,ordeno+'-'+ordeno2 a02--訂單號碼	
+		,cust a03--客戶	
+		,product a04--品名	
+		,class a05--等級	
+		,ucolor a06--規範	
+		,scolor a07--國別	
+		,spec a08--規格	
+		,dime a09--厚	
+		,width a10--寬	
+		,lengthb a11--長	
+		,size a12--尺寸	
+		,dbo.getComma(mount,-1) a13--數量	
+		,unit2 a14--數量單位	
+		,dbo.getComma([weight],-1) a15--重量	
+		,unit a16--計價單位	
+		,x_datea a17--加工日期	
+		,x_cubmno+'-'+x_cubmnoq a18--加工單號	
+		,x_mech a19--機台	
+		,x_btime+x_etime a20--加工時間	
+		,dbo.getComma(x_mount2,-1) a21--米數	
+		,dbo.getComma(x_weight2,-1) a22--公斤	
+		,dbo.getComma(x_mount3,-1) a23--完工數量	
+		,dbo.getComma(x_weight3,-1) a24--完工重量	
+		,x_memo a25--備註	
+		,y_uno a26--排程批號	
+		,dbo.getComma(y_mount,-1) a27--數量	
+		,dbo.getComma(y_weight,-1) a28--重量
+	from @tmp 
+	order by datea,ordeno,ordeno2,pno;

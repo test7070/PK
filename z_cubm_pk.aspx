@@ -52,11 +52,20 @@
 					},{
 						type : '1', //[3][4]  1
 						name : 'xdate'
-					},{
+					}, { 
+						type : '2', //[5][6]      2
+						name : 'xcust',
+						dbf : 'cust',
+						index : 'noa,nick',
+						src : 'cust_b.aspx'
+					}, {
+                        type : '6', //[7]  3
+                        name : 'xordeno'
+                    }/*,{
                         type : '8',//[5]  2
                         name : 'xmech',
                         value : t_mech.split('&')
-                    }]
+                    }*/]
 				});
 				q_popAssign();
 				q_langShow();
