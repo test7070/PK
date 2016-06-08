@@ -86,7 +86,7 @@
 					<td><input class="txt" id="txtUno" type="text" style="width:215px; font-size:medium;" /></td>
 				</tr>
 				<tr class='seek_tr'>
-					<td class='seek'  style="width:20%;"><a id='lblOrdeno'></a></td>
+					<td class='seek'  style="width:20%;"><a id='lblOrdeno'>訂單號碼</a></td>
 					<td><input class="txt" id="txtOrdeno" type="text" style="width:215px; font-size:medium;" /></td>
 				</tr>
 			</table>
