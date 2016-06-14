@@ -249,7 +249,7 @@ z_cubm_pk01:--z_cubm_pk01
 		,dime a09--厚	
 		,width a10--寬	
 		,lengthb a11--長	
-		,size a12--尺寸	
+		,replace(size,'~#$',"'") a12--尺寸	
 		,dbo.getComma(mount,-1) a13--數量	
 		,unit2 a14--數量單位	
 		,dbo.getComma([weight],-1) a15--重量	
@@ -262,7 +262,7 @@ z_cubm_pk01:--z_cubm_pk01
 		,dbo.getComma(x_weight2,-1) a22--公斤	
 		,dbo.getComma(x_mount3,-1) a23--完工數量	
 		,dbo.getComma(x_weight3,-1) a24--完工重量	
-		,x_memo a25--備註	
+		,replace(x_memo,'~#$',"'") a25--備註	
 		,y_uno a26--排程批號	
 		,dbo.getComma(y_mount,-1) a27--數量	
 		,dbo.getComma(y_weight,-1) a28--重量
