@@ -490,7 +490,6 @@
 					<td align="center" style="width:80px;">數量</td>
 					<td align="center" style="width:80px;">重量</td>
 					<td align="center" style="width:80px;">米數</td>
-					<td align="center" style="width:80px;">公斤</td>
 					<td align="center" style="width:150px;">時間</td>
 					<td align="center" style="width:80px;">完工數量</td>
 					<td align="center" style="width:80px;">完工重量</td>
@@ -520,7 +519,6 @@
 					<td><input id="txtMount.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td><input id="txtWeight.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td><input id="txtMount2.*" type="text" class="txt num" style="width:95%;"/></td>
-					<td><input id="txtWeight2.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td>
 						<input type="text" id="txtBtime.*" style="float:left;width:40%;text-align:center;" />
 						<a style="float:left;width:10%;text-align:center;">~</a>
