@@ -31,7 +31,7 @@
 
 			aPop = new Array(
 				['txtMechno', 'lblMech', 'mech', 'noa,mech', 'txtMechno,txtMech', 'mech_b.aspx']
-				, ['txtSssno', 'lblSss', 'sss', 'noa,namea', 'txtSssno,txtSname', 'sss_b.aspx']
+				, ['txtSssno_', 'btnSss_', 'sss', 'noa,namea', 'txtSssno_,txtSname_', 'sss_b.aspx']
 			);
 			brwCount2 = 5;
 			
@@ -58,7 +58,7 @@
 			function mainPost() {
 				q_getFormat();
 				bbmMask = [['txtDatea', r_picd],['txtBtime','99:99'],['txtEtime','99:99']];
-				bbsMask = [['txtDatea', r_picd],['txtBtime','99:99'],['txtEtime','99:99']];
+				bbsMask = [['txtDatea', r_picd],['txtBtime','99:99'],['txtEtime','99:99'],['txtEdate', r_picd]];
 				q_mask(bbmMask);
 				
 				$('#btnOrdesImport').click(function() {
@@ -145,6 +145,12 @@
 						var n = $(this).attr('id').replace(/^(.*)_(\d+)$/,'$2');
 						
 					});
+					$('#txtSssno_' + i).bind('contextmenu', function(e) {
+                        /*滑鼠右鍵*/
+                        e.preventDefault();
+                        var n = $(this).attr('id').replace(/^(.*)_(\d+)$/,'$2');
+                        $('#btnSss_'+n).click();
+                    });
 				}
 				_bbsAssign();
 			}
@@ -491,6 +497,8 @@
 					<td align="center" style="width:80px;">重量</td>
 					<td align="center" style="width:80px;">米數</td>
 					<td align="center" style="width:150px;">時間</td>
+					<td align="center" style="width:100px;">完工日期</td>
+					<td align="center" style="width:120px;">操作人員</td>
 					<td align="center" style="width:80px;">完工數量</td>
 					<td align="center" style="width:80px;">完工重量</td>
 					<td align="center" style="width:150px;">備註</td>
@@ -523,6 +531,12 @@
 						<input type="text" id="txtBtime.*" style="float:left;width:40%;text-align:center;" />
 						<a style="float:left;width:10%;text-align:center;">~</a>
 						<input type="text" id="txtEtime.*" style="float:left;width:40%;text-align:center;" />
+					</td>
+					<td><input type="text" id="txtEdate.*" style="width:95%;text-align:center;" /></td>
+					<td>
+						<input id="txtSssno.*" type="text" style="width:45%;float:left;" />
+						<input type="text" id="txtSname.*" style="width:45%;float:left;" />
+						<input class="btn" id="btnSss.*" type="button" style="display:none;"/>
 					</td>
 					<td><input id="txtMount3.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td><input id="txtWeight3.*" type="text" class="txt num" style="width:95%;"/></td>

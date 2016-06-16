@@ -16,7 +16,9 @@
 		<script type="text/javascript">
 			var q_name = "cubm_pk_s";
 			
-			aPop = new Array(['txtUno', 'lblUno', 'view_uccc', 'uno', 'txtUno', 'uccc_b.aspx']);
+			aPop = new Array(
+				['txtUno', 'lblUno', 'view_uccc', 'uno', 'txtUno', 'uccc_b.aspx']
+				,['txtMechno', 'lblMech', 'mech', 'noa,mech', 'txtMechno', 'mech_b.aspx']);
 				
 			$(document).ready(function() {
 				main();
@@ -88,6 +90,10 @@
 				<tr class='seek_tr'>
 					<td class='seek'  style="width:20%;"><a id='lblOrdeno'>訂單號碼</a></td>
 					<td><input class="txt" id="txtOrdeno" type="text" style="width:215px; font-size:medium;" /></td>
+				</tr>
+				<tr class='seek_tr'>
+					<td class='seek'  style="width:20%;"><a id='lblMech'>機台編號</a></td>
+					<td><input class="txt" id="txtMechno" type="text" style="width:215px; font-size:medium;" /></td>
 				</tr>
 			</table>
 			<!--#include file="../inc/seek_ctrl.inc"-->
