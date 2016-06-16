@@ -47,11 +47,13 @@
 				t_noa = $.trim($('#txtNoa').val());
 				t_uno = $.trim($('#txtUno').val());
 				t_ordeno = $.trim($('#txtOrdeno').val());
+				t_mechno = $.trim($('#txtMechno').val());
 				
 				var t_where = " 1=1 "
 					+q_sqlPara2("datea", t_bdate, t_edate)
 					+q_sqlPara2("noa", t_noa)
-					+q_sqlPara2("uno", t_uno);
+					+q_sqlPara2("uno", t_uno)
+					+q_sqlPara2("mechno", t_mechno);
 				if(t_ordeno.length>0)
 		       		t_where += " and exists(select noa from cubms where cubms.noa=cubm.noa and cubms.ordeno='"+t_ordeno+"')";
 		       		
@@ -83,7 +85,7 @@
 					<td class='seek'  style="width:20%;"><a id='lblNoa'></a></td>
 					<td><input class="txt" id="txtNoa" type="text" style="width:215px; font-size:medium;" /></td>
 				</tr>
-				<tr class='seek_tr'>
+				<tr class='seek_tr' style="display:none;">
 					<td class='seek'  style="width:20%;"><a id='lblUno'></a></td>
 					<td><input class="txt" id="txtUno" type="text" style="width:215px; font-size:medium;" /></td>
 				</tr>
