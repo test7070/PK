@@ -383,9 +383,9 @@
                     				newArray.push(as[i]);
                         		}
                         	}
-                        	q_gridAddRow(bbsHtm, 'tbbs', 'txtProductno,txtProduct,txtSpec,combSpec,txtDime,txtWidth,txtLengthb,txtRadius,txtOrdeno,txtNo2,txtPrice,txtMount,txtWeight,txtTotal,txtMemo,txtUnit,txtClass,txtSource,txtScolor,txtUcolor,txtSize,txtUnit2'
+                        	q_gridAddRow(bbsHtm, 'tbbs', 'txtProductno,txtProduct,txtStyle,txtSpec,combSpec,txtDime,txtWidth,txtLengthb,txtRadius,txtOrdeno,txtNo2,txtPrice,txtMount,txtWeight,txtTotal,txtMemo,txtUnit,txtClass,txtSource,txtScolor,txtUcolor,txtSize,txtUnit2'
                         	, newArray.length, newArray
-							, 'productno,product,spec,spec,dime,width,lengthb,radius,noa,no2,price,mount,weight,total,memo,unit,class,source,scolor,ucolor,size,unit2', 'txtProductno');        	
+							, 'productno,product,style,spec,spec,dime,width,lengthb,radius,noa,no2,price,mount,weight,total,memo,unit,class,source,scolor,ucolor,size,unit2', 'txtProductno');        	
                         	sum();
                         }else{
                         	Unlock(1);
