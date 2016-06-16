@@ -8,6 +8,7 @@ z_cubm_pk01:--z_cubm_pk01
 	declare @t_bcustno nvarchar(20) = case when '#non'=[5] then '' else [5] end
 	declare @t_ecustno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
 	declare @t_ordeno nvarchar(max) = case when '#non'=[7] then '' else [7] end
+	declare @t_mechno nvarchar(max) = case when '#non'=[8] then '' else [8] end
 	-------------------------------------------------------------------------
 	--訂單 orde
 	declare @tmpa table(
@@ -62,6 +63,19 @@ z_cubm_pk01:--z_cubm_pk01
 		,mount float
 		,[weight] float
 	)
+	
+	--採購
+	declare @tmpd table(
+		sel int identity(1,1)
+		,ordeno nvarchar(20)
+		,ordeno2 nvarchar(10)
+		
+		,ordcno nvarchar(20)
+		,ordcnoq nvarchar(10)
+		,tggno nvarchar(20)
+		,tgg nvarchar(10)
+		,[weight] float
+	)
 	------------------------------------------------------------------------
 	-- cubm
 	insert into @tmpb(ordeno,ordeno2,cubmno,cubmnoq
@@ -77,7 +91,7 @@ z_cubm_pk01:--z_cubm_pk01
 	where case when len(ISNULL(c.datea,''))>0 then c.datea else d.datea end between @t_bdate and @t_edate 
 	and ISNULL(d.custno,'') between @t_bcustno and @t_ecustno
 	and (len(@t_ordeno)=0 or a.ordeno=@t_ordeno)
-	--and (len(@t_mechno)=0 or charindex(','+b.mechno+',',','+@t_mechno+',')>0) 
+	and (len(@t_mechno)=0 or charindex(','+b.mechno+',',','+@t_mechno+',')>0) 
 	------------------------------------------------------------------------
 	-- orde
 	insert into @tmpa(datea,ordeno,ordeno2,custno,cust,productno,product,class,ucolor,scolor
@@ -97,6 +111,13 @@ z_cubm_pk01:--z_cubm_pk01
 	from view_ordet a
 	left join (select ordeno,ordeno2 from @tmpb group by ordeno,ordeno2) b on a.noa=b.ordeno and a.no3=b.ordeno2
 	where b.ordeno is not null
+	--------------------------------------------------------------------------
+	-- ordc
+	insert into @tmpd(ordeno,ordeno2,ordcno,ordcnoq,tggno,tgg,[weight])
+	select a.ordeno,a.no4,a.noa,a.noq,c.tggno,c.nick,a.[weight]
+	from view_ordct a
+	left join (select ordeno,ordeno2 from @tmpb group by ordeno,ordeno2) b on a.noa=b.ordeno and a.no2=b.ordeno2
+	left join view_ordc c on a.accy=c.accy and a.noa=c.noa 
 ---------------------------------------------------------------------------------------------------------
 	declare @tmp table(
 		sel int identity(1,1)
@@ -142,7 +163,14 @@ z_cubm_pk01:--z_cubm_pk01
 		,y_uno nvarchar(30)
 		,y_mount float
 		,y_weight float
+		
+		,z_ordcno nvarchar(20)
+		,z_ordcnoq nvarchar(10)
+		,z_tggno nvarchar(20)
+		,z_tgg nvarchar(50)
+		,z_weight float
 	)
+	
 ----------------------------------------------------------------------------------------------------
 	declare @n int
 	declare @sel int
@@ -191,9 +219,32 @@ z_cubm_pk01:--z_cubm_pk01
 		close cursor_table2
 		deallocate cursor_table2
 		
-		--ORDET
+		----ORDET
+		--declare cursor_table2 cursor for
+		--select sel,row_number()over(order by ordetnoq) from @tmpc where ordeno=@ordeno and ordeno2=@ordeno2 order by ordetnoq
+		--open cursor_table2
+		--fetch next from cursor_table2
+		--into @sel,@n
+		--while(@@FETCH_STATUS <> -1)
+		--begin
+		--	if not exists(select sel from @tmp where ordeno=@ordeno and ordeno2=@ordeno2 and pno=@n )
+		--	begin
+		--		insert into @tmp(gno,pno,ordeno,ordeno2)values('2',@n,@ordeno,@ordeno2)
+		--	end
+		--	update @tmp set y_ordetnoq=b.ordetnoq,y_uno=b.uno,y_mount=b.mount,y_weight=b.[weight]
+		--	from @tmp a
+		--	left join @tmpc b on b.sel=@sel
+		--	where a.ordeno=@ordeno and a.ordeno2=@ordeno2 and a.pno=@n
+				
+		--	fetch next from cursor_table2
+		--	into @sel,@n
+		--end
+		--close cursor_table2
+		--deallocate cursor_table2
+		
+		--ORDCT
 		declare cursor_table2 cursor for
-		select sel,row_number()over(order by ordetnoq) from @tmpc where ordeno=@ordeno and ordeno2=@ordeno2 order by ordetnoq
+		select sel,row_number()over(order by ordcno,ordcnoq) from @tmpd where ordeno=@ordeno and ordeno2=@ordeno2 order by ordcno,ordcnoq
 		open cursor_table2
 		fetch next from cursor_table2
 		into @sel,@n
@@ -203,9 +254,9 @@ z_cubm_pk01:--z_cubm_pk01
 			begin
 				insert into @tmp(gno,pno,ordeno,ordeno2)values('2',@n,@ordeno,@ordeno2)
 			end
-			update @tmp set y_ordetnoq=b.ordetnoq,y_uno=b.uno,y_mount=b.mount,y_weight=b.[weight]
+			update @tmp set z_ordcno=b.ordcno,z_ordcnoq=b.ordcnoq,z_tggno=b.tggno,z_tgg=b.tgg
 			from @tmp a
-			left join @tmpc b on b.sel=@sel
+			left join @tmpd b on b.sel=@sel
 			where a.ordeno=@ordeno and a.ordeno2=@ordeno2 and a.pno=@n
 				
 			fetch next from cursor_table2
@@ -228,12 +279,13 @@ z_cubm_pk01:--z_cubm_pk01
 	from @tmp a
 	left join (select sel,ROW_NUMBER()over(order by datea,ordeno,ordeno2) recno from @tmp where pno=1) b on a.sel=b.sel
 	
-	insert into @tmp(gno,datea,mount,[weight],x_mount2,x_weight2,x_mount3,x_weight3,y_mount,y_weight)
+	insert into @tmp(gno,datea,mount,[weight],x_mount2,x_weight2,x_mount3,x_weight3,y_mount,y_weight,z_weight)
 	select '3',CHAR(255)
 		,sum(ISNULL(mount,0)),sum(ISNULL([weight],0))
 		,sum(ISNULL(x_mount2,0)),sum(ISNULL(x_weight2,0))
 		,sum(ISNULL(x_mount3,0)),sum(ISNULL(x_weight3,0))
 		,sum(ISNULL(y_mount,0)),sum(ISNULL(y_weight,0))
+		,sum(ISNULL(z_weight,0))
 	from @tmp 
 	
 	select gno
@@ -257,14 +309,17 @@ z_cubm_pk01:--z_cubm_pk01
 		,x_datea a17--加工日期	
 		,x_cubmno+'-'+x_cubmnoq a18--加工單號	
 		,x_mech a19--機台	
-		,x_btime+x_etime a20--加工時間	
+		,x_btime+'~'+x_etime a20--加工時間	
 		,dbo.getComma(x_mount2,-1) a21--米數	
 		,dbo.getComma(x_weight2,-1) a22--公斤	
 		,dbo.getComma(x_mount3,-1) a23--完工數量	
 		,dbo.getComma(x_weight3,-1) a24--完工重量	
 		,replace(x_memo,'~#$',"'") a25--備註	
-		,y_uno a26--排程批號	
-		,dbo.getComma(y_mount,-1) a27--數量	
-		,dbo.getComma(y_weight,-1) a28--重量
+		--,y_uno a26--排程批號	
+		--,dbo.getComma(y_mount,-1) a27--數量	
+		--,dbo.getComma(y_weight,-1) a28--重量
+		,case when len(z_ordcno)>0 then z_ordcno+'-'+z_ordcnoq else '' end a26
+		,z_tgg a27
+		,dbo.getComma(z_weight,-1) a28
 	from @tmp 
 	order by datea,ordeno,ordeno2,pno;

@@ -462,7 +462,7 @@
 							<input id="txtEtime" type="text" class="txt" style="float:left;width:40%;"/>
 						</td>
 					</tr>
-					<tr>
+					<tr style="display:none;">
 						<td><span> </span><a id='lblSss' class="lbl btn"> </a></td>
 						<td colspan="4">
 							<input id="txtSssno" type="text" style="float:left;width:25%;"/>

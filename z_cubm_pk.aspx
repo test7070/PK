@@ -61,11 +61,11 @@
 					}, {
                         type : '6', //[7]  3
                         name : 'xordeno'
-                    }/*,{
-                        type : '8',//[5]  2
+                    },{
+                        type : '8',//[8]  2
                         name : 'xmech',
                         value : t_mech.split('&')
-                    }*/]
+                    }]
 				});
 				q_popAssign();
 				q_langShow();
