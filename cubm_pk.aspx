@@ -420,12 +420,14 @@
 					<tr>
 						<td align="center" style="width:20px; color:black;"><a id='vewChk'> </a></td>
 						<td align="center" style="width:80px; color:black;"><a id='vewDatea'> </a></td>
+						<td align="center" style="display:none; color:black;"><a id='vewNoa'> </a></td>
 						<td align="center" style="width:200px; color:black;"><a id='vewMech'>機台</a></td>
 						<td align="center" style="width:100px; color:black;"><a id='vewSss'>操作人</a></td>
 					</tr>
 					<tr>
 						<td><input id="chkBrow.*" type="checkbox" style=''/></td>
 						<td align="center" id='datea'>~datea</td>
+						<td style="display:none;" id='noa'>~noa</td>
 						<td align="center" id='mech'>~mech</td>
 						<td align="center" id='sname'>~sname</td>
 					</tr>
