@@ -26,7 +26,7 @@
 			var bbmNum = [['txtMoney', 10, 0, 1], ['txtTax', 10, 0, 1], ['txtTotal', 10, 0, 1], ['txtTotalus', 10, 2, 1], ['txtWeight', 10, 3, 1], ['txtFloata', 10, 4, 1]];
 			var bbsNum = [['txtPrice', 12, 2, 1], ['txtTotal', 12, 2, 1, 1], ['txtWeight', 10, 3, 1], ['txtMount', 10, 2, 1],['txtTheory',10,2,1],['textSize1', 10, 3, 1], ['textSize2', 10, 2, 1], ['textSize3', 10, 3, 1], ['textSize4', 10, 2, 1]];
 			var bbmMask = [];
-			var bbsMask = [['txtStyle', 'A']];
+			var bbsMask = [];
 			q_sqlCount = 6;
 			brwCount = 6;
 			brwList = [];
@@ -36,6 +36,7 @@
 			aPop = new Array(
 				['txtProductno_', 'btnProduct_', 'ucaucc', 'noa,product', 'txtProductno_', 'ucaucc_b.aspx']
 				, ['txtProductno1_', 'btnProduct1_', 'bcc', 'noa,product,unit', 'txtProductno1_,txtProduct_,txtUnit_', 'bcc_b.aspx'] 
+				,['txtStyle_', 'btnStyle_', 'style', 'noa,product', 'txtStyle_', 'style_b.aspx']
 				, ['txtSalesno', 'lblSales', 'sss', 'noa,namea', 'txtSalesno,txtSales', 'sss_b.aspx']
 				, ['txtCno', 'lblAcomp', 'acomp', 'noa,acomp', 'txtCno,txtAcomp', 'acomp_b.aspx']
 				//,['txtUno_', 'btnUno_', 'view_uccc', 'uno', 'txtUno_', 'uccc_seek_b.aspx?;;;1=0','95%','60%']
@@ -354,6 +355,18 @@
 						if (q_cur == 4)
 							q_Seek_gtPost();
 						break;
+					default:
+						if(t_name.substring(0, 11) == 'getproduct_'){
+     						var t_seq = parseInt(t_name.split('_')[1]);
+	                		as = _q_appendData('dbo.getproduct', "", true);
+	                		if(as[0]!=undefined){
+	                			$('#txtProduct_'+t_seq).val(as[0].product);
+	                		}else{
+	                			$('#txtProduct_'+t_seq).val('');
+	                		}
+	                		break;
+                        }
+						break;
 				}  /// end switch
 			}
 
@@ -556,6 +569,13 @@
 
 			function q_popPost(s1) {
 				switch (s1) {
+					case 'txtProductno1_':
+						var t_productno = $.trim($('#txtProductno1_'+b_seq).val());
+	                	var t_style = $.trim($('#txtStyle_'+b_seq).val());
+	                	var t_comp = q_getPara('sys.comp');          	
+	                	q_gt('getproduct',"where=^^[N'"+t_productno+"',N'"+t_style+"',N'"+t_comp+"')^^", 0, 0, 0, "getproduct_"+b_seq); 
+                        $('#txtStyle_' + b_seq).focus();
+						break;
 					case 'txtProductno_':
 						var t_productno = $.trim($('#txtProductno_'+b_seq).val());
 	                	var t_style = $.trim($('#txtStyle_'+b_seq).val());
@@ -565,8 +585,10 @@
 						break;
 					case 'txtStyle_':
                    		var t_productno = $.trim($('#txtProductno_'+b_seq).val());
+                   		if((($('#cmbKind').val())?$('#cmbKind').val():'').substr(0, 1)=='1')
+	                	      t_productno = $.trim($('#txtProductno1_'+b_seq).val()); 
 	                	var t_style = $.trim($('#txtStyle_'+b_seq).val());
-	                	var t_comp = q_getPara('sys.comp');          	
+	                	var t_comp = q_getPara('sys.comp'); 
 	                	q_gt('getproduct',"where=^^[N'"+t_productno+"',N'"+t_style+"',N'"+t_comp+"')^^", 0, 0, 0, "getproduct_"+b_seq); 
                         $('#txtStyle_'+b_seq).blur();
                         break;
@@ -1049,7 +1071,9 @@
 						<input class="btn"  id="btnProductno1.*" type="button" style="display:none;"/>
 						<input type="text" id="txtProduct.*" style="width:95%;" />
 					</td>
-					<td><input id="txtStyle.*" type="text" style="width:90%;" /></td>
+					<td><input type="text" id="txtStyle.*" style="width:95%;text-align:center;" />
+						<input id="btnStyle.*" type="button" style="display:none;" value="."/>
+					</td>
 					<td>
 						<input id="txtClass.*" type="text" style='width: 95%;'/>
 						<input id="txtSource.*" type="text" style='width: 95%;'/>
