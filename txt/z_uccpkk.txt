@@ -27,8 +27,11 @@ z_uccpkk01:--z_uccpkk01
 	insert into @tmp(tablea,accy,noa,noq,uno,price,sprice,sprice2,isprice)
 	select 'rc2s',a.accy,a.noa,a.noq,a.uno
 		,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
-		,case when exists(select uno from delis where uno=a.uno) then sprice else (case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end) end
-		,case when exists(select uno from delis where uno=a.uno) then sprice2 else (case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end) end
+		,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		
+		--,case when exists(select uno from delis where uno=a.uno) then sprice else (case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end) end
+		--,case when exists(select uno from delis where uno=a.uno) then sprice2 else (case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end) end
 		,1
 	from view_rc2s a
 	left join view_rc2 b on a.accy=b.accy and a.noa=b.noa
