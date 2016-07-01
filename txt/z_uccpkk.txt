@@ -229,7 +229,7 @@ z_uccpkk01:--z_uccpkk01
 	update @tmpa set gno='1',productno=b.productno,product=b.product,size=replace(b.size,'~#$',"'")
 		,dime=b.dime,width=b.width,lengthb=b.lengthb,radius=b.radius,[source]=b.[source]
 		,itype=b.itype,price=b.sprice,total=round(ISNULL(b.sprice,0)*ISNULL(eweight,0),0)
-		,style=b.style,class=b.class
+		,style=b.style,class=b.class,storeno=b.storeno
 	from @tmpa a
 	left join view_uccb b on a.uno=b.uno
 
