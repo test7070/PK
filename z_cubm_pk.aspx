@@ -65,6 +65,10 @@
                         type : '8',//[8]  2
                         name : 'xmech',
                         value : t_mech.split('&')
+                    },{
+                        type : '5',//[8]  2
+                        name : 'xenda',
+                        value : ' @全部&Y@結案&N@未結案'.split('&')
                     }]
 				});
 				q_popAssign();

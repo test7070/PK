@@ -9,6 +9,7 @@ z_cubm_pk01:--z_cubm_pk01
 	declare @t_ecustno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
 	declare @t_ordeno nvarchar(max) = case when '#non'=[7] then '' else [7] end
 	declare @t_mechno nvarchar(max) = case when '#non'=[8] then '' else [8] end
+	declare @t_enda nvarchar(max) = case when '#non'=[9] then '' else [9] end
 	-------------------------------------------------------------------------
 	--訂單 orde
 	declare @tmpa table(
@@ -92,6 +93,7 @@ z_cubm_pk01:--z_cubm_pk01
 	and ISNULL(d.custno,'') between @t_bcustno and @t_ecustno
 	and (len(@t_ordeno)=0 or a.ordeno=@t_ordeno)
 	and (len(@t_mechno)=0 or charindex(','+b.mechno+',',','+@t_mechno+',')>0) 
+	and (len(@t_enda)=0 or (@t_enda='Y' and len(ISNULL(c.enda,''))!=0 and len(ISNULL(d.enda,''))!=0) or (@t_enda='N' and len(ISNULL(c.enda,''))=0 and len(ISNULL(d.enda,''))=0))
 	------------------------------------------------------------------------
 	-- orde
 	insert into @tmpa(datea,ordeno,ordeno2,custno,cust,productno,product,class,ucolor,scolor
