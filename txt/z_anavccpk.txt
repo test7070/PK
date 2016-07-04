@@ -100,7 +100,7 @@ z_anavccpk04:--z_anavccpk04
 						set need=need-@weight
 						where CURRENT OF cursor_table2
 						
-						set set @weight=0
+						set @weight=0
 					end
 					
 				end
