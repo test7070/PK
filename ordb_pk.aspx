@@ -1046,6 +1046,7 @@
 					
 					<td align="center" style="width:340px;" id='Size'><a id='lblSize_help'> </a>
 					<BR><a id='lblSize_st'> </a></td>
+					<td class="st" align="center" style="width:150px;"><a id='lblSizea_st'> </a></td>	
 					<td align="center" style="width:80px;"><a id='lblMount_st'> </a></td>
 					<td align="center" style="width:50px;"><a id='lblUnit2'>數量<BR>單位</a></td>
 					<td class="st" align="center" style="width:80px;"><a id='lblWeights_st'> </a></td>
@@ -1056,7 +1057,7 @@
 					<td align="center" style="width:180px;"><a id='lblMemos_st'> </a><br><a id='lblOrdenos_st'> </a></td>
 					<td align="center" style="width:80px;display: none;" class="source"><a id='lblSource_st'> </a></td>
 					<td align="center" style="width:250px;"><a id='lblUno_st'> </a></td>
-					<td class="st" align="center" style="width:150px;"><a id='lblSizea_st'> </a></td>
+					
 				</tr>
 				<tr style='background:#cad3ff;'>
 					<td align="center">
@@ -1104,7 +1105,7 @@
 						<input id="txtLengthb.*" type="text" style="display:none;"/>
 						<input id="txtSpec.*" type="text" style="float:left;"/>
 					</td>
-					
+					<td class="st"><input id="txtSize.*" type="text" style="width:97%;"/></td>
 					<td><input id="txtMount.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td><input id="txtUnit2.*" type="text" style="width:95%;"/></td>
 					<td class="st"><input id="txtWeight.*" type="text" class="txt num" style="width:95%;"/></td>
@@ -1125,7 +1126,7 @@
 					</td>
 					<td class="source" style="display: none;"><input id="txtSource.*" type="text"  class="txt" style="width:95%;"/></td>
 					<td><input id="txtUno.*" type="text" style="float:left;width:97%;" /></td>
-					<td class="st"><input id="txtSize.*" type="text" style="width:97%;"/></td>
+					
 				</tr>
 			</table>
 		</div>
