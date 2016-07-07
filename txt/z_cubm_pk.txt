@@ -92,7 +92,7 @@ z_cubm_pk01:--z_cubm_pk01
 	where case when len(ISNULL(c.datea,''))>0 then c.datea else d.datea end between @t_bdate and @t_edate 
 	and ISNULL(d.custno,'') between @t_bcustno and @t_ecustno
 	and (len(@t_ordeno)=0 or a.ordeno=@t_ordeno)
-	and (len(@t_mechno)=0 or charindex(','+b.mechno+',',','+@t_mechno+',')>0) 
+	--and (len(@t_mechno)=0 or charindex(','+b.mechno+',',','+@t_mechno+',')>0) 
 	
 	-------------------------------------------------------------------------
 	declare @tmpe table(
@@ -125,6 +125,7 @@ z_cubm_pk01:--z_cubm_pk01
 		left join @tmpe b on a.ordeno=b.ordeno and a.ordeno2=b.ordeno2
 		where b.fmount<b.mount
 	end
+	delete @tmpb where not(len(@t_mechno)=0 or charindex(','+mechno+',',','+@t_mechno+',')>0) 
 	------------------------------------------------------------------------
 	-- orde
 	insert into @tmpa(datea,ordeno,ordeno2,custno,cust,productno,product,class,ucolor,scolor
@@ -314,7 +315,8 @@ z_cubm_pk01:--z_cubm_pk01
 	
 	insert into @tmp(gno,datea,mount,[weight],x_mount2,x_weight2,x_mount3,x_weight3,y_mount,y_weight,z_weight)
 	select '3',CHAR(255)
-		,sum(ISNULL(mount,0)),sum(ISNULL([weight],0))
+		,sum(case when gno='1' then ISNULL(mount,0) else 0 end)
+		,sum(case when gno='1' then ISNULL(weight,0) else 0 end)
 		,sum(ISNULL(x_mount2,0)),sum(ISNULL(x_weight2,0))
 		,sum(ISNULL(x_mount3,0)),sum(ISNULL(x_weight3,0))
 		,sum(ISNULL(y_mount,0)),sum(ISNULL(y_weight,0))
