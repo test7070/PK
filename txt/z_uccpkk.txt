@@ -1,3 +1,400 @@
+z_uccpkk02:--z_uccpkk02	
+	SET QUOTED_IDENTIFIER OFF
+	declare @cmd nvarchar(max)
+	
+	declare @t_itype nvarchar(max) = case when '#non'=[2] then '' else [2] end
+	declare @t_bproductno nvarchar(20) = case when '#non'=[3] then '' else [3] end
+	declare @t_eproductno nvarchar(20) = case when '#non'=[4] then char(255) else [4] end
+	declare @t_bdate nvarchar(20) = case when '#non'=[6] then '' else [6] end
+	declare @t_edate nvarchar(20) = case when '#non'=[7] then char(255) else [7] end
+	-------------------------------------------------------------------------------------
+	--前期
+	--入
+	declare @tmpa table(
+		sel int identity(1,1)
+		,uno nvarchar(30)
+		,mount float
+		,[weight] float
+	)
+	insert into @tmpa(uno,mount,[weight])
+	select uno,SUM(mount),SUM(weight) weight
+	from(
+		select a.uno
+			,SUM(case when b.typea='1' then 1 else -1 end * ISNULL(a.[mount],0)) mount
+			,SUM(case when b.typea='1' then 1 else -1 end * ISNULL(a.[weight],0)) weight
+		from view_rc2s a
+		left join view_rc2 b on a.accy=b.accy and a.noa=b.noa
+		where b.datea<@t_bdate
+		and len(ISNULL(a.uno,''))>0
+		and upper(left(a.uno,1)) not between 'X' and 'Z'
+		group by a.uno
+		union all
+		select a.uno
+			,SUM(ISNULL(a.[mount],0))
+			,SUM(ISNULL(a.[weight],0))
+		from view_inas a
+		left join view_ina b on a.accy=b.accy and a.noa=b.noa
+		where b.datea<@t_bdate
+		and len(ISNULL(a.uno,''))>0
+		and upper(left(a.uno,1)) not between 'X' and 'Z'
+		group by a.uno
+		union all
+		select a.bno
+			,SUM(ISNULL(a.[mount],0))
+			,SUM(ISNULL(a.[weight],0))
+		from view_cuts a
+		left join view_cut b on a.accy=b.accy and a.noa=b.noa
+		where b.datea<@t_bdate
+		and len(ISNULL(a.bno,''))>0
+		and upper(left(a.bno,1)) not between 'X' and 'Z'
+		group by a.bno) a
+	group by uno
+	
+	--出
+	declare @tmpb table(
+		sel int identity(1,1)
+		,uno nvarchar(30)
+		,mount float
+		,[weight] float
+	)
+	declare @noa nvarchar(20)
+	declare @noq nvarchar(10)
+	declare @typea nvarchar(10)
+	declare @datea nvarchar(10)
+	declare @uno nvarchar(30)
+	declare @mount float
+	declare @gmount float
+	declare @weight float
+	declare @gweight float
+	--出貨:  若有領料單,以領料單優先
+	declare cursor_table cursor for 
+		select a.noa,a.noq,b.typea,b.datea,a.uno
+			,a.[mount],isnull(a.gmount,0)
+			,a.[weight],isnull(a.gweight,0)
+		from view_vccs a
+		left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+		where b.datea<@t_bdate
+	open cursor_table 
+	fetch next from cursor_table 
+	into @noa,@noq,@typea,@datea,@uno,@mount,@gmount,@weight,@gweight
+	while(@@FETCH_STATUS <> -1) 
+	begin 
+		if exists(select * from view_gets 
+			where noa=@noa and nor=@noq
+			and len(ISNULL(uno,''))>0
+			and upper(left(uno,1)) not between 'X' and 'Z')
+		begin
+			insert into @tmpb(uno,mount,[weight])
+			select uno
+				,case when ISNULL(gmount,0)!=0 then gmount else [mount] end 
+				,case when ISNULL(gweight,0)!=0 then gweight else [weight] end 
+			from view_gets 
+			where noa=@noa and nor=@noq
+			and len(ISNULL(uno,''))>0
+			and upper(left(uno,1)) not between 'X' and 'Z'
+		end
+		else if(len(ISNULL(@uno,''))>0 and upper(left(@uno,1)) not between 'X' and 'Z')
+		begin
+			insert into @tmpb(uno,mount,[weight])
+			select @uno
+				,case when @gmount!=0 then @gmount else @mount end
+				,case when @gweight!=0 then @gweight else @weight end
+		end
+	
+		fetch next from cursor_table 
+		into @noa,@noq,@typea,@datea,@uno,@mount,@gmount,@weight,@gweight
+	end 
+	close cursor_table 
+	deallocate cursor_table 
+	--領料單, 不是出貨單轉來的才算
+	insert into @tmpb(uno,mount,[weight])
+	select a.uno
+		,case when ISNULL(a.gmount,0)!=0 then a.gmount else a.[mount] end 
+		,case when ISNULL(a.gweight,0)!=0 then a.gweight else a.[weight] end 
+	from view_gets a
+	left join view_get b on a.accy=b.accy and a.noa=b.noa
+	left join view_vccs c on a.noa=c.noa and a.nor=c.noq
+	where c.noa is null
+	and b.datea < @t_bdate
+	and len(ISNULL(a.uno,''))>0
+	and upper(left(a.uno,1)) not between 'X' and 'Z'
+	--裁剪
+	insert into @tmpb(uno,mount,[weight])
+	select uno,gmount,gweight
+	from view_cut
+	where datea < @t_bdate
+	and len(ISNULL(uno,''))>0
+	and upper(left(uno,1)) not between 'X' and 'Z'
+	--------------------------------------------------------------------------
+	--本期
+	--入
+	declare @tmpc table(
+		sel int identity(1,1)
+		,tablea nvarchar(20)
+		,uno nvarchar(30)
+		,mount float
+		,[weight] float
+	)
+	insert into @tmpc(uno,tablea,mount,[weight])
+	select uno,tablea,SUM(mount),SUM(weight) weight
+	from(
+		select a.uno,'rc2' tablea
+			,SUM(case when b.typea='1' then 1 else -1 end * ISNULL(a.[mount],0)) mount
+			,SUM(case when b.typea='1' then 1 else -1 end * ISNULL(a.[weight],0)) weight
+		from view_rc2s a
+		left join view_rc2 b on a.accy=b.accy and a.noa=b.noa
+		where b.datea between @t_bdate and @t_edate
+		and len(ISNULL(a.uno,''))>0
+		and upper(left(a.uno,1)) not between 'X' and 'Z'
+		group by a.uno
+		union all
+		select a.uno,'ina' tablea
+			,SUM(ISNULL(a.[mount],0))
+			,SUM(ISNULL(a.[weight],0))
+		from view_inas a
+		left join view_ina b on a.accy=b.accy and a.noa=b.noa
+		where b.datea between @t_bdate and @t_edate
+		and len(ISNULL(a.uno,''))>0
+		and upper(left(a.uno,1)) not between 'X' and 'Z'
+		group by a.uno
+		union all
+		select a.bno,'cuts' tablea
+			,SUM(ISNULL(a.[mount],0))
+			,SUM(ISNULL(a.[weight],0))
+		from view_cuts a
+		left join view_cut b on a.accy=b.accy and a.noa=b.noa
+		where b.datea between @t_bdate and @t_edate
+		and len(ISNULL(a.bno,''))>0
+		and upper(left(a.bno,1)) not between 'X' and 'Z'
+		group by a.bno) a
+	group by uno,tablea
+	
+	--出
+	declare @tmpd table(
+		sel int identity(1,1)
+		,tablea nvarchar(20)
+		,uno nvarchar(30)
+		,mount float
+		,[weight] float
+	)
+	--出貨:  若有領料單,以領料單優先
+	declare cursor_table cursor for 
+		select a.noa,a.noq,b.typea,b.datea,a.uno
+			,a.[mount],isnull(a.gmount,0)
+			,a.[weight],isnull(a.gweight,0)
+		from view_vccs a
+		left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+		where b.datea between @t_bdate and @t_edate
+	open cursor_table 
+	fetch next from cursor_table 
+	into @noa,@noq,@typea,@datea,@uno,@mount,@gmount,@weight,@gweight
+	while(@@FETCH_STATUS <> -1) 
+	begin 
+		if exists(select * from view_gets 
+			where noa=@noa and nor=@noq
+			and len(ISNULL(uno,''))>0
+			and upper(left(uno,1)) not between 'X' and 'Z')
+		begin
+			insert into @tmpd(uno,tablea,mount,[weight])
+			select uno,'vcc'
+				,case when ISNULL(gmount,0)!=0 then gmount else [mount] end 
+				,case when ISNULL(gweight,0)!=0 then gweight else [weight] end 
+			from view_gets 
+			where noa=@noa and nor=@noq
+			and len(ISNULL(uno,''))>0
+			and upper(left(uno,1)) not between 'X' and 'Z'
+		end
+		else if(len(ISNULL(@uno,''))>0 and upper(left(@uno,1)) not between 'X' and 'Z')
+		begin
+			insert into @tmpd(uno,tablea,mount,[weight])
+			select @uno,'vcc'
+				,case when @gmount!=0 then @gmount else @mount end
+				,case when @gweight!=0 then @gweight else @weight end
+		end
+	
+		fetch next from cursor_table 
+		into @noa,@noq,@typea,@datea,@uno,@mount,@gmount,@weight,@gweight
+	end 
+	close cursor_table 
+	deallocate cursor_table 
+	--領料單, 不是出貨單轉來的才算
+	insert into @tmpd(uno,tablea,mount,[weight])
+	select a.uno,'get'
+		,case when ISNULL(a.gmount,0)!=0 then a.gmount else a.[mount] end 
+		,case when ISNULL(a.gweight,0)!=0 then a.gweight else a.[weight] end 
+	from view_gets a
+	left join view_get b on a.accy=b.accy and a.noa=b.noa
+	left join view_vccs c on a.noa=c.noa and a.nor=c.noq
+	where c.noa is null
+	and b.datea between @t_bdate and @t_edate
+	and len(ISNULL(a.uno,''))>0
+	and upper(left(a.uno,1)) not between 'X' and 'Z'
+	--裁剪
+	insert into @tmpd(uno,tablea,mount,[weight])
+	select uno,'cut',gmount,gweight
+	from view_cut
+	where datea between @t_bdate and @t_edate
+	and len(ISNULL(uno,''))>0
+	and upper(left(uno,1)) not between 'X' and 'Z'
+	--------------------------------------------------------------------------
+	IF OBJECT_ID('tempdb..#z_uccpkk02')is not null
+	BEGIN
+		drop table #z_uccpkk02
+	END
+	create table #z_uccpkk02(
+		sel int identity(1,1)
+		,recno int
+		,gno nvarchar(10)
+		,uno nvarchar(30)
+		,sprice float
+		,productno nvarchar(20)
+		,product nvarchar(50)
+		,itype nvarchar(20)
+		--期初
+		,bmount float
+		,bweight float
+		,bmoney float
+		--入庫
+		,rc2mount float
+		,rc2weight float
+		,rc2money float
+		,inamount float
+		,inaweight float
+		,inamoney float
+		,cutsmount float
+		,cutsweight float
+		,cutsmoney float
+		--出庫
+		,vccmount float
+		,vccweight float
+		,vccmoney float
+		,getmount float
+		,getweight float
+		,getmoney float
+		,cutmount float
+		,cutweight float
+		,cutmoney float
+		--期末
+		,emount float
+		,eweight float
+		,emoney float
+	)
+	--前期
+	insert into #z_uccpkk02(uno,bmount,bweight)
+	select uno,SUM(mount),SUM([weight])
+	from(
+	select uno,mount,[weight] from @tmpa
+	union all
+	select uno,-mount,-[weight] from @tmpb)a
+	group by uno
+	having SUM(mount)>0 and SUM([weight])>0
+	--本期
+	declare @tablea nvarchar(20)
+	
+	declare cursor_table cursor for 
+		select uno,tablea,sum(mount),sum([weight]) from @tmpc group by uno,tablea
+		union all
+		select uno,tablea,sum(mount),sum([weight]) from @tmpd group by uno,tablea
+	open cursor_table 
+	fetch next from cursor_table 
+	into @uno,@tablea,@mount,@weight	
+	while(@@FETCH_STATUS <> -1) 
+	begin 
+		if not exists(select * from #z_uccpkk02 where uno=@uno)
+		begin
+			insert into #z_uccpkk02(uno)values(@uno)
+		end
+		update #z_uccpkk02 set rc2mount = isnull(rc2mount,0) + case @tablea when 'rc2' then ISNULL(@mount,0) else 0 end   
+			,rc2weight = isnull(rc2weight,0) + case @tablea when 'rc2' then ISNULL(@weight,0) else 0 end 
+			,inamount = isnull(inamount,0) + case @tablea when 'ina' then ISNULL(@mount,0) else 0 end   
+			,inaweight = isnull(inaweight,0) + case @tablea when 'ina' then ISNULL(@weight,0) else 0 end 
+			,cutsmount = isnull(cutsmount,0) + case @tablea when 'cuts' then ISNULL(@mount,0) else 0 end   
+			,cutsweight = isnull(cutsweight,0) + case @tablea when 'cuts' then ISNULL(@weight,0) else 0 end 
+			
+			,vccmount = isnull(vccmount,0) + case @tablea when 'vcc' then ISNULL(@mount,0) else 0 end   
+			,vccweight = isnull(vccweight,0) + case @tablea when 'vcc' then ISNULL(@weight,0) else 0 end
+			,getmount = isnull(getmount,0) + case @tablea when 'get' then ISNULL(@mount,0) else 0 end   
+			,getweight = isnull(getweight,0) + case @tablea when 'get' then ISNULL(@weight,0) else 0 end
+			,cutmount = isnull(cutmount,0) + case @tablea when 'cut' then ISNULL(@mount,0) else 0 end   
+			,cutweight = isnull(cutweight,0) + case @tablea when 'cut' then ISNULL(@weight,0) else 0 end 
+		where uno=@uno
+		fetch next from cursor_table 
+		into @uno,@tablea,@mount,@weight
+	end 
+	close cursor_table 
+	deallocate cursor_table 
+	
+	update #z_uccpkk02 set sprice=b.sprice,productno=b.productno,product=b.product,itype=b.itype
+	from #z_uccpkk02 a
+	left join view_uccb b on a.uno=b.uno	
+	
+	delete #z_uccpkk02
+	where not( (len(@t_itype)=0 or CHARINDEX(','+itype+',',','+@t_itype+',')>0)
+		and productno between @t_bproductno and @t_eproductno
+	)
+	--期末
+	update #z_uccpkk02 set emount = ISNULL(bmount,0)+ISNULL(rc2mount,0)+ISNULL(inamount,0)+ISNULL(cutsmount,0)
+		-ISNULL(vccmount,0)-ISNULL(getmount,0)-ISNULL(cutmount,0)
+	,eweight = ISNULL(bweight,0)+ISNULL(rc2weight,0)+ISNULL(inaweight,0)+ISNULL(cutsweight,0)
+		-ISNULL(vccweight,0)-ISNULL(getweight,0)-ISNULL(cutweight,0)
+
+	update #z_uccpkk02 set bmoney=round(ISNULL(bweight,0)*ISNULL(sprice,0),0)
+	,rc2money=round(ISNULL(rc2weight,0)*ISNULL(sprice,0),0)
+	,inamoney=round(ISNULL(inaweight,0)*ISNULL(sprice,0),0)
+	,cutsmoney=round(ISNULL(cutsweight,0)*ISNULL(sprice,0),0)
+	,vccmoney=round(ISNULL(vccweight,0)*ISNULL(sprice,0),0)
+	,getmoney=round(ISNULL(getweight,0)*ISNULL(sprice,0),0)
+	,cutmoney=round(ISNULL(cutweight,0)*ISNULL(sprice,0),0)
+	,emoney=round(ISNULL(eweight,0)*ISNULL(sprice,0),0)
+
+	update #z_uccpkk02 set gno='1',recno=b.recno
+	from #z_uccpkk02 a
+	left join (select sel,ROW_NUMBER()over(order by productno,product,uno) recno from #z_uccpkk02) b on a.sel=b.sel
+	
+	insert into #z_uccpkk02(gno,bmount,bweight,bmoney,rc2mount,rc2weight,rc2money
+		,inamount,inaweight,inamoney,cutsmount,cutsweight,cutsmoney
+		,vccmount,vccweight,vccmoney,getmount,getweight,getmoney
+		,cutmount,cutweight,cutmoney,emount,eweight,emoney)
+	select '2',sum(isnull(bmount,0)),sum(isnull(bweight,0)),sum(isnull(bmoney,0)),sum(isnull(rc2mount,0)),sum(isnull(rc2weight,0)),sum(isnull(rc2money,0))
+		,sum(isnull(inamount,0)),sum(isnull(inaweight,0)),sum(isnull(inamoney,0)),sum(isnull(cutsmount,0)),sum(isnull(cutsweight,0)),sum(isnull(cutsmoney,0))
+		,sum(isnull(vccmount,0)),sum(isnull(vccweight,0)),sum(isnull(vccmoney,0)),sum(isnull(getmount,0)),sum(isnull(getweight,0)),sum(isnull(getmoney,0))
+		,sum(isnull(cutmount,0)),sum(isnull(cutweight,0)),sum(isnull(cutmoney,0)),sum(isnull(emount,0)),sum(isnull(eweight,0)),sum(isnull(emoney,0))
+	from #z_uccpkk02 where gno='1'
+		
+	select gno
+		,recno rr
+		,uno a01
+		,product a02
+		,dbo.getComma(sprice,-1) a03
+		,dbo.getComma(bmount,-1) a04
+		,dbo.getComma(bweight,-1) a05
+		,dbo.getComma(bmoney,-1) a06
+		,dbo.getComma(rc2mount,-1) a07
+		,dbo.getComma(rc2weight,-1) a08
+		,dbo.getComma(rc2money,-1) a09
+		,dbo.getComma(inamount,-1) a10
+		,dbo.getComma(inaweight,-1) a11
+		,dbo.getComma(inamoney,-1) a12
+		,dbo.getComma(cutsmount,-1) a13
+		,dbo.getComma(cutsweight,-1) a14
+		,dbo.getComma(cutsmoney,-1) a15
+		,dbo.getComma(vccmount,-1) a16
+		,dbo.getComma(vccweight,-1) a17
+		,dbo.getComma(vccmoney,-1) a18
+		,dbo.getComma(getmount,-1) a19
+		,dbo.getComma(getweight,-1) a20
+		,dbo.getComma(getmoney,-1) a21
+		,dbo.getComma(cutmount,-1) a22
+		,dbo.getComma(cutweight,-1) a23
+		,dbo.getComma(cutmoney,-1) a24
+		,dbo.getComma(emount,-1) a25
+		,dbo.getComma(eweight,-1) a26
+		,dbo.getComma(emoney,-1) a27
+	from #z_uccpkk02
+	order by gno,recno
+	drop table #z_uccpkk02;
+
+
 z_uccpkk01:--z_uccpkk01	
 	SET QUOTED_IDENTIFIER OFF
 	declare @cmd nvarchar(max)

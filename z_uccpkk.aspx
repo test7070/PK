@@ -77,6 +77,9 @@
 						type : '8', //[5] 1
 						name : 'xstore',
 						value : t_store.split('&')
+					},{
+						type : '1', //[6][7] 2
+						name : 'ydate'
 					}]
 				});
 				q_popAssign();
@@ -85,11 +88,42 @@
 				$('#txtXdate').mask('999/99/99');
 				$('#txtXdate').val(q_date());
 				$('#txtXdate').datepicker();
+				$('#txtYdate1').mask('999/99/99');
+				$('#txtYdate1').datepicker();
+				$('#txtYdate2').mask('999/99/99');
+				$('#txtYdate2').datepicker();
+				
 				$('#Xitype select option').eq(1).attr("selected","selected");//買賣
 				
 				$('#Xbproduct select').change(function(e){
 					$('#Xeproduct select').val($('#Xbproduct select').val());
 				});
+				$('#Xeproduct select').prop('selectedIndex', $('#Xeproduct select').children().length-1);
+				
+				var t_date,
+                    t_year,
+                    t_month,
+                    t_day;
+                t_date = new Date();
+                t_date.setDate(1);
+                t_year = t_date.getUTCFullYear() - 1911;
+                t_year = t_year > 99 ? t_year + '' : '0' + t_year;
+                t_month = t_date.getUTCMonth() + 1;
+                t_month = t_month > 9 ? t_month + '' : '0' + t_month;
+                t_day = t_date.getUTCDate();
+                t_day = t_day > 9 ? t_day + '' : '0' + t_day;
+                $('#txtYdate1').val(t_year + '/' + t_month + '/' + t_day);
+
+                t_date = new Date();
+                t_date.setDate(35);
+                t_date.setDate(0);
+                t_year = t_date.getUTCFullYear() - 1911;
+                t_year = t_year > 99 ? t_year + '' : '0' + t_year;
+                t_month = t_date.getUTCMonth() + 1;
+                t_month = t_month > 9 ? t_month + '' : '0' + t_month;
+                t_day = t_date.getUTCDate();
+                t_day = t_day > 9 ? t_day + '' : '0' + t_day;
+                $('#txtYdate2').val(t_year + '/' + t_month + '/' + t_day);
 			}
 			function q_boxClose(s2) {
 			}
