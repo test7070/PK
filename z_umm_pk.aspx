@@ -35,42 +35,42 @@
                         name : 'xdate'
                     }, {
                         type : '1', //[5][6]  3
+                        name : 'xummdate'
+                    }, {
+                        type : '1', //[7][8]  4
                         name : 'xmon'
                     }, {
-                        type : '6', //[7]   4
+                        type : '6', //[9]   5
                         name : 'xmemo1'
                     }, {
-                        type : '6', //[8]   5
+                        type : '6', //[10]   6
                         name : 'xmemo2'
                     }, {
-                        type : '6', //[9]   6
+                        type : '6', //[11]   7
                         name : 'xmemo3'
                     }, {
-                        type : '6', //[10]   7
+                        type : '6', //[12]   8
                         name : 'xmemo4'
                     }, {
-                        type : '6', //[11]   8
+                        type : '6', //[13]   9
                         name : 'xmemo5'
                     }, {
-						type : '8', //[12] 9
+						type : '8', //[14] 10
 						name : 'xispayed',
 						value : "1@顯示已收".split(',')
 					}, {
-						type : '8', //[13] 10
+						type : '8', //[15] 11
 						name : 'xisunpay',
 						value : "1@顯示未收".split(',')
 					}, {
-						type : '8', //[14] 11
+						type : '8', //[16] 12
 						name : 'xisweight',
 						value : "1@顯示重量".split(',')
 					}, {
-						type : '8', //[15] 12
+						type : '8', //[17] 13
 						name : 'xistotal',
 						value : "1@顯示應收總計".split(',')
-					}, {
-                        type : '1', //[16][17]  13
-                        name : 'xummdate'
-                    }]
+					}]
                 });
                 q_popAssign();
                 q_langShow();
