@@ -503,6 +503,7 @@
 					<td align="center" style="width:120px;">操作人員</td>
 					<td align="center" style="width:80px;">完工數量</td>
 					<td align="center" style="width:80px;">完工重量</td>
+					<td align="center" style="width:40px;">結案</td>
 					<td align="center" style="width:150px;">備註</td>
 				</tr>
 				<tr  style='background:#cad3ff;'>
@@ -542,6 +543,7 @@
 					</td>
 					<td><input id="txtMount3.*" type="text" class="txt num" style="width:95%;"/></td>
 					<td><input id="txtWeight3.*" type="text" class="txt num" style="width:95%;"/></td>
+					<td><input id="chkEnda.*" type="checkbox"/></td>
 					<td><input id="txtMemo.*" type="text" style="width:95%;"/></td>
 				</tr>
 			</table>

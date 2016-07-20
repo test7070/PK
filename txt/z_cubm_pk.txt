@@ -53,6 +53,7 @@ z_cubm_pk01:--z_cubm_pk01
 		,mount3 float
 		,weight3 float
 		,memo nvarchar(max)
+		,enda bit
 	)
 	--訂單選料 ordet
 	declare @tmpc table(
@@ -81,10 +82,10 @@ z_cubm_pk01:--z_cubm_pk01
 	-- cubm
 	insert into @tmpb(ordeno,ordeno2,cubmno,cubmnoq
 		,mechno,mech,datea,btime,etime
-		,mount2,weight2,mount3,weight3,memo)
+		,mount2,weight2,mount3,weight3,memo,enda)
 	select a.ordeno,a.no2,a.noa,a.noq
 		,b.mechno,b.mech,b.datea,a.btime,a.etime
-		,ISNULL(a.mount2,0),ISNULL(a.weight2,0),ISNULL(a.mount3,0),ISNULL(a.weight3,0),a.memo
+		,ISNULL(a.mount2,0),ISNULL(a.weight2,0),ISNULL(a.mount3,0),ISNULL(a.weight3,0),a.memo,a.enda
 	from cubms a
 	left join cubm b on a.noa=b.noa
 	left join view_ordes c on a.ordeno=c.noa and a.no2=c.no2
@@ -110,9 +111,13 @@ z_cubm_pk01:--z_cubm_pk01
 	update @tmpe set mount=ISNULL(b.mount,0)
 	from @tmpe a
 	left join view_ordes b on a.ordeno=b.noa and a.ordeno2=b.no2
-	
+
 	if @t_enda='N'
 	begin
+		delete @tmpb 
+		from @tmpb a
+		where exists(select * from @tmpb where ISNULL(enda,0)=1 and ordeno=a.ordeno and ordeno2=a.ordeno2)
+		
 		delete @tmpb 
 		from @tmpb a
 		left join @tmpe b on a.ordeno=b.ordeno and a.ordeno2=b.ordeno2
@@ -124,6 +129,7 @@ z_cubm_pk01:--z_cubm_pk01
 		from @tmpb a
 		left join @tmpe b on a.ordeno=b.ordeno and a.ordeno2=b.ordeno2
 		where b.fmount<b.mount
+		and not exists(select * from @tmpb where ISNULL(enda,0)=1 and ordeno=a.ordeno and ordeno2=a.ordeno2)
 	end
 	delete @tmpb where not(len(@t_mechno)=0 or charindex(','+mechno+',',','+@t_mechno+',')>0) 
 	------------------------------------------------------------------------
