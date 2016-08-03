@@ -48,6 +48,8 @@ z_cubm_pk01:--z_cubm_pk01
 		,datea nvarchar(10)
 		,btime nvarchar(10)
 		,etime nvarchar(10)
+		,mount float
+		,[weight] float
 		,mount2 float
 		,weight2 float
 		,mount3 float
@@ -82,9 +84,10 @@ z_cubm_pk01:--z_cubm_pk01
 	-- cubm
 	insert into @tmpb(ordeno,ordeno2,cubmno,cubmnoq
 		,mechno,mech,datea,btime,etime
-		,mount2,weight2,mount3,weight3,memo,enda)
+		,mount,[weight],mount2,weight2,mount3,weight3,memo,enda)
 	select a.ordeno,a.no2,a.noa,a.noq
 		,b.mechno,b.mech,b.datea,a.btime,a.etime
+		,ISNULL(a.mount,0),ISNULL(a.[weight],0)
 		,ISNULL(a.mount2,0),ISNULL(a.weight2,0),ISNULL(a.mount3,0),ISNULL(a.weight3,0),a.memo,a.enda
 	from cubms a
 	left join cubm b on a.noa=b.noa
@@ -100,17 +103,18 @@ z_cubm_pk01:--z_cubm_pk01
 		sel int identity(1,1)
 		,ordeno nvarchar(20)
 		,ordeno2 nvarchar(10)
+		,mechno nvarchar(20)
 		,mount float
 		,fmount float
 	)
-	insert into @tmpe(ordeno,ordeno2,mount,fmount)
-	select ordeno,ordeno2,0,sum(isnull(mount3,0))
+	insert into @tmpe(ordeno,ordeno2,mechno,mount,fmount)
+	select ordeno,ordeno2,mechno,sum(isnull(mount,0)),sum(isnull(mount3,0))
 	from @tmpb
-	group by ordeno,ordeno2
+	group by ordeno,ordeno2,mechno
 	
-	update @tmpe set mount=ISNULL(b.mount,0)
+	/*update @tmpe set mount=ISNULL(b.mount,0)
 	from @tmpe a
-	left join view_ordes b on a.ordeno=b.noa and a.ordeno2=b.no2
+	left join view_ordes b on a.ordeno=b.noa and a.ordeno2=b.no2*/
 
 	if @t_enda='N'
 	begin
@@ -120,16 +124,16 @@ z_cubm_pk01:--z_cubm_pk01
 		
 		delete @tmpb 
 		from @tmpb a
-		left join @tmpe b on a.ordeno=b.ordeno and a.ordeno2=b.ordeno2
+		left join @tmpe b on a.ordeno=b.ordeno and a.ordeno2=b.ordeno2 and a.mechno=b.mechno
 		where b.fmount>=b.mount
 	end
 	if @t_enda='Y'
 	begin
 		delete @tmpb 
 		from @tmpb a
-		left join @tmpe b on a.ordeno=b.ordeno and a.ordeno2=b.ordeno2
+		left join @tmpe b on a.ordeno=b.ordeno and a.ordeno2=b.ordeno2 and a.mechno=b.mechno
 		where b.fmount<b.mount
-		and not exists(select * from @tmpb where ISNULL(enda,0)=1 and ordeno=a.ordeno and ordeno2=a.ordeno2)
+		and not exists(select * from @tmpb where ISNULL(enda,0)=1 and ordeno=a.ordeno and ordeno2=a.ordeno2 and mechno=a.mechno)
 	end
 	delete @tmpb where not(len(@t_mechno)=0 or charindex(','+mechno+',',','+@t_mechno+',')>0) 
 	------------------------------------------------------------------------
