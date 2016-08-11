@@ -54,7 +54,7 @@ z_ordb_pkp01:--z_ordb_pkp01
 		,kind)
 	select '1',1,a.cno,c.acomp,c.ename,c.tel,c.fax,c.addr,c.email
 		,a.accy,a.noa,b.no2,a.odate,a.datea,a.tggno,a.tgg,a.tel,a.fax
-		,d.namea
+		,a.postname
 		,a.[money],a.tax,a.total,a.salesno,a.sales
 		,b.productno,b.product
 		,case when len(b.size)>0 then replace(ISNULL(b.size,''),'~#$',"'") else dbo.csize(a.kind,b.dime,b.width,b.lengthb,b.radius) end
@@ -63,7 +63,7 @@ z_ordb_pkp01:--z_ordb_pkp01
 	from view_ordb a
 	left join view_ordbs b on a.accy=b.accy and a.noa=b.noa
 	left join acomp c on a.cno=c.noa
-	outer apply (select top 1 * from conn where noa=a.tggno) d
+	--outer apply (select top 1 * from conn where noa=a.tggno) d
 	where a.noa=@t_noa
 	order by b.no2
 	------------------------------------------------------------------------
