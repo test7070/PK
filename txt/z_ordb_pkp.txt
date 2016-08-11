@@ -106,7 +106,7 @@ z_ordb_pkp01:--z_ordb_pkp01
 	insert into @tmp(gno,pno,memo)values('5',5,'')
 	--製單人
 	declare @worker nvarchar(max)
-	select @worker = worker from view_quat where noa=@t_noa
+	select @worker = worker from view_ordb where noa=@t_noa
 	
 	insert into @tmp(gno,pno,[worker])values('6',6,@worker)
 	
