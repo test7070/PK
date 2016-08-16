@@ -18,7 +18,8 @@
 			
 			aPop = new Array(
 				['txtUno', 'lblUno', 'view_uccc', 'uno', 'txtUno', 'uccc_b.aspx']
-				,['txtMechno', 'lblMech', 'mech', 'noa,mech', 'txtMechno', 'mech_b.aspx']);
+				,['txtMechno', 'lblMech', 'mech', 'noa,mech', 'txtMechno', 'mech_b.aspx']
+				,['txtCustno', 'lblCustno', 'cust', 'noa,comp,nick', 'txtCustno', 'cust_b.aspx']);
 				
 			$(document).ready(function() {
 				main();
@@ -48,6 +49,7 @@
 				t_uno = $.trim($('#txtUno').val());
 				t_ordeno = $.trim($('#txtOrdeno').val());
 				t_mechno = $.trim($('#txtMechno').val());
+				t_custno = $.trim($('#txtCustno').val());
 				
 				var t_where = " 1=1 "
 					+q_sqlPara2("datea", t_bdate, t_edate)
@@ -56,7 +58,9 @@
 					+q_sqlPara2("mechno", t_mechno);
 				if(t_ordeno.length>0)
 		       		t_where += " and exists(select noa from cubms where cubms.noa=cubm.noa and cubms.ordeno='"+t_ordeno+"')";
-		       		
+		       	if(t_custno.length>0)
+		       		t_where += " and exists(select noa from cubms where cubms.noa=cubm.noa and cubms.custno='"+t_custno+"')";
+		       			
 				t_where = ' where=^^' + t_where + '^^ ';
 				return t_where;
 			}
@@ -96,6 +100,10 @@
 				<tr class='seek_tr'>
 					<td class='seek'  style="width:20%;"><a id='lblMech'>機台編號</a></td>
 					<td><input class="txt" id="txtMechno" type="text" style="width:215px; font-size:medium;" /></td>
+				</tr>
+				<tr class='seek_tr'>
+					<td class='seek'  style="width:20%;"><a id='lblCustno'>客戶編號</a></td>
+					<td><input class="txt" id="txtCustno" type="text" style="width:215px; font-size:medium;" /></td>
 				</tr>
 			</table>
 			<!--#include file="../inc/seek_ctrl.inc"-->
