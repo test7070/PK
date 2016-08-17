@@ -601,6 +601,13 @@
 			function readonly(t_para, empty) {
 				_readonly(t_para, empty);
 				size_change();
+				if(t_para){
+					$('#txtDatea').datepicker('destroy');
+                	$('#txtOdate').datepicker('destroy');
+				}else{
+					$('#txtDatea').datepicker();
+                	$('#txtOdate').datepicker();
+				}
 			}
 
 			function btnMinus(id) {
