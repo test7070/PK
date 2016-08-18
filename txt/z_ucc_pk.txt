@@ -1,754 +1,3 @@
-z_ucc_pk05:--z_ucc_pk05
-	SET QUOTED_IDENTIFIER OFF
-	declare @cmd nvarchar(max)
-	
-	declare @t_bdate nvarchar(10) = case when '#non'=[1] then '' else [1] end
-	declare @t_edate nvarchar(10) = case when '#non'=[2] then char(255) else [2] end
-	declare @t_kind nvarchar(max) = case when '#non'=[3] then '' else [3] end
-	declare @t_itype nvarchar(max) = case when '#non'=[4] then '' else [4] end
-	declare @t_bproductno nvarchar(20) = case when '#non'=[5] then '' else [5] end
- 	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
-	declare @t_style nvarchar(max) = case when '#non'=[7] then '' else [7] end
-	declare @t_waste nvarchar(max) = case when '#non'=[8] then '' else [8] end
-	
-	declare @t_bval01 float = case when '#non'=[9] then 0 else cast([9] as float) end
-	declare @t_eval01 float = case when '#non'=[10] then 9999999 else cast([10] as float) end
-	declare @t_bval02 float = case when '#non'=[11] then 0 else cast([11] as float) end
-	declare @t_eval02 float = case when '#non'=[12] then 9999999 else cast([12] as float) end
-	declare @t_bval03 float = case when '#non'=[13] then 0 else cast([13] as float) end
-	declare @t_eval03 float = case when '#non'=[14] then 9999999 else cast([14] as float) end
-	declare @t_bval04 float = case when '#non'=[15] then 0 else cast([15] as float) end
-	declare @t_eval04 float = case when '#non'=[16] then 9999999 else cast([16] as float) end
-	
-	declare @t_bstoreno nvarchar(20) = case when '#non'=[17] then '' else [17] end
-	declare @t_estoreno nvarchar(20) = case when '#non'=[18] then char(255) else [18] end
-	declare @t_bcustno nvarchar(20) = case when '#non'=[19] then '' else [19] end
-	declare @t_ecustno nvarchar(20) = case when '#non'=[20] then char(255) else [20] end
-	
-	declare @t_orderstatus nvarchar(max) = case when '#non'=[21] then '' else [21] end
-	declare @t_isordermemo nvarchar(max) = case when '#non'=[22] then '' else [22] end
-	
-	declare @t_sort nvarchar(max) = case when '#non'=[23] then '' else [23] end
-	--declare @t_showprice nvarchar(max) = case when '#non'=[24] then '' else [24] end
-	declare @t_spec nvarchar(max) = case when '#non'=[25] then '' else [25] end
-	
-	declare @t_productno2 nvarchar(max) = case when '#non'=[29] then '' else [29] end
-	declare @t_style2 nvarchar(max) = case when '#non'=[30] then '' else [30] end
-	declare @t_bproductno3 nvarchar(max) = case when '#non'=[31] then '' else [31] end
-	declare @t_eproductno3 nvarchar(max) = case when '#non'=[32] then '' else [32] end
-	declare @t_option nvarchar(max) = case when '#non'=[33] then '' else [33] end
-	declare @t_source nvarchar(max) = case when '#non'=[35] then '' else [35] end
-	
-	declare @t_ystore nvarchar(max) = case when '#non'=[38] then '' else [38] end
-	declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
-		,@t_bwidth float,@t_ewidth float,@t_blengthb float,@t_elengthb float
-	if left(@t_kind,1)='A'
-	begin
-		set @t_bradius = @t_bval01
-		set @t_eradius = @t_eval01
-		set @t_bdime = @t_bval02
-		set @t_edime = @t_eval02
-		set @t_bwidth = @t_bval03
-		set @t_ewidth = @t_eval03
-		set @t_blengthb = @t_bval04
-		set @t_elengthb = @t_eval04
-	end
-	else if left(@t_kind,1)='B'
-	begin
-		set @t_bradius = @t_bval01
-		set @t_eradius = @t_eval01
-		set @t_bwidth = @t_bval02
-		set @t_ewidth = @t_eval02
-		set @t_bdime = @t_bval03
-		set @t_edime = @t_eval03
-		set @t_blengthb = @t_bval04
-		set @t_elengthb = @t_eval04
-	end
-	else if left(@t_kind,1)='C'
-	begin
-		set @t_bradius = @t_bval01
-		set @t_eradius = @t_eval01
-		set @t_bwidth = @t_bval02
-		set @t_ewidth = @t_eval02
-		set @t_bdime = @t_bval03
-		set @t_edime = @t_eval03
-		set @t_blengthb = @t_bval04
-		set @t_elengthb = @t_eval04
-	end
-	else
-	begin
-		set @t_bradius = @t_bval01
-		set @t_eradius = @t_eval01
-		set @t_bwidth = @t_bval02
-		set @t_ewidth = @t_eval02
-		set @t_bdime = @t_bval03
-		set @t_edime = @t_eval03
-		set @t_blengthb = @t_bval04
-		set @t_elengthb = @t_eval04
-	end
-	------------------------------------------------------
-	declare @tmp table(
-		sel int identity(1,1)
-		,recno int
-		,gno nvarchar(2)
-		,uno nvarchar(30)
-		,cstyle nvarchar(20)
-		,style nvarchar(20)
-		,productno nvarchar(30)
-		,product nvarchar(50)
-		,size nvarchar(50)
-		,dime float
-		,width float
-		,lengthb float
-		,radius float
-		,[weight] float
-		,mount float
-		,price float
-		,eweight float
-		,emount float
-	)
-	insert into @tmp(gno,recno,uno,style,productno,product,size,dime,width,lengthb,radius,[weight],mount,price,eweight,emount)
-	select '1'
-		,ROW_NUMBER()over(order by a.style,a.productno,a.dime,a.width,a.uno)
-		,a.uno,a.style,a.productno,a.product,a.size,a.dime,a.width,a.lengthb,a.radius,a.[weight],a.mount,a.sprice,0,0
-	from view_uccb a
-	where ISNULL(a.datea,'') between @t_bdate and @t_edate
-	and ISNULL(a.dime,0) between @t_bdime and @t_edime
-	and ISNULL(a.width,0) between @t_bwidth and @t_ewidth
-	and ISNULL(a.lengthb,0) between @t_blengthb and @t_elengthb
-	and ISNULL(a.radius,0) between @t_bradius and @t_eradius
-	and ISNULL(a.custno,'') between @t_bcustno and @t_ecustno
-	and (len(@t_kind)=0 or ISNULL(a.kind,'')=@t_kind)
-	and (len(@t_itype)=0 or ISNULL(a.itype,'')=@t_itype)
-	and (len(@t_style)=0 or charindex(','+a.style+',',','+@t_style+',')>0)
-	and (len(@t_waste)=0 or upper(a.waste) = @t_waste)
-	and (len(@t_spec)=0 or isnull(a.class,'') = @t_spec)
-	and (len(@t_source)=0 or isnull(a.[source],'') = @t_source)
-	and ISNULL(a.productno,'') between @t_bproductno3 and @t_eproductno3
-	
-	update @tmp set cstyle=isnull(b.product,'')
-	from @tmp a
-	left join style b on a.style=b.noa
-	
-	update @tmp set eweight=b.eweight,emount=b.emount
-	from @tmp a
-	left join uccy b on a.uno=b.uno
-	where b.uno is not null
-
-	select gno
-		,recno rr
-		,uno a01
-		,case when left(uno,1)='*' then '' else 'z_unobd?$a01?' end ghref
-		,cstyle a02 --品名
-		,productno a03 --材質
-		,dbo.getComma(dime,-1) a04--厚
-		,dbo.getComma(width,-1) a05--寬
-		,dbo.getComma(lengthb,-1) a06--長
-		,replace(size,"~#$","'") a07--尺寸
-		,dbo.getComma(emount,-1) a08--庫存數
-		,dbo.getComma(eweight,-1) a09--庫存重
-		,dbo.getComma(price,-1) a10--單價
-	from @tmp
-	order by recno;
-
-z_ucc_pk04:--z_ucc_pk04
-	SET QUOTED_IDENTIFIER OFF
-	declare @cmd nvarchar(max)
-	
-	declare @t_bdate nvarchar(10) = case when '#non'=[1] then '' else [1] end
-	declare @t_edate nvarchar(10) = case when '#non'=[2] then char(255) else [2] end
-	declare @t_kind nvarchar(max) = case when '#non'=[3] then '' else [3] end
-	declare @t_itype nvarchar(max) = case when '#non'=[4] then '' else [4] end
-	declare @t_bproductno nvarchar(20) = case when '#non'=[5] then '' else [5] end
- 	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
-	declare @t_style nvarchar(max) = case when '#non'=[7] then '' else [7] end
-	declare @t_waste nvarchar(max) = case when '#non'=[8] then '' else [8] end
-	
-	declare @t_bval01 float = case when '#non'=[9] then 0 else cast([9] as float) end
-	declare @t_eval01 float = case when '#non'=[10] then 9999999 else cast([10] as float) end
-	declare @t_bval02 float = case when '#non'=[11] then 0 else cast([11] as float) end
-	declare @t_eval02 float = case when '#non'=[12] then 9999999 else cast([12] as float) end
-	declare @t_bval03 float = case when '#non'=[13] then 0 else cast([13] as float) end
-	declare @t_eval03 float = case when '#non'=[14] then 9999999 else cast([14] as float) end
-	declare @t_bval04 float = case when '#non'=[15] then 0 else cast([15] as float) end
-	declare @t_eval04 float = case when '#non'=[16] then 9999999 else cast([16] as float) end
-	
-	declare @t_bstoreno nvarchar(20) = case when '#non'=[17] then '' else [17] end
-	declare @t_estoreno nvarchar(20) = case when '#non'=[18] then char(255) else [18] end
-	declare @t_bcustno nvarchar(20) = case when '#non'=[19] then '' else [19] end
-	declare @t_ecustno nvarchar(20) = case when '#non'=[20] then char(255) else [20] end
-	
-	declare @t_orderstatus nvarchar(max) = case when '#non'=[21] then '' else [21] end
-	declare @t_isordermemo nvarchar(max) = case when '#non'=[22] then '' else [22] end
-	
-	declare @t_sort nvarchar(max) = case when '#non'=[23] then '' else [23] end
-	--declare @t_showprice nvarchar(max) = case when '#non'=[24] then '' else [24] end
-	declare @t_spec nvarchar(max) = case when '#non'=[25] then '' else [25] end
-	
-	declare @t_productno2 nvarchar(max) = case when '#non'=[29] then '' else [29] end
-	declare @t_style2 nvarchar(max) = case when '#non'=[30] then '' else [30] end
-	declare @t_bproductno3 nvarchar(max) = case when '#non'=[31] then '' else [31] end
-	declare @t_eproductno3 nvarchar(max) = case when '#non'=[32] then '' else [32] end
-	declare @t_option nvarchar(max) = case when '#non'=[33] then '' else [33] end
-	declare @t_source nvarchar(max) = case when '#non'=[35] then '' else [35] end
-	
-	declare @t_ystore nvarchar(max) = case when '#non'=[38] then '' else [38] end
-	declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float 
-	,@t_bwidth float,@t_ewidth float,@t_blengthb float,@t_elengthb float 
-	if left(@t_kind,1)='A'
-	begin
-		set @t_bradius = @t_bval01
-		set @t_eradius = @t_eval01
-		set @t_bdime = @t_bval02
-		set @t_edime = @t_eval02
-		set @t_bwidth = @t_bval03
-		set @t_ewidth = @t_eval03
-		set @t_blengthb = @t_bval04
-		set @t_elengthb = @t_eval04
-	end
-	else if left(@t_kind,1)='B'
-	begin
-		set @t_bradius = @t_bval01
-		set @t_eradius = @t_eval01
-		set @t_bwidth = @t_bval02
-		set @t_ewidth = @t_eval02
-		set @t_bdime = @t_bval03
-		set @t_edime = @t_eval03
-		set @t_blengthb = @t_bval04
-		set @t_elengthb = @t_eval04
-	end
-	else if left(@t_kind,1)='C'
-	begin
-		set @t_bradius = @t_bval01
-		set @t_eradius = @t_eval01
-		set @t_bwidth = @t_bval02
-		set @t_ewidth = @t_eval02
-		set @t_bdime = @t_bval03
-		set @t_edime = @t_eval03
-		set @t_blengthb = @t_bval04
-		set @t_elengthb = @t_eval04
-	end
-	else
-	begin
-		set @t_bradius = @t_bval01
-		set @t_eradius = @t_eval01
-		set @t_bwidth = @t_bval02
-		set @t_ewidth = @t_eval02
-		set @t_bdime = @t_bval03
-		set @t_edime = @t_eval03
-		set @t_blengthb = @t_bval04
-		set @t_elengthb = @t_eval04
-	end
-
-	declare @tmp table(
-		sel int identity(1,1)
-		,datea nvarchar(10)
-		,storeno nvarchar(20)
-		,store nvarchar(20)
-		,[source] nvarchar(20)
-		,uno nvarchar(30)
-		,place nvarchar(20) -- 儲位
-		,style nvarchar(20)
-		,cstyle nvarchar(20)
-		,productno nvarchar(50)
-		,product nvarchar(50)
-		,[class] nvarchar(20)
-		,dime float
-		,width float
-		,lengthb float
-		,radius float
-		,size nvarchar(50)
-		,spec nvarchar(50)
-		,mount float
-		,[weight] float
-		,price float
-		,emount float
-		,eweight float
-		,memo nvarchar(max)
-		,custno nvarchar(20)
-		,cust nvarchar(50)
-		,uno2 nvarchar(30)
-		,tdime float
-		,twidth float
-		,tlength float
-		
-		,ordeno nvarchar(20)
-		,ordesno2 nvarchar(10)
-		,ordetno2 nvarchar(10)
-		,omount float
-		,oweight float
-		,msg nvarchar(max)
-		,isend int
-		,iscancel int
-		
-		,ordcno nvarchar(20)
-		,ordcsno2 nvarchar(10)
-		,ordctnoq nvarchar(10)
-		,omount2 float
-		,oweight2 float
-		
-		,xweight float --可受訂重
-	)
-	insert into @tmp(datea,storeno,[source],uno,place,style,productno,product,[class]
-		,dime,width,lengthb,radius,size,mount,[weight],price,emount,eweight,memo
-		,custno,uno2,tdime,twidth,tlength,spec)
-	select b.datea
-		,case when ltrim(rtrim(isnull(a.cngstoreno,''))) = '' then b.storeno else a.cngstoreno end storeno
-		,b.[source],a.uno,isnull(b.place,''),b.style,b.productno,b.product,b.[class]
-		,b.dime,b.width,b.lengthb,b.radius,replace(b.size,'~#$',"'"),b.mount,b.[weight],b.sprice,a.emount,a.eweight,b.memo
-		,b.custno,b.uno2,b.tdime,b.twidth,b.tlength,b.spec
-	from uccy a
-	left join view_uccb b on a.uno=b.uno
-	where ISNULL(b.datea,'') between @t_bdate and @t_edate
-	and ISNULL(b.dime,0) between @t_bdime and @t_edime
-	and ISNULL(b.width,0) between @t_bwidth and @t_ewidth
-	and ISNULL(b.lengthb,0) between @t_blengthb and @t_elengthb
-	and ISNULL(b.radius,0) between @t_bradius and @t_eradius
-	and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
-	and (len(@t_kind)=0 or ISNULL(b.kind,'')=@t_kind)
-	and (len(@t_itype)=0 or ISNULL(b.itype,'')=@t_itype)
-	and (len(@t_style)=0 or charindex(','+b.style+',',','+@t_style+',')>0)
-	and (len(@t_waste)=0 or upper(b.waste) = @t_waste)
-	and (len(@t_spec)=0 or isnull(b.class,'') = @t_spec)
-	and (len(@t_source)=0 or isnull(b.[source],'') = @t_source)
-	and ISNULL(b.productno,'') between @t_bproductno3 and @t_eproductno3
-	and ISNULL(a.emount,0)>0 
-	and ISNULL(a.eweight,0)>0 
-	and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',b.productno)=0))
-	
-	delete @tmp where not(storeno between @t_bstoreno and @t_estoreno)
-		or not(len(@t_ystore)=0 or charindex(','+storeno+',',','+@t_ystore+',')>0)
-		
-	update @tmp set store=ISNULL(b.store,'')
-		,cust=ISNULL(c.nick,'')
-	from @tmp a
-	left join store b on a.storeno=b.noa
-	left join cust c on a.custno=c.noa		
-	
-	update @tmp set cstyle=b.product
-	from @tmp a
-	left join style b on a.style=b.noa
-
-	select '1' gno
-		,ROW_NUMBER()over(order by style,productno,dime,width,[class]) rr
-		,product a01
-		,cstyle a02
-		,[class] a03
-		,isnull(spec,'') a04
-		,dime a05
-		,width a06
-		,lengthb a07
-		,size a08
-		,dbo.getComma(SUM(ISNULL(emount,0)),-1) a09
-		,dbo.getComma(SUM(ISNULL([eweight],0)),-1) a10
-	from @tmp
-	group by style,cstyle,productno,product,class,dime,width,lengthb
-		,size,isnull(spec,'')
-	order by style,productno,dime,width,[class];
-	
-z_ucc_pk03:--z_ucc_pk03
-	SET QUOTED_IDENTIFIER OFF
-	declare @cmd nvarchar(max)
-	
-	declare @t_bdate nvarchar(10) = case when '#non'=[1] then '' else [1] end
-	declare @t_edate nvarchar(10) = case when '#non'=[2] then char(255) else [2] end
-	declare @t_kind nvarchar(max) = case when '#non'=[3] then '' else [3] end
-	declare @t_itype nvarchar(max) = case when '#non'=[4] then '' else [4] end
-	declare @t_bproductno nvarchar(20) = case when '#non'=[5] then '' else [5] end
- 	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
-	declare @t_style nvarchar(max) = case when '#non'=[7] then '' else [7] end
-	declare @t_waste nvarchar(max) = case when '#non'=[8] then '' else [8] end
-	
-	declare @t_bval01 float = case when '#non'=[9] then 0 else cast([9] as float) end
-	declare @t_eval01 float = case when '#non'=[10] then 9999999 else cast([10] as float) end
-	declare @t_bval02 float = case when '#non'=[11] then 0 else cast([11] as float) end
-	declare @t_eval02 float = case when '#non'=[12] then 9999999 else cast([12] as float) end
-	declare @t_bval03 float = case when '#non'=[13] then 0 else cast([13] as float) end
-	declare @t_eval03 float = case when '#non'=[14] then 9999999 else cast([14] as float) end
-	declare @t_bval04 float = case when '#non'=[15] then 0 else cast([15] as float) end
-	declare @t_eval04 float = case when '#non'=[16] then 9999999 else cast([16] as float) end
-	
-	declare @t_bstoreno nvarchar(20) = case when '#non'=[17] then '' else [17] end
-	declare @t_estoreno nvarchar(20) = case when '#non'=[18] then char(255) else [18] end
-	declare @t_bcustno nvarchar(20) = case when '#non'=[19] then '' else [19] end
-	declare @t_ecustno nvarchar(20) = case when '#non'=[20] then char(255) else [20] end
-	
-	declare @t_orderstatus nvarchar(max) = case when '#non'=[21] then '' else [21] end
-	declare @t_isordermemo nvarchar(max) = case when '#non'=[22] then '' else [22] end
-	
-	declare @t_sort nvarchar(max) = case when '#non'=[23] then '' else [23] end
-	--declare @t_showprice nvarchar(max) = case when '#non'=[24] then '' else [24] end
-	declare @t_spec nvarchar(max) = case when '#non'=[25] then '' else [25] end
-	
-	declare @t_productno2 nvarchar(max) = case when '#non'=[29] then '' else [29] end
-	declare @t_style2 nvarchar(max) = case when '#non'=[30] then '' else [30] end
-	declare @t_bproductno3 nvarchar(max) = case when '#non'=[31] then '' else [31] end
-	declare @t_eproductno3 nvarchar(max) = case when '#non'=[32] then '' else [32] end
-	declare @t_option nvarchar(max) = case when '#non'=[33] then '' else [33] end
-	declare @t_source nvarchar(max) = case when '#non'=[35] then '' else [35] end
-	
-	declare @t_ystore nvarchar(max) = case when '#non'=[38] then '' else [38] end
-declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
-		,@t_bwidth float,@t_ewidth float,@t_blengthb float,@t_elengthb float
-	if left(@t_kind,1)='A'
-	begin
-		set @t_bradius = @t_bval01
-		set @t_eradius = @t_eval01
-		set @t_bdime = @t_bval02
-		set @t_edime = @t_eval02
-		set @t_bwidth = @t_bval03
-		set @t_ewidth = @t_eval03
-		set @t_blengthb = @t_bval04
-		set @t_elengthb = @t_eval04
-	end
-	else if left(@t_kind,1)='B'
-	begin
-		set @t_bradius = @t_bval01
-		set @t_eradius = @t_eval01
-		set @t_bwidth = @t_bval02
-		set @t_ewidth = @t_eval02
-		set @t_bdime = @t_bval03
-		set @t_edime = @t_eval03
-		set @t_blengthb = @t_bval04
-		set @t_elengthb = @t_eval04
-	end
-	else if left(@t_kind,1)='C'
-	begin
-		set @t_bradius = @t_bval01
-		set @t_eradius = @t_eval01
-		set @t_bwidth = @t_bval02
-		set @t_ewidth = @t_eval02
-		set @t_bdime = @t_bval03
-		set @t_edime = @t_eval03
-		set @t_blengthb = @t_bval04
-		set @t_elengthb = @t_eval04
-	end
-	else
-	begin
-		set @t_bradius = @t_bval01
-		set @t_eradius = @t_eval01
-		set @t_bwidth = @t_bval02
-		set @t_ewidth = @t_eval02
-		set @t_bdime = @t_bval03
-		set @t_edime = @t_eval03
-		set @t_blengthb = @t_bval04
-		set @t_elengthb = @t_eval04
-	end
-
-	declare @tmp table(
-		sel int identity(1,1)
-		,trecno int
-		,gno nvarchar(10)
-		,recno int
-		,recno2 int
-		,datea nvarchar(10)
-		,storeno nvarchar(20)
-		,store nvarchar(20)
-		,[source] nvarchar(20)
-		,uno nvarchar(30)
-		,place nvarchar(20) -- 儲位
-		,style nvarchar(20)
-		,cstyle nvarchar(20)
-		,productno nvarchar(50)
-		,product nvarchar(50)
-		,[class] nvarchar(20)
-		,dime float
-		,width float
-		,lengthb float
-		,radius float
-		,size nvarchar(50)
-		,spec nvarchar(50)
-		,mount float
-		,[weight] float
-		,price float
-		,emount float
-		,eweight float
-		,memo nvarchar(max)
-		,custno nvarchar(20)
-		,cust nvarchar(50)
-		,uno2 nvarchar(30)
-		,tdime float
-		,twidth float
-		,tlength float
-		
-		,ordeno nvarchar(20)
-		,ordesno2 nvarchar(10)
-		,ordetno2 nvarchar(10)
-		,omount float
-		,oweight float
-		,msg nvarchar(max)
-		,isend int
-		,iscancel int
-		
-		,ordcno nvarchar(20)
-		,ordcsno2 nvarchar(10)
-		,ordctnoq nvarchar(10)
-		,omount2 float
-		,oweight2 float
-		
-		,xweight float --可受訂重
-	)
-	
-	if CHARINDEX(',02,',','+@t_option+',')>0
-	begin
-		insert into @tmp(gno,datea,storeno,[source],uno,place,style,productno,product,[class]
-			,dime,width,lengthb,radius,size,mount,[weight],price,emount,eweight,memo
-			,custno,uno2,tdime,twidth,tlength,spec)
-		select '1',b.datea
-			,case when ltrim(rtrim(isnull(a.cngstoreno,''))) = '' then b.storeno else a.cngstoreno end storeno
-			,b.[source],a.uno,b.place,b.style,b.productno,b.product,b.[class]
-			,b.dime,b.width,b.lengthb,b.radius,b.size,b.mount,b.[weight],b.sprice,a.emount,a.eweight,b.memo
-			,b.custno,b.uno2,b.tdime,b.twidth,b.tlength,b.spec
-		from uccy a
-		left join view_uccb b on a.uno=b.uno
-		where ISNULL(b.datea,'') between @t_bdate and @t_edate
-		and ISNULL(b.dime,0) between @t_bdime and @t_edime
-		and ISNULL(b.width,0) between @t_bwidth and @t_ewidth
-		and ISNULL(b.lengthb,0) between @t_blengthb and @t_elengthb
-		and ISNULL(b.radius,0) between @t_bradius and @t_eradius
-		and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
-		and (len(@t_kind)=0 or ISNULL(b.kind,'')=@t_kind)
-		and (len(@t_itype)=0 or ISNULL(b.itype,'')=@t_itype)
-		and (len(@t_style)=0 or charindex(','+b.style+',',','+@t_style+',')>0)
-		and (len(@t_waste)=0 or upper(b.waste) = @t_waste)
-		and (len(@t_spec)=0 or isnull(b.class,'') = @t_spec)
-		and (len(@t_source)=0 or isnull(b.[source],'') = @t_source)
-		and ISNULL(b.productno,'') between @t_bproductno3 and @t_eproductno3
-		and ISNULL(a.emount,0)>0 
-		and ISNULL(a.eweight,0)>0 
-		and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',b.productno)=0))
-		
-		
-		delete @tmp where not(storeno between @t_bstoreno and @t_estoreno)
-			or not(len(@t_ystore)=0 or charindex(','+storeno+',',','+@t_ystore+',')>0)
-			
-		update @tmp set store=ISNULL(b.store,'')
-			,cust=ISNULL(c.nick,'')
-		from @tmp a
-		left join store b on a.storeno=b.noa
-		left join cust c on a.custno=c.noa		
-	end
-
-	update @tmp set recno = b.sel
-	from @tmp a
-	left join (select ROW_NUMBER()over(order by uno)  recno,sel from @tmp) b on a.sel=b.sel
-	--寄庫
-	update @tmp set custno=c.custno,msg=a.msg+' 寄庫'
-	from @tmp a
-	left join view_inas b on a.uno=b.uno
-	left join view_ina c on b.accy=c.accy and b.noa=c.noa
-	where c.itype='3'
-	--訂單
-	declare @sel int
-	declare @uno nvarchar(30)
-	declare @n int
-	declare @recno int
-	
-	update @tmp set recno2=1
-	
-	declare cursor_table cursor for
-	select sel,a.uno,recno from @tmp a where recno2=1
-	open cursor_table
-	fetch next from cursor_table
-	into @sel,@uno,@recno
-	while(@@FETCH_STATUS <> -1)
-	begin
-		select @n=0
-		select @n=count(1) 
-		from @tmp a
-		left join view_ordet b on a.uno=b.uno
-		where b.noa is not null
-		and not exists(select noa from view_orde where accy=b.accy and noa=b.noa and (isnull(enda,0)=1 or isnull(cancel,0)=1))
-		and not exists(select noa from view_ordes where accy=b.accy and noa=b.noa and no2=b.no3 and (isnull(enda,0)=1 or isnull(cancel,0)=1))
-		and a.uno=@uno
-
-		
-		--if @n=1
-		--begin
-		--	update @tmp set ordeno=b.noa,ordesno2=b.no3,ordetno2=b.no2,omount=b.mount,oweight=b.[weight]
-		--	from @tmp a
-		--	left join view_ordet b on a.uno=b.uno
-		--	where a.sel=@sel
-		--end		
-		--else if @n>1
-		--begin
-		--	if @n>1
-				update @tmp set gno = '2' where sel=@sel --格線
-			insert into @tmp(gno,recno,recno2,uno,ordeno,ordesno2,ordetno2,omount,oweight
-				,style,productno,dime,width,isend,iscancel)	
-			select '3',a.recno,row_number()over(partition by a.uno order by b.noa,b.no3,b.no2)+1
-				,a.uno,b.noa,b.no3,b.no2,b.mount,b.[weight] 
-				,a.style,a.productno,a.dime,a.width
-				,case when isnull(c.enda,0)=1 or isnull(d.enda,0)=1 then 1 else 0 end
-				,case when isnull(c.cancel,0)=1 or isnull(d.cancel,0)=1 then 1 else 0 end 
-			from @tmp a
-			left join view_ordet b on a.uno=b.uno
-			left join view_orde c on b.accy=c.accy and b.noa=c.noa 
-			left join view_ordes d on b.accy=d.accy and b.noa=d.noa and b.no3=d.no2
-			where b.noa is not null 
-			and a.sel=@sel
-
-			update @tmp set gno=case when b.recno2>1 then '2' else '1' end
-			from @tmp a
-			outer apply(select MAX(recno2) recno2 from @tmp where recno=a.recno) b
-			where a.sel=@sel
-		--end
-	
-		fetch next from cursor_table
-		into @sel,@uno,@recno
-	end
-	close cursor_table
-	deallocate cursor_table
-
-	update @tmp set custno=b.custno,cust=c.nick,msg=a.msg+' 受訂'
-	from @tmp a
-	left join view_orde b on a.ordeno=b.noa
-	left join cust c on b.custno=c.noa
-	where b.noa is not null
-		
-	--------------------------------------------------------------------------------------------
-	if CHARINDEX(',03,',','+@t_option+',')>0 and (len(@t_itype)=0 or @t_itype='1')
-	begin
-		--採購
-		insert into @tmp(gno,recno,recno2,datea,storeno,[source],uno,place,style,productno,product,[class]
-			,dime,width,lengthb,radius,size,mount,[weight],emount,[eweight],price,memo
-			,ordcno,ordcsno2,msg,spec)
-		select '5',ROW_NUMBER()over(order by '*'+a.noa+'-'+a.no2),1
-			,b.datea,'',a.[source],'*'+a.noa+'-'+a.no2,'',a.style,a.productno,a.product,a.[class]
-			,a.dime,a.width,a.lengthb,a.radius,a.size,a.mount,a.[weight],a.mount,a.[weight],a.price,a.memo
-			,a.noa,a.no2,'採購',a.spec
-		from view_ordcs a
-		left join view_ordc b on a.accy=b.accy and a.noa=b.noa
-		where ISNULL(b.enda,0)=0
-		and ISNULL(a.enda,0)=0
-		and ISNULL(b.cancel,0)=0
-		and ISNULL(a.cancel,0)=0
-		and ISNULL(a.odate,'') between @t_bdate and @t_edate
-		and ISNULL(a.dime,0) between @t_bdime and @t_edime
-		and ISNULL(a.width,0) between @t_bwidth and @t_ewidth
-		and ISNULL(a.lengthb,0) between @t_blengthb and @t_elengthb
-		and ISNULL(a.radius,0) between @t_bradius and @t_eradius
-		and (len(@t_kind)=0 or ISNULL(a.kind,'')=@t_kind)
-		and (len(@t_style)=0 or charindex(','+a.style+',',','+@t_style+',')>0)
-		and (len(@t_spec)=0 or isnull(a.class,'') = @t_spec)
-		and ISNULL(a.productno,'') between @t_bproductno3 and @t_eproductno3
-		and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',a.productno)=0))
-	
-		declare cursor_table cursor for
-		select sel,a.uno,recno from @tmp a where gno='5'
-		open cursor_table
-		fetch next from cursor_table
-		into @sel,@uno,@recno
-		while(@@FETCH_STATUS <> -1)
-		begin
-			select @n = count(1)
-			from @tmp a
-			left join view_ordct b on a.ordcno=b.noa and a.ordcsno2=b.no2
-			where b.noa is not null
-			and a.uno=@uno
-			
-			if @n=1
-			begin
-				update @tmp set ordeno=b.ordeno,ordesno2=b.no4,ordctnoq=b.noq
-					,custno=b.custno,cust=c.nick,omount2=b.mount,oweight2=b.[weight]	
-					,msg=a.msg+' 期貨'	
-				from @tmp a
-				left join view_ordct b on a.ordcno=b.noa and a.ordcsno2=b.no2
-				left join cust c on b.custno=c.noa
-				where b.noa is not null
-				and a.sel=@sel
-			end		
-			else if @n>1
-			begin
-				if @n>1
-					update @tmp set gno = '6' where sel=@sel --格線
-				
-				insert into @tmp(gno,recno,recno2
-					,uno,ordeno,ordesno2,ordcno,ordcsno2,ordctnoq,omount2,oweight2
-					,style,productno,dime,width)	
-				select '7',a.recno,row_number()over(partition by a.uno order by a.ordcno,a.ordcsno2,a.ordctnoq)+1 
-					,a.uno,b.ordeno,b.no4,a.ordcno,a.ordcsno2,b.noq,b.mount,b.[weight]
-					,a.style,a.productno,a.dime,a.width
-				from @tmp a
-				left join view_ordct b on a.ordcno=b.noa and a.ordcsno2=b.no2
-				left join cust c on b.custno=c.noa
-				where b.noa is not null
-				and a.sel=@sel
-				
-				select top 1 @n=sel
-				from @tmp where uno=@uno and recno=@recno
-				order by uno desc,ordcno desc,ordcsno2 desc,ordctnoq desc
-				
-				update @tmp set gno='8' where sel=@n			
-			end
-		
-			fetch next from cursor_table
-			into @sel,@uno,@recno
-		end
-		close cursor_table
-		deallocate cursor_table
-	end	
-	
-	-------------------------------------------------------------------------
-	update @tmp set cstyle=ISNULL(b.product,'')
-	from @tmp a
-	left join style b on a.style=b.noa
-
-	update @tmp set trecno=b.recno
-	from @tmp a
-	left join (select sel,ROW_NUMBER()over(order by style,productno,dime,width,uno,recno,recno2) recno 
-		from @tmp where recno2=1)b on a.sel=b.sel
-	
-	insert into @tmp(gno,style,emount,eweight,omount,oweight,omount2,oweight2)
-	select '9',CHAR(255),SUM(isnull(emount,0)),SUM(isnull(eweight,0))
-		,SUM(isnull(omount,0)),SUM(isnull(oweight,0))
-		,SUM(isnull(omount2,0)),SUM(isnull(oweight2,0))
-	from @tmp
-
-	update @tmp set xweight=ISNULL(a.eweight,0)-ISNULL(b.oweight,0)
-	from @tmp a
-	left join (select uno,SUM(ISNULL(oweight,0)+ISNULL(oweight2,0)) oweight from @tmp group by uno) b on a.uno=b.uno
-	where a.recno2=1
-	
-	--結案的不顯示
-	delete @tmp where iscancel=1 or isend = 1 
-	
-	select  trecno rr,gno
-		,datea a01--入庫日期
-		,store a02--倉庫
-		,[source] a03--鋼廠
-		,uno a04--批號
-		,case when left(uno,1)='*' then '' else 'z_unobd?$a04?' end ghref
-		,cstyle a05--品名
-		,productno a06--材質
-		,[class] a07--表面
-		,dbo.getComma(dime,-1) a08--厚
-		,dbo.getComma(width,-1) a09--寬
-		,dbo.getComma(lengthb,-1) a10--長
-		,replace(size,"~#$","'") a11--尺寸
-		
-		,dbo.getComma(emount,-1) a12--庫存數
-		,dbo.getComma(eweight,-1) a13--庫存重
-		,dbo.getComma(price,-1) a14--單價
-		,memo a15--備註
-		,uno2 a16--原批號
-		,dbo.getComma(tdime,-1) a17--實際厚
-		,dbo.getComma(twidth,-1) a18--實際寬
-		,dbo.getComma(tlength,-1) a19--實際長
-		,case when iscancel=1 then '<a style="color:green">'+cust+'</a>'
-			when isend=1 then  '<a style="color:red">'+cust+'</a>'
-			else cust end a20--客戶
-		,case when len(ISNULL(ordeno,''))=0 then '' else ordeno+'-'+ordesno2 end a21--訂單編號
-		,dbo.getComma(omount,-1) a22--訂單數
-		,dbo.getComma(oweight,-1) a23--訂單重
-		,case when len(ISNULL(ordcno,''))=0 then '' else ordcno+'-'+ordctnoq end a24--採購編號
-		,dbo.getComma(oweight2,-1) a25--採購重
-		,dbo.getComma(xweight,-1) a26--可受訂
-		,place a27--儲位
-		,spec a28
-	from @tmp
-	order by style,productno,dime,width,uno,recno,recno2;
-
 z_ucc_pk02:--z_ucc_pk02
 	SET QUOTED_IDENTIFIER OFF
 	declare @t_edate nvarchar(20)=case when '#non'=[34] then '' else [34] end
@@ -1808,3 +1057,798 @@ z_ucc_pk01:--z_ucc_pk01
 	order by a.gno,a.recno
 	
 	drop table #z_ucc_pk01;
+z_ucc_pk05:--z_ucc_pk05
+	SET QUOTED_IDENTIFIER OFF
+	declare @cmd nvarchar(max)
+	
+	declare @t_bdate nvarchar(10) = case when '#non'=[1] then '' else [1] end
+	declare @t_edate nvarchar(10) = case when '#non'=[2] then char(255) else [2] end
+	declare @t_kind nvarchar(max) = case when '#non'=[3] then '' else [3] end
+	declare @t_itype nvarchar(max) = case when '#non'=[4] then '' else [4] end
+	declare @t_bproductno nvarchar(20) = case when '#non'=[5] then '' else [5] end
+ 	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
+	declare @t_style nvarchar(max) = case when '#non'=[7] then '' else [7] end
+	declare @t_waste nvarchar(max) = case when '#non'=[8] then '' else [8] end
+	
+	declare @t_bval01 float = case when '#non'=[9] then 0 else cast([9] as float) end
+	declare @t_eval01 float = case when '#non'=[10] then 9999999 else cast([10] as float) end
+	declare @t_bval02 float = case when '#non'=[11] then 0 else cast([11] as float) end
+	declare @t_eval02 float = case when '#non'=[12] then 9999999 else cast([12] as float) end
+	declare @t_bval03 float = case when '#non'=[13] then 0 else cast([13] as float) end
+	declare @t_eval03 float = case when '#non'=[14] then 9999999 else cast([14] as float) end
+	declare @t_bval04 float = case when '#non'=[15] then 0 else cast([15] as float) end
+	declare @t_eval04 float = case when '#non'=[16] then 9999999 else cast([16] as float) end
+	
+	declare @t_bstoreno nvarchar(20) = case when '#non'=[17] then '' else [17] end
+	declare @t_estoreno nvarchar(20) = case when '#non'=[18] then char(255) else [18] end
+	declare @t_bcustno nvarchar(20) = case when '#non'=[19] then '' else [19] end
+	declare @t_ecustno nvarchar(20) = case when '#non'=[20] then char(255) else [20] end
+	
+	declare @t_orderstatus nvarchar(max) = case when '#non'=[21] then '' else [21] end
+	declare @t_isordermemo nvarchar(max) = case when '#non'=[22] then '' else [22] end
+	
+	declare @t_sort nvarchar(max) = case when '#non'=[23] then '' else [23] end
+	--declare @t_showprice nvarchar(max) = case when '#non'=[24] then '' else [24] end
+	declare @t_spec nvarchar(max) = case when '#non'=[25] then '' else [25] end
+	
+	declare @t_productno2 nvarchar(max) = case when '#non'=[29] then '' else [29] end
+	declare @t_style2 nvarchar(max) = case when '#non'=[30] then '' else [30] end
+	declare @t_bproductno3 nvarchar(max) = case when '#non'=[31] then '' else [31] end
+	declare @t_eproductno3 nvarchar(max) = case when '#non'=[32] then '' else [32] end
+	declare @t_option nvarchar(max) = case when '#non'=[33] then '' else [33] end
+	declare @t_source nvarchar(max) = case when '#non'=[35] then '' else [35] end
+	
+	declare @t_ystore nvarchar(max) = case when '#non'=[38] then '' else [38] end
+	declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
+		,@t_bwidth float,@t_ewidth float,@t_blengthb float,@t_elengthb float
+	if left(@t_kind,1)='A'
+	begin
+		set @t_bradius = @t_bval01
+		set @t_eradius = @t_eval01
+		set @t_bdime = @t_bval02
+		set @t_edime = @t_eval02
+		set @t_bwidth = @t_bval03
+		set @t_ewidth = @t_eval03
+		set @t_blengthb = @t_bval04
+		set @t_elengthb = @t_eval04
+	end
+	else if left(@t_kind,1)='B'
+	begin
+		set @t_bradius = @t_bval01
+		set @t_eradius = @t_eval01
+		set @t_bwidth = @t_bval02
+		set @t_ewidth = @t_eval02
+		set @t_bdime = @t_bval03
+		set @t_edime = @t_eval03
+		set @t_blengthb = @t_bval04
+		set @t_elengthb = @t_eval04
+	end
+	else if left(@t_kind,1)='C'
+	begin
+		set @t_bradius = @t_bval01
+		set @t_eradius = @t_eval01
+		set @t_bwidth = @t_bval02
+		set @t_ewidth = @t_eval02
+		set @t_bdime = @t_bval03
+		set @t_edime = @t_eval03
+		set @t_blengthb = @t_bval04
+		set @t_elengthb = @t_eval04
+	end
+	else
+	begin
+		set @t_bradius = @t_bval01
+		set @t_eradius = @t_eval01
+		set @t_bwidth = @t_bval02
+		set @t_ewidth = @t_eval02
+		set @t_bdime = @t_bval03
+		set @t_edime = @t_eval03
+		set @t_blengthb = @t_bval04
+		set @t_elengthb = @t_eval04
+	end
+	------------------------------------------------------
+	declare @tmp table(
+		sel int identity(1,1)
+		,recno int
+		,gno nvarchar(2)
+		,uno nvarchar(30)
+		,cstyle nvarchar(20)
+		,style nvarchar(20)
+		,productno nvarchar(30)
+		,product nvarchar(50)
+		,size nvarchar(50)
+		,dime float
+		,width float
+		,lengthb float
+		,radius float
+		,[weight] float
+		,mount float
+		,price float
+		,eweight float
+		,emount float
+	)
+	insert into @tmp(gno,recno,uno,style,productno,product,size,dime,width,lengthb,radius,[weight],mount,price,eweight,emount)
+	select '1'
+		,ROW_NUMBER()over(order by a.style,a.productno,a.dime,a.width,a.uno)
+		,a.uno,a.style,a.productno,a.product,a.size,a.dime,a.width,a.lengthb,a.radius,a.[weight],a.mount,a.sprice,0,0
+	from view_uccb a
+	where ISNULL(a.datea,'') between @t_bdate and @t_edate
+	and ISNULL(a.dime,0) between @t_bdime and @t_edime
+	and ISNULL(a.width,0) between @t_bwidth and @t_ewidth
+	and ISNULL(a.lengthb,0) between @t_blengthb and @t_elengthb
+	and ISNULL(a.radius,0) between @t_bradius and @t_eradius
+	and ISNULL(a.custno,'') between @t_bcustno and @t_ecustno
+	and (len(@t_kind)=0 or ISNULL(a.kind,'')=@t_kind)
+	and (len(@t_itype)=0 or ISNULL(a.itype,'')=@t_itype)
+	and (len(@t_style)=0 or charindex(','+a.style+',',','+@t_style+',')>0)
+	and (len(@t_waste)=0 or upper(a.waste) = @t_waste)
+	and (len(@t_spec)=0 or isnull(a.class,'') = @t_spec)
+	and (len(@t_source)=0 or isnull(a.[source],'') = @t_source)
+	and ISNULL(a.productno,'') between @t_bproductno3 and @t_eproductno3
+	
+	update @tmp set cstyle=isnull(b.product,'')
+	from @tmp a
+	left join style b on a.style=b.noa
+	
+	update @tmp set eweight=b.eweight,emount=b.emount
+	from @tmp a
+	left join uccy b on a.uno=b.uno
+	where b.uno is not null
+
+	select gno
+		,recno rr
+		,uno a01
+		,case when left(uno,1)='*' then '' else 'z_unobd?$a01?' end ghref
+		,cstyle a02 --品名
+		,productno a03 --材質
+		,dbo.getComma(dime,-1) a04--厚
+		,dbo.getComma(width,-1) a05--寬
+		,dbo.getComma(lengthb,-1) a06--長
+		,replace(size,"~#$","'") a07--尺寸
+		,dbo.getComma(emount,-1) a08--庫存數
+		,dbo.getComma(eweight,-1) a09--庫存重
+		,dbo.getComma(price,-1) a10--單價
+	from @tmp
+	order by recno;
+
+z_ucc_pk04:--z_ucc_pk04
+	SET QUOTED_IDENTIFIER OFF
+	declare @cmd nvarchar(max)
+	
+	declare @t_bdate nvarchar(10) = case when '#non'=[1] then '' else [1] end
+	declare @t_edate nvarchar(10) = case when '#non'=[2] then char(255) else [2] end
+	declare @t_kind nvarchar(max) = case when '#non'=[3] then '' else [3] end
+	declare @t_itype nvarchar(max) = case when '#non'=[4] then '' else [4] end
+	declare @t_bproductno nvarchar(20) = case when '#non'=[5] then '' else [5] end
+ 	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
+	declare @t_style nvarchar(max) = case when '#non'=[7] then '' else [7] end
+	declare @t_waste nvarchar(max) = case when '#non'=[8] then '' else [8] end
+	
+	declare @t_bval01 float = case when '#non'=[9] then 0 else cast([9] as float) end
+	declare @t_eval01 float = case when '#non'=[10] then 9999999 else cast([10] as float) end
+	declare @t_bval02 float = case when '#non'=[11] then 0 else cast([11] as float) end
+	declare @t_eval02 float = case when '#non'=[12] then 9999999 else cast([12] as float) end
+	declare @t_bval03 float = case when '#non'=[13] then 0 else cast([13] as float) end
+	declare @t_eval03 float = case when '#non'=[14] then 9999999 else cast([14] as float) end
+	declare @t_bval04 float = case when '#non'=[15] then 0 else cast([15] as float) end
+	declare @t_eval04 float = case when '#non'=[16] then 9999999 else cast([16] as float) end
+	
+	declare @t_bstoreno nvarchar(20) = case when '#non'=[17] then '' else [17] end
+	declare @t_estoreno nvarchar(20) = case when '#non'=[18] then char(255) else [18] end
+	declare @t_bcustno nvarchar(20) = case when '#non'=[19] then '' else [19] end
+	declare @t_ecustno nvarchar(20) = case when '#non'=[20] then char(255) else [20] end
+	
+	declare @t_orderstatus nvarchar(max) = case when '#non'=[21] then '' else [21] end
+	declare @t_isordermemo nvarchar(max) = case when '#non'=[22] then '' else [22] end
+	
+	declare @t_sort nvarchar(max) = case when '#non'=[23] then '' else [23] end
+	--declare @t_showprice nvarchar(max) = case when '#non'=[24] then '' else [24] end
+	declare @t_spec nvarchar(max) = case when '#non'=[25] then '' else [25] end
+	
+	declare @t_productno2 nvarchar(max) = case when '#non'=[29] then '' else [29] end
+	declare @t_style2 nvarchar(max) = case when '#non'=[30] then '' else [30] end
+	declare @t_bproductno3 nvarchar(max) = case when '#non'=[31] then '' else [31] end
+	declare @t_eproductno3 nvarchar(max) = case when '#non'=[32] then '' else [32] end
+	declare @t_option nvarchar(max) = case when '#non'=[33] then '' else [33] end
+	declare @t_source nvarchar(max) = case when '#non'=[35] then '' else [35] end
+	
+	declare @t_ystore nvarchar(max) = case when '#non'=[38] then '' else [38] end
+	declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float 
+	,@t_bwidth float,@t_ewidth float,@t_blengthb float,@t_elengthb float 
+	if left(@t_kind,1)='A'
+	begin
+		set @t_bradius = @t_bval01
+		set @t_eradius = @t_eval01
+		set @t_bdime = @t_bval02
+		set @t_edime = @t_eval02
+		set @t_bwidth = @t_bval03
+		set @t_ewidth = @t_eval03
+		set @t_blengthb = @t_bval04
+		set @t_elengthb = @t_eval04
+	end
+	else if left(@t_kind,1)='B'
+	begin
+		set @t_bradius = @t_bval01
+		set @t_eradius = @t_eval01
+		set @t_bwidth = @t_bval02
+		set @t_ewidth = @t_eval02
+		set @t_bdime = @t_bval03
+		set @t_edime = @t_eval03
+		set @t_blengthb = @t_bval04
+		set @t_elengthb = @t_eval04
+	end
+	else if left(@t_kind,1)='C'
+	begin
+		set @t_bradius = @t_bval01
+		set @t_eradius = @t_eval01
+		set @t_bwidth = @t_bval02
+		set @t_ewidth = @t_eval02
+		set @t_bdime = @t_bval03
+		set @t_edime = @t_eval03
+		set @t_blengthb = @t_bval04
+		set @t_elengthb = @t_eval04
+	end
+	else
+	begin
+		set @t_bradius = @t_bval01
+		set @t_eradius = @t_eval01
+		set @t_bwidth = @t_bval02
+		set @t_ewidth = @t_eval02
+		set @t_bdime = @t_bval03
+		set @t_edime = @t_eval03
+		set @t_blengthb = @t_bval04
+		set @t_elengthb = @t_eval04
+	end
+
+	declare @tmp table(
+		sel int identity(1,1)
+		,datea nvarchar(10)
+		,storeno nvarchar(20)
+		,store nvarchar(20)
+		,[source] nvarchar(20)
+		,uno nvarchar(30)
+		,place nvarchar(20) -- 儲位
+		,style nvarchar(20)
+		,cstyle nvarchar(20)
+		,productno nvarchar(50)
+		,product nvarchar(50)
+		,[class] nvarchar(20)
+		,dime float
+		,width float
+		,lengthb float
+		,radius float
+		,size nvarchar(50)
+		,spec nvarchar(50)
+		,mount float
+		,[weight] float
+		,price float
+		,emount float
+		,eweight float
+		,memo nvarchar(max)
+		,custno nvarchar(20)
+		,cust nvarchar(50)
+		,uno2 nvarchar(30)
+		,tdime float
+		,twidth float
+		,tlength float
+		
+		,ordeno nvarchar(20)
+		,ordesno2 nvarchar(10)
+		,ordetno2 nvarchar(10)
+		,omount float
+		,oweight float
+		,msg nvarchar(max)
+		,isend int
+		,iscancel int
+		
+		,ordcno nvarchar(20)
+		,ordcsno2 nvarchar(10)
+		,ordctnoq nvarchar(10)
+		,omount2 float
+		,oweight2 float
+		
+		,xweight float --可受訂重
+	)
+	insert into @tmp(datea,storeno,[source],uno,place,style,productno,product,[class]
+		,dime,width,lengthb,radius,size,mount,[weight],price,emount,eweight,memo
+		,custno,uno2,tdime,twidth,tlength,spec)
+	select b.datea
+		,case when ltrim(rtrim(isnull(a.cngstoreno,''))) = '' then b.storeno else a.cngstoreno end storeno
+		,b.[source],a.uno,isnull(b.place,''),b.style,b.productno,b.product,b.[class]
+		,b.dime,b.width,b.lengthb,b.radius,replace(b.size,'~#$',"'"),b.mount,b.[weight],b.sprice,a.emount,a.eweight,b.memo
+		,b.custno,b.uno2,b.tdime,b.twidth,b.tlength,b.spec
+	from uccy a
+	left join view_uccb b on a.uno=b.uno
+	where ISNULL(b.datea,'') between @t_bdate and @t_edate
+	and ISNULL(b.dime,0) between @t_bdime and @t_edime
+	and ISNULL(b.width,0) between @t_bwidth and @t_ewidth
+	and ISNULL(b.lengthb,0) between @t_blengthb and @t_elengthb
+	and ISNULL(b.radius,0) between @t_bradius and @t_eradius
+	and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
+	and (len(@t_kind)=0 or ISNULL(b.kind,'')=@t_kind)
+	and (len(@t_itype)=0 or ISNULL(b.itype,'')=@t_itype)
+	and (len(@t_style)=0 or charindex(','+b.style+',',','+@t_style+',')>0)
+	and (len(@t_waste)=0 or upper(b.waste) = @t_waste)
+	and (len(@t_spec)=0 or isnull(b.class,'') = @t_spec)
+	and (len(@t_source)=0 or isnull(b.[source],'') = @t_source)
+	and ISNULL(b.productno,'') between @t_bproductno3 and @t_eproductno3
+	and ISNULL(a.emount,0)>0 
+	and ISNULL(a.eweight,0)>0 
+	and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',b.productno)=0))
+	
+	delete @tmp where not(storeno between @t_bstoreno and @t_estoreno)
+		or not(len(@t_ystore)=0 or charindex(','+storeno+',',','+@t_ystore+',')>0)
+		
+	update @tmp set store=ISNULL(b.store,'')
+		,cust=ISNULL(c.nick,'')
+	from @tmp a
+	left join store b on a.storeno=b.noa
+	left join cust c on a.custno=c.noa		
+	
+	update @tmp set cstyle=b.product
+	from @tmp a
+	left join style b on a.style=b.noa
+
+	select '1' gno
+		,ROW_NUMBER()over(order by style,productno,dime,width,[class]) rr
+		,product a01
+		,cstyle a02
+		,[class] a03
+		,isnull(spec,'') a04
+		,dime a05
+		,width a06
+		,lengthb a07
+		,size a08
+		,dbo.getComma(SUM(ISNULL(emount,0)),-1) a09
+		,dbo.getComma(SUM(ISNULL([eweight],0)),-1) a10
+	from @tmp
+	group by style,cstyle,productno,product,class,dime,width,lengthb
+		,size,isnull(spec,'')
+	order by style,productno,dime,width,[class];
+	
+z_ucc_pk03:--z_ucc_pk03
+	SET QUOTED_IDENTIFIER OFF
+	declare @cmd nvarchar(max)
+	
+	declare @t_bdate nvarchar(10) = case when '#non'=[1] then '' else [1] end
+	declare @t_edate nvarchar(10) = case when '#non'=[2] then char(255) else [2] end
+	declare @t_kind nvarchar(max) = case when '#non'=[3] then '' else [3] end
+	declare @t_itype nvarchar(max) = case when '#non'=[4] then '' else [4] end
+	declare @t_bproductno nvarchar(20) = case when '#non'=[5] then '' else [5] end
+ 	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
+	declare @t_style nvarchar(max) = case when '#non'=[7] then '' else [7] end
+	declare @t_waste nvarchar(max) = case when '#non'=[8] then '' else [8] end
+	
+	declare @t_bval01 float = case when '#non'=[9] then 0 else cast([9] as float) end
+	declare @t_eval01 float = case when '#non'=[10] then 9999999 else cast([10] as float) end
+	declare @t_bval02 float = case when '#non'=[11] then 0 else cast([11] as float) end
+	declare @t_eval02 float = case when '#non'=[12] then 9999999 else cast([12] as float) end
+	declare @t_bval03 float = case when '#non'=[13] then 0 else cast([13] as float) end
+	declare @t_eval03 float = case when '#non'=[14] then 9999999 else cast([14] as float) end
+	declare @t_bval04 float = case when '#non'=[15] then 0 else cast([15] as float) end
+	declare @t_eval04 float = case when '#non'=[16] then 9999999 else cast([16] as float) end
+	
+	declare @t_bstoreno nvarchar(20) = case when '#non'=[17] then '' else [17] end
+	declare @t_estoreno nvarchar(20) = case when '#non'=[18] then char(255) else [18] end
+	declare @t_bcustno nvarchar(20) = case when '#non'=[19] then '' else [19] end
+	declare @t_ecustno nvarchar(20) = case when '#non'=[20] then char(255) else [20] end
+	
+	declare @t_orderstatus nvarchar(max) = case when '#non'=[21] then '' else [21] end
+	declare @t_isordermemo nvarchar(max) = case when '#non'=[22] then '' else [22] end
+	
+	declare @t_sort nvarchar(max) = case when '#non'=[23] then '' else [23] end
+	--declare @t_showprice nvarchar(max) = case when '#non'=[24] then '' else [24] end
+	declare @t_spec nvarchar(max) = case when '#non'=[25] then '' else [25] end
+	
+	declare @t_productno2 nvarchar(max) = case when '#non'=[29] then '' else [29] end
+	declare @t_style2 nvarchar(max) = case when '#non'=[30] then '' else [30] end
+	declare @t_bproductno3 nvarchar(max) = case when '#non'=[31] then '' else [31] end
+	declare @t_eproductno3 nvarchar(max) = case when '#non'=[32] then '' else [32] end
+	declare @t_option nvarchar(max) = case when '#non'=[33] then '' else [33] end
+	declare @t_source nvarchar(max) = case when '#non'=[35] then '' else [35] end
+	
+	declare @t_ystore nvarchar(max) = case when '#non'=[38] then '' else [38] end
+declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
+		,@t_bwidth float,@t_ewidth float,@t_blengthb float,@t_elengthb float
+	if left(@t_kind,1)='A'
+	begin
+		set @t_bradius = @t_bval01
+		set @t_eradius = @t_eval01
+		set @t_bdime = @t_bval02
+		set @t_edime = @t_eval02
+		set @t_bwidth = @t_bval03
+		set @t_ewidth = @t_eval03
+		set @t_blengthb = @t_bval04
+		set @t_elengthb = @t_eval04
+	end
+	else if left(@t_kind,1)='B'
+	begin
+		set @t_bradius = @t_bval01
+		set @t_eradius = @t_eval01
+		set @t_bwidth = @t_bval02
+		set @t_ewidth = @t_eval02
+		set @t_bdime = @t_bval03
+		set @t_edime = @t_eval03
+		set @t_blengthb = @t_bval04
+		set @t_elengthb = @t_eval04
+	end
+	else if left(@t_kind,1)='C'
+	begin
+		set @t_bradius = @t_bval01
+		set @t_eradius = @t_eval01
+		set @t_bwidth = @t_bval02
+		set @t_ewidth = @t_eval02
+		set @t_bdime = @t_bval03
+		set @t_edime = @t_eval03
+		set @t_blengthb = @t_bval04
+		set @t_elengthb = @t_eval04
+	end
+	else
+	begin
+		set @t_bradius = @t_bval01
+		set @t_eradius = @t_eval01
+		set @t_bwidth = @t_bval02
+		set @t_ewidth = @t_eval02
+		set @t_bdime = @t_bval03
+		set @t_edime = @t_eval03
+		set @t_blengthb = @t_bval04
+		set @t_elengthb = @t_eval04
+	end
+
+	declare @tmp table(
+		sel int identity(1,1)
+		,trecno int
+		,gno nvarchar(10)
+		,recno int
+		,recno2 int
+		,datea nvarchar(10)
+		,storeno nvarchar(20)
+		,store nvarchar(20)
+		,[source] nvarchar(20)
+		,uno nvarchar(30)
+		,place nvarchar(20) -- 儲位
+		,style nvarchar(20)
+		,cstyle nvarchar(20)
+		,productno nvarchar(50)
+		,product nvarchar(50)
+		,[class] nvarchar(20)
+		,dime float
+		,width float
+		,lengthb float
+		,radius float
+		,size nvarchar(50)
+		,spec nvarchar(50)
+		,mount float
+		,[weight] float
+		,price float
+		,emount float
+		,eweight float
+		,memo nvarchar(max)
+		,custno nvarchar(20)
+		,cust nvarchar(50)
+		,uno2 nvarchar(30)
+		,tdime float
+		,twidth float
+		,tlength float
+		
+		,ordeno nvarchar(20)
+		,ordesno2 nvarchar(10)
+		,ordetno2 nvarchar(10)
+		,omount float
+		,oweight float
+		,msg nvarchar(max)
+		,isend int
+		,iscancel int
+		
+		,ordcno nvarchar(20)
+		,ordcsno2 nvarchar(10)
+		,ordctnoq nvarchar(10)
+		,omount2 float
+		,oweight2 float
+		
+		,xweight float --可受訂重
+		,memo2 nvarchar(max)
+	)
+	
+	if CHARINDEX(',02,',','+@t_option+',')>0
+	begin
+		insert into @tmp(gno,datea,storeno,[source],uno,place,style,productno,product,[class]
+			,dime,width,lengthb,radius,size,mount,[weight],price,emount,eweight,memo
+			,custno,uno2,tdime,twidth,tlength,spec)
+		select '1',b.datea
+			,case when ltrim(rtrim(isnull(a.cngstoreno,''))) = '' then b.storeno else a.cngstoreno end storeno
+			,b.[source],a.uno,b.place,b.style,b.productno,b.product,b.[class]
+			,b.dime,b.width,b.lengthb,b.radius,b.size,b.mount,b.[weight],b.sprice,a.emount,a.eweight,b.memo
+			,b.custno,b.uno2,b.tdime,b.twidth,b.tlength,b.spec
+		from uccy a
+		left join view_uccb b on a.uno=b.uno
+		where ISNULL(b.datea,'') between @t_bdate and @t_edate
+		and ISNULL(b.dime,0) between @t_bdime and @t_edime
+		and ISNULL(b.width,0) between @t_bwidth and @t_ewidth
+		and ISNULL(b.lengthb,0) between @t_blengthb and @t_elengthb
+		and ISNULL(b.radius,0) between @t_bradius and @t_eradius
+		and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
+		and (len(@t_kind)=0 or ISNULL(b.kind,'')=@t_kind)
+		and (len(@t_itype)=0 or ISNULL(b.itype,'')=@t_itype)
+		and (len(@t_style)=0 or charindex(','+b.style+',',','+@t_style+',')>0)
+		and (len(@t_waste)=0 or upper(b.waste) = @t_waste)
+		and (len(@t_spec)=0 or isnull(b.class,'') = @t_spec)
+		and (len(@t_source)=0 or isnull(b.[source],'') = @t_source)
+		and ISNULL(b.productno,'') between @t_bproductno3 and @t_eproductno3
+		and ISNULL(a.emount,0)>0 
+		and ISNULL(a.eweight,0)>0 
+		and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',b.productno)=0))
+		
+		
+		delete @tmp where not(storeno between @t_bstoreno and @t_estoreno)
+			or not(len(@t_ystore)=0 or charindex(','+storeno+',',','+@t_ystore+',')>0)
+			
+		update @tmp set store=ISNULL(b.store,'')
+			,cust=ISNULL(c.nick,'')
+		from @tmp a
+		left join store b on a.storeno=b.noa
+		left join cust c on a.custno=c.noa		
+	end
+
+	update @tmp set recno = b.sel
+	from @tmp a
+	left join (select ROW_NUMBER()over(order by uno)  recno,sel from @tmp) b on a.sel=b.sel
+	--寄庫
+	update @tmp set custno=c.custno,msg=a.msg+' 寄庫'
+	from @tmp a
+	left join view_inas b on a.uno=b.uno
+	left join view_ina c on b.accy=c.accy and b.noa=c.noa
+	where c.itype='3'
+	--訂單
+	declare @sel int
+	declare @uno nvarchar(30)
+	declare @n int
+	declare @recno int
+	
+	update @tmp set recno2=1
+	
+	declare cursor_table cursor for
+	select sel,a.uno,recno from @tmp a where recno2=1
+	open cursor_table
+	fetch next from cursor_table
+	into @sel,@uno,@recno
+	while(@@FETCH_STATUS <> -1)
+	begin
+		select @n=0
+		select @n=count(1) 
+		from @tmp a
+		left join view_ordet b on a.uno=b.uno
+		where b.noa is not null
+		and not exists(select noa from view_orde where accy=b.accy and noa=b.noa and (isnull(enda,0)=1 or isnull(cancel,0)=1))
+		and not exists(select noa from view_ordes where accy=b.accy and noa=b.noa and no2=b.no3 and (isnull(enda,0)=1 or isnull(cancel,0)=1))
+		and a.uno=@uno
+
+		
+		--if @n=1
+		--begin
+		--	update @tmp set ordeno=b.noa,ordesno2=b.no3,ordetno2=b.no2,omount=b.mount,oweight=b.[weight]
+		--	from @tmp a
+		--	left join view_ordet b on a.uno=b.uno
+		--	where a.sel=@sel
+		--end		
+		--else if @n>1
+		--begin
+		--	if @n>1
+				update @tmp set gno = '2' where sel=@sel --格線
+			insert into @tmp(gno,recno,recno2,uno,ordeno,ordesno2,ordetno2,omount,oweight
+				,style,productno,dime,width,isend,iscancel)	
+			select '3',a.recno,row_number()over(partition by a.uno order by b.noa,b.no3,b.no2)+1
+				,a.uno,b.noa,b.no3,b.no2,b.mount,b.[weight] 
+				,a.style,a.productno,a.dime,a.width
+				,case when isnull(c.enda,0)=1 or isnull(d.enda,0)=1 then 1 else 0 end
+				,case when isnull(c.cancel,0)=1 or isnull(d.cancel,0)=1 then 1 else 0 end 
+			from @tmp a
+			left join view_ordet b on a.uno=b.uno
+			left join view_orde c on b.accy=c.accy and b.noa=c.noa 
+			left join view_ordes d on b.accy=d.accy and b.noa=d.noa and b.no3=d.no2
+			where b.noa is not null 
+			and a.sel=@sel
+
+			update @tmp set gno=case when b.recno2>1 then '2' else '1' end
+			from @tmp a
+			outer apply(select MAX(recno2) recno2 from @tmp where recno=a.recno) b
+			where a.sel=@sel
+		--end
+	
+		fetch next from cursor_table
+		into @sel,@uno,@recno
+	end
+	close cursor_table
+	deallocate cursor_table
+
+	update @tmp set custno=b.custno,cust=c.nick,msg=a.msg+' 受訂'
+	from @tmp a
+	left join view_orde b on a.ordeno=b.noa
+	left join cust c on b.custno=c.noa
+	where b.noa is not null
+		
+	--------------------------------------------------------------------------------------------
+	if CHARINDEX(',03,',','+@t_option+',')>0 and (len(@t_itype)=0 or @t_itype='1')
+	begin
+		--採購
+		insert into @tmp(gno,recno,recno2,datea,storeno,[source],uno,place,style,productno,product,[class]
+			,dime,width,lengthb,radius,size,mount,[weight],emount,[eweight],price,memo
+			,ordcno,ordcsno2,msg,spec)
+		select '5',ROW_NUMBER()over(order by '*'+a.noa+'-'+a.no2),1
+			,b.datea,'',a.[source],'*'+a.noa+'-'+a.no2,'',a.style,a.productno,a.product,a.[class]
+			,a.dime,a.width,a.lengthb,a.radius,a.size,a.mount,a.[weight],a.mount,a.[weight],a.price,a.memo
+			,a.noa,a.no2,'採購',a.spec
+		from view_ordcs a
+		left join view_ordc b on a.accy=b.accy and a.noa=b.noa
+		where ISNULL(b.enda,0)=0
+		and ISNULL(a.enda,0)=0
+		and ISNULL(b.cancel,0)=0
+		and ISNULL(a.cancel,0)=0
+		and ISNULL(a.odate,'') between @t_bdate and @t_edate
+		and ISNULL(a.dime,0) between @t_bdime and @t_edime
+		and ISNULL(a.width,0) between @t_bwidth and @t_ewidth
+		and ISNULL(a.lengthb,0) between @t_blengthb and @t_elengthb
+		and ISNULL(a.radius,0) between @t_bradius and @t_eradius
+		and (len(@t_kind)=0 or ISNULL(a.kind,'')=@t_kind)
+		and (len(@t_style)=0 or charindex(','+a.style+',',','+@t_style+',')>0)
+		and (len(@t_spec)=0 or isnull(a.class,'') = @t_spec)
+		and ISNULL(a.productno,'') between @t_bproductno3 and @t_eproductno3
+		and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',a.productno)=0))
+	
+		declare cursor_table cursor for
+		select sel,a.uno,recno from @tmp a where gno='5'
+		open cursor_table
+		fetch next from cursor_table
+		into @sel,@uno,@recno
+		while(@@FETCH_STATUS <> -1)
+		begin
+			select @n = count(1)
+			from @tmp a
+			left join view_ordct b on a.ordcno=b.noa and a.ordcsno2=b.no2
+			where b.noa is not null
+			and a.uno=@uno
+			
+			if @n=1
+			begin
+				update @tmp set ordeno=b.ordeno,ordesno2=b.no4,ordctnoq=b.noq
+					,custno=b.custno,cust=c.nick,omount2=b.mount,oweight2=b.[weight]	
+					,msg=a.msg+' 期貨'	
+				from @tmp a
+				left join view_ordct b on a.ordcno=b.noa and a.ordcsno2=b.no2
+				left join cust c on b.custno=c.noa
+				where b.noa is not null
+				and a.sel=@sel
+			end		
+			else if @n>1
+			begin
+				if @n>1
+					update @tmp set gno = '6' where sel=@sel --格線
+				
+				insert into @tmp(gno,recno,recno2
+					,uno,ordeno,ordesno2,ordcno,ordcsno2,ordctnoq,omount2,oweight2
+					,style,productno,dime,width)	
+				select '7',a.recno,row_number()over(partition by a.uno order by a.ordcno,a.ordcsno2,a.ordctnoq)+1 
+					,a.uno,b.ordeno,b.no4,a.ordcno,a.ordcsno2,b.noq,b.mount,b.[weight]
+					,a.style,a.productno,a.dime,a.width
+				from @tmp a
+				left join view_ordct b on a.ordcno=b.noa and a.ordcsno2=b.no2
+				left join cust c on b.custno=c.noa
+				where b.noa is not null
+				and a.sel=@sel
+				
+				select top 1 @n=sel
+				from @tmp where uno=@uno and recno=@recno
+				order by uno desc,ordcno desc,ordcsno2 desc,ordctnoq desc
+				
+				update @tmp set gno='8' where sel=@n			
+			end
+		
+			fetch next from cursor_table
+			into @sel,@uno,@recno
+		end
+		close cursor_table
+		deallocate cursor_table
+	end	
+	
+	-------------------------------------------------------------------------
+	update @tmp set cstyle=ISNULL(b.product,'')
+	from @tmp a
+	left join style b on a.style=b.noa
+
+	update @tmp set trecno=b.recno
+	from @tmp a
+	left join (select sel,ROW_NUMBER()over(order by style,productno,dime,width,uno,recno,recno2) recno 
+		from @tmp where recno2=1)b on a.sel=b.sel
+	
+	insert into @tmp(gno,style,emount,eweight,omount,oweight,omount2,oweight2)
+	select '9',CHAR(255),SUM(isnull(emount,0)),SUM(isnull(eweight,0))
+		,SUM(isnull(omount,0)),SUM(isnull(oweight,0))
+		,SUM(isnull(omount2,0)),SUM(isnull(oweight2,0))
+	from @tmp
+
+	update @tmp set xweight=ISNULL(a.eweight,0)-ISNULL(b.oweight,0)
+	from @tmp a
+	left join (select uno,SUM(ISNULL(oweight,0)+ISNULL(oweight2,0)) oweight from @tmp group by uno) b on a.uno=b.uno
+	where a.recno2=1
+	
+	--結案的不顯示
+	delete @tmp where iscancel=1 or isend = 1 
+	
+	update @tmp set memo2 = ISNULL(b.memo,'')
+	from @tmp a
+	left join unolist b on a.uno=b.uno
+	
+	declare @ss nvarchar(max)=
+		'<script type="text/javascript">
+			function SaveMemo(obj){
+				var t_uno = document.getElementById("uno"+obj.id.replace(/(txt)([0-9]+)/,"$2")).text
+				var t_memo = obj.value
+				console.log(JSON.stringify({uno:t_uno,memo:t_memo}))
+				$.ajax({
+                    url: "setmemo.aspx",
+                    headers: { "database": q_db },
+                    type: "POST",
+                    data: JSON.stringify({uno:t_uno,memo:t_memo}),
+                    dataType: "text",
+                    timeout: 10000,
+                    success: function(data){},
+                    complete: function(){},
+                    error: function(jqXHR, exception) {
+                        var errmsg = this.url+"資料讀取異常。\n"
+                        if (jqXHR.status === 0) {
+                            alert(errmsg+"Not connect.\n Verify Network.")
+                        } else if (jqXHR.status == 404) {
+                            alert(errmsg+"Requested page not found. [404]")
+                        } else if (jqXHR.status == 500) {
+                            alert(errmsg+"Internal Server Error [500].")
+                        } else if (exception === "parsererror") {
+                            alert(errmsg+"Requested JSON parse failed.")
+                        } else if (exception === "timeout") {
+                            alert(errmsg+"Time out error.")
+                        } else if (exception === "abort") {
+                            alert(errmsg+"Ajax request aborted.")
+                        } else {
+                            alert(errmsg+"Uncaught Error.\n" + jqXHR.responseText)
+                        }
+                    }
+                })
+			}
+		</script>'
+	
+	select  trecno rr,gno
+		,@ss ss
+		,datea a01--入庫日期
+		,store a02--倉庫
+		,[source] a03--鋼廠
+		,'<a id="uno'+CAST(sel as nvarchar)+'">'+uno+'</a>' a04--批號
+		--,"z_unobd?noa=\'"+uno+"\' and "+cast(trecno as nvarchar)+"=$rr?" ghref
+		,cstyle a05--品名
+		,productno a06--材質
+		,[class] a07--表面
+		,dbo.getComma(dime,-1) a08--厚
+		,dbo.getComma(width,-1) a09--寬
+		,dbo.getComma(lengthb,-1) a10--長
+		,replace(size,"~#$","'") a11--尺寸
+		
+		,dbo.getComma(emount,-1) a12--庫存數
+		,dbo.getComma(eweight,-1) a13--庫存重
+		,dbo.getComma(price,-1) a14--單價
+		,memo a15--備註
+		,uno2 a16--原批號
+		,dbo.getComma(tdime,-1) a17--實際厚
+		,dbo.getComma(twidth,-1) a18--實際寬
+		,dbo.getComma(tlength,-1) a19--實際長
+		,case when iscancel=1 then '<a style="color:green">'+cust+'</a>'
+			when isend=1 then  '<a style="color:red">'+cust+'</a>'
+			else cust end a20--客戶
+		,case when len(ISNULL(ordeno,''))=0 then '' else ordeno+'-'+ordesno2 end a21--訂單編號
+		,dbo.getComma(omount,-1) a22--訂單數
+		,dbo.getComma(oweight,-1) a23--訂單重
+		,case when len(ISNULL(ordcno,''))=0 then '' else ordcno+'-'+ordctnoq end a24--採購編號
+		,dbo.getComma(oweight2,-1) a25--採購重
+		,dbo.getComma(xweight,-1) a26--可受訂
+		,place a27--儲位
+		,spec a28
+		,'<input type="text" id="txt'+CAST(sel as nvarchar)+'" onchange="SaveMemo(this)" style="width:95%" value="'+memo2+'"/>'a29
+			
+	from @tmp
+	order by style,productno,dime,width,uno,recno,recno2;
