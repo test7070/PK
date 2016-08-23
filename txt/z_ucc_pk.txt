@@ -1814,13 +1814,13 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 			}
 		</script>'
 	
-	select  trecno rr,gno
+	select  "<a href="+CHAR(34)+"JavaScript:q_box('z_unobd.aspx',' "+CHAR(59)+""+uno+"','95%','95%',' ')"+char(34)+">"+cast(trecno as nvarchar)+"</a>" rr
+		,gno
 		,@ss ss
 		,datea a01--入庫日期
 		,store a02--倉庫
 		,[source] a03--鋼廠
 		,'<a id="uno'+CAST(sel as nvarchar)+'">'+uno+'</a>' a04--批號
-		--,"z_unobd?noa=\'"+uno+"\' and "+cast(trecno as nvarchar)+"=$rr?" ghref
 		,cstyle a05--品名
 		,productno a06--材質
 		,[class] a07--表面
@@ -1848,7 +1848,6 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,dbo.getComma(xweight,-1) a26--可受訂
 		,place a27--儲位
 		,spec a28
-		,'<input type="text" id="txt'+CAST(sel as nvarchar)+'" onchange="SaveMemo(this)" style="width:95%" value="'+memo2+'"/>'a29
-			
+		,'<textarea type="text" id="txt'+CAST(sel as nvarchar)+'" onchange="SaveMemo(this)" style="width:95%" >'+memo2+'</textarea>'a29
 	from @tmp
 	order by style,productno,dime,width,uno,recno,recno2;
