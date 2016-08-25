@@ -40,7 +40,7 @@ begin
 		where b.noa is not null
 		and ISNULL(b.enda,0)=0 
 		and ISNULL(a.enda,0)=0) a	
-	order by case when sel=1 then 0 else 1 end,datea,accy,noa,no2
+	order by case when sel=1 then 0 else 1 end,accy desc,noa desc,no2
 	
 	update @tmp set mount3=isnull(b.mount3,0),weight3=isnull(b.weight3,0)
 	from @tmp a
