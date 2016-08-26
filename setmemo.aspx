@@ -2,7 +2,7 @@
     <script language="c#" runat="server">   
         public class ParaIn
         {
-        	public string uno,memo;
+        	public string uno,para,memo;
         }
         public void Page_Load()
         {
@@ -21,15 +21,26 @@
             {
                 System.Data.SqlClient.SqlDataAdapter adapter = new System.Data.SqlClient.SqlDataAdapter();
                 connSource.Open();
-                string queryString = @"if exists(select * from unolist where uno=@uno)
-                    begin
-	                    update unolist set memo=@memo where uno=@uno
-                    end
-                    else
-                    begin
-	                    insert into unolist(uno,memo)values(@uno,@memo)
-                    end";
-                
+                string queryString = "";
+                if(itemIn.para=="memo"){
+                	queryString = @"if exists(select * from unolist where uno=@uno)
+	                    begin
+		                    update unolist set memo=@memo where uno=@uno
+	                    end
+	                    else
+	                    begin
+		                    insert into unolist(uno,memo)values(@uno,@memo)
+	                    end";	
+                }else{
+                	queryString = @"if exists(select * from unolist where uno=@uno)
+	                    begin
+		                    update unolist set memo2=@memo where uno=@uno
+	                    end
+	                    else
+	                    begin
+		                    insert into unolist(uno,memo2)values(@uno,@memo)
+	                    end";
+                }
                 System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand(queryString, connSource);
                 cmd.Parameters.AddWithValue("@uno", itemIn.uno);
                 cmd.Parameters.AddWithValue("@memo", itemIn.memo);

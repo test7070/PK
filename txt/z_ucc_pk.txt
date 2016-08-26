@@ -1547,6 +1547,7 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		
 		,xweight float --可受訂重
 		,memo2 nvarchar(max)
+		,memo3 nvarchar(max)
 	)
 	
 	if CHARINDEX(',02,',','+@t_option+',')>0
@@ -1773,7 +1774,7 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 	--結案的不顯示
 	delete @tmp where iscancel=1 or isend = 1 
 	
-	update @tmp set memo2 = ISNULL(b.memo,'')
+	update @tmp set memo2 = ISNULL(b.memo,''),memo3 = ISNULL(b.memo2,'')
 	from @tmp a
 	left join unolist b on a.uno=b.uno
 	
@@ -1782,12 +1783,47 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 			function SaveMemo(obj){
 				var t_uno = document.getElementById("uno"+obj.id.replace(/(txt)([0-9]+)/,"$2")).text
 				var t_memo = obj.value
-				console.log(JSON.stringify({uno:t_uno,memo:t_memo}))
+				var t_para = "memo"
+				console.log(JSON.stringify({uno:t_uno,para:t_para,memo:t_memo}))
 				$.ajax({
                     url: "setmemo.aspx",
                     headers: { "database": q_db },
                     type: "POST",
-                    data: JSON.stringify({uno:t_uno,memo:t_memo}),
+                    data: JSON.stringify({uno:t_uno,para:t_para,memo:t_memo}),
+                    dataType: "text",
+                    timeout: 10000,
+                    success: function(data){},
+                    complete: function(){},
+                    error: function(jqXHR, exception) {
+                        var errmsg = this.url+"資料讀取異常。\n"
+                        if (jqXHR.status === 0) {
+                            alert(errmsg+"Not connect.\n Verify Network.")
+                        } else if (jqXHR.status == 404) {
+                            alert(errmsg+"Requested page not found. [404]")
+                        } else if (jqXHR.status == 500) {
+                            alert(errmsg+"Internal Server Error [500].")
+                        } else if (exception === "parsererror") {
+                            alert(errmsg+"Requested JSON parse failed.")
+                        } else if (exception === "timeout") {
+                            alert(errmsg+"Time out error.")
+                        } else if (exception === "abort") {
+                            alert(errmsg+"Ajax request aborted.")
+                        } else {
+                            alert(errmsg+"Uncaught Error.\n" + jqXHR.responseText)
+                        }
+                    }
+                })
+			}
+			function SaveMemo2(obj){
+				var t_uno = document.getElementById("uno"+obj.id.replace(/(memo)([0-9]+)/,"$2")).text
+				var t_memo = obj.value
+				var t_para = "memo2"
+				console.log(JSON.stringify({uno:t_uno,para:t_para,memo:t_memo}))
+				$.ajax({
+                    url: "setmemo.aspx",
+                    headers: { "database": q_db },
+                    type: "POST",
+                    data: JSON.stringify({uno:t_uno,para:t_para,memo:t_memo}),
                     dataType: "text",
                     timeout: 10000,
                     success: function(data){},
@@ -1849,5 +1885,6 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,place a27--儲位
 		,spec a28
 		,'<textarea type="text" id="txt'+CAST(sel as nvarchar)+'" onchange="SaveMemo(this)" style="width:95%" >'+memo2+'</textarea>'a29
+		,'<textarea type="text" id="memo'+CAST(sel as nvarchar)+'" onchange="SaveMemo2(this)" style="width:95%" >'+memo3+'</textarea>'a30
 	from @tmp
 	order by style,productno,dime,width,uno,recno,recno2;
