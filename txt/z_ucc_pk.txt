@@ -1595,6 +1595,8 @@ z_ucc_pk03:--z_ucc_pk03
 		left join store b on a.storeno=b.noa
 		left join cust c on a.custno=c.noa		
 	end
+	
+	
 
 
 	update @tmp set recno = b.sel
@@ -1674,7 +1676,8 @@ z_ucc_pk03:--z_ucc_pk03
 	left join cust c on b.custno=c.noa
 	where b.noa is not null
 
-
+	--結案的不顯示、不計算
+	delete @tmp where iscancel=1 or isend = 1 
 	----------------------------------------------------------------------------------------------
 	if CHARINDEX(',03,',','+@t_option+',')>0 and (len(@t_itype)=0 or @t_itype='1')
 	begin
@@ -1792,8 +1795,7 @@ z_ucc_pk03:--z_ucc_pk03
 	left join (select uno,SUM(ISNULL(oweight,0)+ISNULL(oweight2,0)) oweight from @tmp group by uno) b on a.uno=b.uno
 	where a.recno2=1
 	
-	--結案的不顯示
-	delete @tmp where iscancel=1 or isend = 1 
+	
 
 	update @tmp set memo2 = ISNULL(b.memo,''),memo3 = ISNULL(b.memo2,'')
 	from @tmp a
