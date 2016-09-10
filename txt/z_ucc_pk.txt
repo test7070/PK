@@ -1447,6 +1447,9 @@ z_ucc_pk03:--z_ucc_pk03
 	declare @t_source nvarchar(max) = case when '#non'=[35] then '' else [35] end
 	
 	declare @t_ystore nvarchar(max) = case when '#non'=[38] then '' else [38] end
+	declare @t_uno2 nvarchar(max) = case when '#non'=[39] then '' else [39] end
+	declare @t_ordeno nvarchar(max) = case when '#non'=[40] then '' else [40] end
+	
 	declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,@t_bwidth float,@t_ewidth float,@t_blengthb float,@t_elengthb float
 	if left(@t_kind,1)='A'
@@ -1548,6 +1551,8 @@ z_ucc_pk03:--z_ucc_pk03
 		,xweight float --可受訂重
 		,memo2 nvarchar(max)
 		,memo3 nvarchar(max)
+		
+		,cutordeno nvarchar(20) --裁剪單上的訂單
 	)
 	
 	if CHARINDEX(',02,',','+@t_option+',')>0
@@ -1573,12 +1578,13 @@ z_ucc_pk03:--z_ucc_pk03
 		and (len(@t_style)=0 or charindex(','+b.style+',',','+@t_style+',')>0)
 		and (len(@t_waste)=0 or upper(b.waste) = @t_waste)
 		and (len(@t_spec)=0 or isnull(b.class,'') = @t_spec)
-		and (len(@t_source)=0 or isnull(b.[source],'') = @t_source)
+		and (len(@t_source)=0 or CHARINDEX(','+b.[source]+',',','+@t_source+',')>0)
 		and ISNULL(b.productno,'') between @t_bproductno3 and @t_eproductno3
 		and ISNULL(a.emount,0)>0 
 		and ISNULL(a.eweight,0)>0 
 		and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',b.productno)=0))
-		
+		and (len(@t_uno2)=0 or b.uno2=@t_uno2)
+		and (len(@t_ordeno)=0 or b.ordeno=@t_ordeno)
 		
 		delete @tmp where not(storeno between @t_bstoreno and @t_estoreno)
 			or not(len(@t_ystore)=0 or charindex(','+storeno+',',','+@t_ystore+',')>0)
@@ -1793,6 +1799,13 @@ z_ucc_pk03:--z_ucc_pk03
 	from @tmp a
 	left join unolist b on a.uno=b.uno
 	
+	--裁剪訂單
+	update @tmp set cutordeno=ISNULL(b.ordeno,'')
+	from @tmp a
+	left join view_cuts b on a.uno=b.bno
+	where b.noa is not null
+	
+	
 	declare @ss nvarchar(max)=
 		'<script type="text/javascript">
 			function SaveMemo(obj){
@@ -1901,5 +1914,6 @@ z_ucc_pk03:--z_ucc_pk03
 		,spec a28
 		,'<textarea type="text" id="txt'+CAST(sel as nvarchar)+'" onchange="SaveMemo(this)" style="width:95%" >'+memo2+'</textarea>'a29
 		,'<textarea type="text" id="memo'+CAST(sel as nvarchar)+'" onchange="SaveMemo2(this)" style="width:95%" >'+memo3+'</textarea>'a30
+		,cutordeno a31
 	from @tmp
 	order by style,productno,dime,width,uno,recno,recno2;
