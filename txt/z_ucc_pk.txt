@@ -1447,7 +1447,7 @@ z_ucc_pk03:--z_ucc_pk03
 	declare @t_source nvarchar(max) = case when '#non'=[35] then '' else [35] end
 	
 	declare @t_ystore nvarchar(max) = case when '#non'=[38] then '' else [38] end
-declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
+	declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,@t_bwidth float,@t_ewidth float,@t_blengthb float,@t_elengthb float
 	if left(@t_kind,1)='A'
 	begin
@@ -1590,6 +1590,7 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		left join cust c on a.custno=c.noa		
 	end
 
+
 	update @tmp set recno = b.sel
 	from @tmp a
 	left join (select ROW_NUMBER()over(order by uno)  recno,sel from @tmp) b on a.sel=b.sel
@@ -1666,8 +1667,9 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 	left join view_orde b on a.ordeno=b.noa
 	left join cust c on b.custno=c.noa
 	where b.noa is not null
-		
-	--------------------------------------------------------------------------------------------
+
+
+	----------------------------------------------------------------------------------------------
 	if CHARINDEX(',03,',','+@t_option+',')>0 and (len(@t_itype)=0 or @t_itype='1')
 	begin
 		--採購
@@ -1755,10 +1757,23 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 	from @tmp a
 	left join style b on a.style=b.noa
 
+	declare @tmpz table(
+		sel int
+		,recno int
+	)
+	insert into @tmpz(sel,recno)
+	select sel,ROW_NUMBER()over(order by style,productno,dime,width,uno,recno,recno2) recno from @tmp where recno2=1
+		
 	update @tmp set trecno=b.recno
 	from @tmp a
-	left join (select sel,ROW_NUMBER()over(order by style,productno,dime,width,uno,recno,recno2) recno 
-		from @tmp where recno2=1)b on a.sel=b.sel
+	left join @tmpz b on a.sel=b.sel
+	where b.sel is not null	
+	--因為很慢,所以換方式
+	--update @tmp set trecno=b.recno
+	--from @tmp a
+	--left join (select sel,ROW_NUMBER()over(order by style,productno,dime,width,uno,recno,recno2) recno 
+	--	from @tmp where recno2=1)b on a.sel=b.sel
+	--where b.sel is not null
 	
 	insert into @tmp(gno,style,emount,eweight,omount,oweight,omount2,oweight2)
 	select '9',CHAR(255),SUM(isnull(emount,0)),SUM(isnull(eweight,0))
@@ -1773,7 +1788,7 @@ declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 	
 	--結案的不顯示
 	delete @tmp where iscancel=1 or isend = 1 
-	
+
 	update @tmp set memo2 = ISNULL(b.memo,''),memo3 = ISNULL(b.memo2,'')
 	from @tmp a
 	left join unolist b on a.uno=b.uno
