@@ -39,7 +39,7 @@
 				q_mask(bbmMask);
 				$('#txtBdate').datepicker();
 				$('#txtEdate').datepicker(); 
-				$('#txtNoa').focus();
+				$('#txtOrdeno').focus();//傑期    一開始要指到訂單號碼這格
 			}
 
 			function q_seekStr() {
