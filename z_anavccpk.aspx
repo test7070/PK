@@ -87,7 +87,7 @@
 				$('#txtXdate2').datepicker();
 				
 				$('#txtXdime1').css('text-align','right').val('0');
-				$('#txtXdime2').css('text-align','right').val('999');
+				$('#txtXdime2').css('text-align','right').val('9999');
 				$('#txtXwidth1').css('text-align','right').val('0');
 				$('#txtXwidth2').css('text-align','right').val('9999');
 				
