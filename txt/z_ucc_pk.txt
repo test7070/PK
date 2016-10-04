@@ -1583,7 +1583,7 @@ z_ucc_pk03:--z_ucc_pk03
 		and ISNULL(a.emount,0)>0 
 		and ISNULL(a.eweight,0)>0 
 		and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',b.productno)=0))
-		and (len(@t_uno2)=0 or b.uno2=@t_uno2)
+		and (len(@t_uno2)=0 or CHARINDEX(@t_uno2,b.uno2)>0)
 		and (len(@t_ordeno)=0 or b.ordeno=@t_ordeno)
 		
 		delete @tmp where not(storeno between @t_bstoreno and @t_estoreno)
