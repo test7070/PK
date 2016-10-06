@@ -263,13 +263,13 @@ z_uccpkk01:--z_uccpkk01
 		total float
 	)
 	insert into #z_uccpkk01(uno,mount,[weight])
-	select uno,sum(ISNULL(mount,0)),SUM(cast(ISNULL([weight],0) as decimal))
+	select uno,sum(ISNULL(mount,0)),SUM(cast(ISNULL([weight],0) as decimal(15,4)))
 	from(
 		select uno,mount,[weight] from @tmpc
 		union all
 		select uno,-mount,-[weight] from @tmpd) a
 	group by uno	
-	having SUM(cast(ISNULL([weight],0) as decimal))>0
+	having SUM(cast(ISNULL([weight],0) as decimal(15,4)))>0
 	
 	update #z_uccpkk01 set gno='1',productno=b.productno,product=b.product,size=replace(b.size,'~#$',"'")
 		,dime=b.dime,width=b.width,lengthb=b.lengthb,radius=b.radius,[source]=b.[source]
