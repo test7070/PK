@@ -22,23 +22,13 @@
 				q_gf('', 'z_uccpkk');
 			});
 			function q_gfPost() {
-				//傑期 因為型太多,所以只顯示A~N
-				q_gt('style', "where=^^noa between 'A' and 'N'^^", 0, 0, 0, "");
+				q_gt('ucc', '', 0, 0, 0, "");
 			}
 
 			function q_gtPost(t_name) {
 				switch (t_name) {
-					case 'style':
-						t_style = 'A,B@捲、板';
-						var as = _q_appendData("style", "", true);
-						for ( i = 0; i < as.length; i++) {
-							t_style += (t_style.length > 0 ? '&' : '') + as[i].noa + '@' + as[i].noa + '.' + as[i].product;
-						}
-						
-						q_gt('ucc', '', 0, 0, 0, "");
-						break;
 					case 'ucc':
-						t_ucc = '';
+						t_ucc = ' @';
 						var as = _q_appendData("ucc", "", true);
 						for ( i = 0; i < as.length; i++) {
 							t_ucc += (t_ucc.length > 0 ? '&' : '') + as[i].noa + '@' + as[i].noa;
@@ -59,27 +49,35 @@
 				$('#q_report').q_report({
 					fileName : 'z_uccpkk',
 					options : [{
-						type : '6', //[1] 1
+						type : '0', //[1]
+						name : 'path',
+						value : location.protocol + '//' +location.hostname + location.pathname.toLowerCase().replace('z_uccpkk.aspx','')
+					},{
+						type : '0', //[2]
+						name : 'db',
+						value : q_db
+					},{
+						type : '6', //[3] 1
 						name : 'xdate'
-					}, {
-						type : '5', //[2] 2
-						name : 'xitype',
-						value : [q_getPara('report.all')].concat(q_getPara('uccc.itype').split(','))
-					}, {
-						type : '5', //[3] 3
+					},{
+						type : '6', //[4] 2
+						name : 'xmon'
+					},{
+						type : '5', //[5] 3
 						name : 'xbproduct',
 						value : t_ucc.split('&')
 					}, {
-						type : '5', //[4] 4
+						type : '5', //[6] 4
 						name : 'xeproduct',
 						value : t_ucc.split('&')
 					}, {
-						type : '8', //[5] 1
+						type : '8', //[7] 5
 						name : 'xstore',
 						value : t_store.split('&')
-					},{
-						type : '1', //[6][7] 2
-						name : 'ydate'
+					}, {
+						type : '8', //[8] 6
+						name : 'xoption',
+						value : "detail@明細,waste@廢料".split(',')
 					}]
 				});
 				q_popAssign();
@@ -88,42 +86,15 @@
 				$('#txtXdate').mask('999/99/99');
 				$('#txtXdate').val(q_date());
 				$('#txtXdate').datepicker();
-				$('#txtYdate1').mask('999/99/99');
-				$('#txtYdate1').datepicker();
-				$('#txtYdate2').mask('999/99/99');
-				$('#txtYdate2').datepicker();
-				
-				$('#Xitype select option').eq(1).attr("selected","selected");//買賣
+				$('#txtXmon').mask('999/99');
+				$('#txtXmon').val(q_date().substring(0,6));
 				
 				$('#Xbproduct select').change(function(e){
 					$('#Xeproduct select').val($('#Xbproduct select').val());
 				});
 				$('#Xeproduct select').prop('selectedIndex', $('#Xeproduct select').children().length-1);
-				
-				var t_date,
-                    t_year,
-                    t_month,
-                    t_day;
-                t_date = new Date();
-                t_date.setDate(1);
-                t_year = t_date.getUTCFullYear() - 1911;
-                t_year = t_year > 99 ? t_year + '' : '0' + t_year;
-                t_month = t_date.getUTCMonth() + 1;
-                t_month = t_month > 9 ? t_month + '' : '0' + t_month;
-                t_day = t_date.getUTCDate();
-                t_day = t_day > 9 ? t_day + '' : '0' + t_day;
-                $('#txtYdate1').val(t_year + '/' + t_month + '/' + t_day);
-
-                t_date = new Date();
-                t_date.setDate(35);
-                t_date.setDate(0);
-                t_year = t_date.getUTCFullYear() - 1911;
-                t_year = t_year > 99 ? t_year + '' : '0' + t_year;
-                t_month = t_date.getUTCMonth() + 1;
-                t_month = t_month > 9 ? t_month + '' : '0' + t_month;
-                t_day = t_date.getUTCDate();
-                t_day = t_day > 9 ? t_day + '' : '0' + t_day;
-                $('#txtYdate2').val(t_year + '/' + t_month + '/' + t_day);
+				$('#Xdate').width(610);
+				$('#Xmon').width(610);
 			}
 			function q_boxClose(s2) {
 			}
