@@ -687,7 +687,7 @@ z_uccpkk02:--z_uccpkk02
 		,0,0
 		,0,0
 	from #z_uccpkk02
-	where datea<@t_mon+'01'
+	where left(datea,6)<@t_mon
 	and not(LEFT(uno,1) between 'X' and 'Z')
 	group by uno
 	-----------------------------------------------------------------------------------------------
@@ -1045,6 +1045,7 @@ z_uccpkk02:--z_uccpkk02
 	-- total & price
 	update #z_uccpkk02_c set weight_result = weight_begin + weight_rc2 + weight_ina + weight_cuts - weight_rc2bk - weight_vcc + weight_vccbk - weight_get - weight_cut
 		,money_result = money_begin + money_rc2 + money_ina + money_cuts - money_rc2bk - money_vcc + money_vccbk - money_get - money_cut
+	where gno='1'
 	update #z_uccpkk02_c set price_begin = case when weight_begin=0 then 0 else ROUND(money_begin/weight_begin,4) end
 		,price_rc2 = case when weight_rc2=0 then 0 else ROUND(money_rc2/weight_rc2,4) end
 		,price_ina = case when weight_ina=0 then 0 else ROUND(money_ina/weight_ina,4) end
@@ -1055,6 +1056,7 @@ z_uccpkk02:--z_uccpkk02
 		,price_get = case when weight_get=0 then 0 else ROUND(money_get/weight_get,4) end
 		,price_cut = case when weight_cut=0 then 0 else ROUND(money_cut/weight_cut,4) end
 		,price_result = case when weight_result=0 then 0 else ROUND(money_result/weight_result,4) end
+	where gno='1'
 		
 	select gno
 		,recno rr
