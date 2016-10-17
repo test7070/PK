@@ -441,7 +441,7 @@ z_uccpkk02:--z_uccpkk02
 	and ((len(@t_waste)=0 and not(LEFT(a.uno,1) between 'X' and 'Z') and (ISNULL(c.productno,'') between @t_bproductno and @t_eproductno))
 		or (len(@t_waste)>0 and LEFT(a.uno,1) between 'X' and 'Z'))
 	and len(ISNULL(a.uno,''))>0
-	
+
 	---------------------------------------------------------------------------------------
 	-- 一般庫存
 	update #z_uccpkk02 set [money]= round(a.[weight]*b.sprice,0)
@@ -858,6 +858,8 @@ z_uccpkk02:--z_uccpkk02
 		,price_get float
 		,price_cut float
 		,price_result float
+		
+		,href nvarchar(max)
 	)
 	
 	-- 一般
@@ -907,6 +909,8 @@ z_uccpkk02:--z_uccpkk02
 	from @tmpa
 	where mon=@t_mon
 	group by uno
+
+
 	
 	update #z_uccpkk02_c set recno=b.recno
 	from #z_uccpkk02_c a
@@ -960,6 +964,84 @@ z_uccpkk02:--z_uccpkk02
 		from #z_uccpkk02_b
 		order by product,dime,width,lengthb,uno
 	end
+	
+	-- 廢料明細
+	if len(@t_waste)>0 and len(@t_detail)>0
+	begin
+		--進貨
+		insert into #z_uccpkk02_c(gno,pno,product,weight_rc2,money_rc2,href)
+		select '4',2,uno,[weight],[money]
+			,"<a href="+CHAR(34)+"JavaScript:q_box('rc2st.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
+		from #z_uccpkk02
+		where LEFT(datea,6)=@t_mon 
+		and LEFT(uno,1)between 'X' and 'Z'
+		and typea='A1'
+		order by datea,noa,noq
+		--進貨退回
+		insert into #z_uccpkk02_c(gno,pno,product,weight_rc2bk,money_rc2bk,href)
+		select '4',2,uno,[weight],[money]
+			,"<a href="+CHAR(34)+"JavaScript:q_box('rc2st.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
+		from #z_uccpkk02
+		where LEFT(datea,6)=@t_mon 
+		and LEFT(uno,1)between 'X' and 'Z'
+		and typea='B1'
+		order by datea,noa,noq
+		--入庫
+		insert into #z_uccpkk02_c(gno,pno,product,weight_ina,money_ina,href)
+		select '4',2,uno,[weight],[money]
+			,"<a href="+CHAR(34)+"JavaScript:q_box('inast.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
+		from #z_uccpkk02
+		where LEFT(datea,6)=@t_mon 
+		and LEFT(uno,1)between 'X' and 'Z'
+		and typea='A2'
+		order by datea,noa,noq
+		--裁剪入庫
+		insert into #z_uccpkk02_c(gno,pno,product,weight_cuts,money_cuts,href)
+		select '4',2,uno,[weight],[money]
+			,"<a href="+CHAR(34)+"JavaScript:q_box('cut.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
+		from #z_uccpkk02
+		where LEFT(datea,6)=@t_mon 
+		and LEFT(uno,1)between 'X' and 'Z'
+		and typea='A3'
+		order by datea,noa,noq
+		--出貨
+		insert into #z_uccpkk02_c(gno,pno,product,weight_vcc,money_vcc,href)
+		select '4',2,uno,[weight],[money]
+			,"<a href="+CHAR(34)+"JavaScript:q_box('vcc_pk.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
+		from #z_uccpkk02
+		where LEFT(datea,6)=@t_mon 
+		and LEFT(uno,1)between 'X' and 'Z'
+		and typea='B4'
+		order by datea,noa,noq
+		--出貨退回
+		insert into #z_uccpkk02_c(gno,pno,product,weight_vccbk,money_vccbk,href)
+		select '4',2,uno,[weight],[money]
+			,"<a href="+CHAR(34)+"JavaScript:q_box('vcc_pk.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
+		from #z_uccpkk02
+		where LEFT(datea,6)=@t_mon 
+		and LEFT(uno,1)between 'X' and 'Z'
+		and typea='A4'
+		order by datea,noa,noq
+		--領料
+		insert into #z_uccpkk02_c(gno,pno,product,weight_get,money_get,href)
+		select '4',2,uno,[weight],[money]
+			,"<a href="+CHAR(34)+"JavaScript:q_box('getst.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
+		from #z_uccpkk02
+		where LEFT(datea,6)=@t_mon 
+		and LEFT(uno,1)between 'X' and 'Z'
+		and typea='B5'
+		order by datea,noa,noq
+		--裁剪領料
+		insert into #z_uccpkk02_c(gno,pno,product,weight_cut,money_cut,href)
+		select '4',2,uno,[weight],[money]
+			,"<a href="+CHAR(34)+"JavaScript:q_box('cut.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
+		from #z_uccpkk02
+		where LEFT(datea,6)=@t_mon 
+		and LEFT(uno,1)between 'X' and 'Z'
+		and typea='B6'
+		order by datea,noa,noq
+	end
+	
 	-- total & price
 	update #z_uccpkk02_c set weight_result = weight_begin + weight_rc2 + weight_ina + weight_cuts - weight_rc2bk - weight_vcc + weight_vccbk - weight_get - weight_cut
 		,money_result = money_begin + money_rc2 + money_ina + money_cuts - money_rc2bk - money_vcc + money_vccbk - money_get - money_cut
@@ -978,6 +1060,7 @@ z_uccpkk02:--z_uccpkk02
 		,recno rr
 		,uno
 		,"<a href="+CHAR(34)+"JavaScript:q_box('z_unobd.aspx',' "+CHAR(59)+""+uno+"','95%','95%',' ')"+char(34)+">"+uno+"</a>"  a00
+		,href b00
 		,product a01
 		,case when pno=1 and dime>0 and width>0 and lengthb>0 then CAST(dime as nvarchar)+'T*'+CAST(width as nvarchar)+'*'+CAST(lengthb as nvarchar)
 			when pno=1 and dime>0 and width>0 then CAST(dime as nvarchar)+'T*'+CAST(width as nvarchar)+'*C'
