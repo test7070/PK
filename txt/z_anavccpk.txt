@@ -528,6 +528,7 @@ z_anavccpk01:--z_anavccpk01
 	create table #z_anavccpk01(
 		sel int identity(1,1),
 		pno nvarchar(10),
+		datea nvarchar(10),
 		tablea nvarchar(20),
 		accy nvarchar(20),
 		noa nvarchar(20),
@@ -542,6 +543,7 @@ z_anavccpk01:--z_anavccpk01
 		size nvarchar(max),
 		mount float,
 		[weight] float,
+		gweight float,--實際領重
 		price float,
 		total float,
 		sprice float,
@@ -583,21 +585,22 @@ z_anavccpk01:--z_anavccpk01
 		into @noq,@uno,@productno,@dime,@width,@size,@mount,@weight,@price,@total
 		while(@@FETCH_STATUS <> -1)
 		begin
-			insert into #z_anavccpk01(pno,tablea,accy,noa,noq
+			insert into #z_anavccpk01(pno,datea,tablea,accy,noa,noq
 				,uno,productno,style,size,dime,width,mount,[weight],price,total)
-			select '1','vccs',a.accy,a.noa,a.noq
+			select '1',b.datea,'vccs',a.accy,a.noa,a.noq
 				,a.uno,a.productno,a.style,a.size,a.dime,a.width,a.mount,a.[weight],a.price,a.total
 			from view_vccs a
+			left join view_vcc b on a.accy=b.accy and a.noa=b.noa
 			where a.noa=@noa and a.noq=@noq
 			--出貨單沒批號就到領料單找	
-			--productno都依出貨單
 			if LEN(@uno)=0
 			begin
-				insert into #z_anavccpk01(pno,tablea,accy,noa,noq
-					,uno,productno,style,dime,width,size,mount,[weight])
-				select '2','gets',a.accy,a.noa,a.nor
-					,a.uno,@productno,a.style,@dime,@width,a.size,a.gmount,a.gweight
+				insert into #z_anavccpk01(pno,datea,tablea,accy,noa,noq
+					,uno,productno,style,dime,width,size,[gweight])
+				select '2',b.datea,'gets',a.accy,a.noa,a.nor
+					,a.uno,@productno,a.style,@dime,@width,a.size,a.gweight
 				from view_gets a
+				left join view_get b on a.accy=b.accy and a.noa=b.noa
 				where a.noa=@noa and a.nor=@noq
 			end
 			fetch next from cursor_table2
@@ -611,10 +614,16 @@ z_anavccpk01:--z_anavccpk01
 	end
 	close cursor_table
 	deallocate cursor_table
+
 	---找成本單價
-	update #z_anavccpk01 set sprice=isnull(b.sprice,0),stotal=ROUND(isnull(a.[weight],0)*ISNULL(b.sprice,0),0)
+	update #z_anavccpk01 set sprice=isnull(b.sprice,0),stotal=ROUND(isnull(a.[gweight],0)*ISNULL(b.sprice,0),0)
 	from #z_anavccpk01 a
 	left join view_uccb b on a.uno=b.uno
+	--廢料成本單價
+	update #z_anavccpk01 set sprice=isnull(b.price,0),stotal=ROUND(isnull(a.[gweight],0)*ISNULL(b.price,0),0)
+	from #z_anavccpk01 a
+	left join (select * from dbo.waste_rk(LEFT(@t_edate,6))) b on a.uno=b.uno and LEFT(a.datea,6)=b.mon
+	where left(a.uno,1) between 'X' and 'Z'
 	-----------------------------------------------------------------------------------------------------
 	declare @tmpc table(
 		sel int identity(1,1),
@@ -625,14 +634,16 @@ z_anavccpk01:--z_anavccpk01
 		productno nvarchar(30),
 		dime float,
 		[weight] float,
+		[gweight] float,
 		total float,
 		stotal float,
 		profit float,
 		rate float
 	)
-	insert into @tmpc(gno,custno,cust,productno,dime,[weight],total,stotal)
+	insert into @tmpc(gno,custno,cust,productno,dime,[weight],gweight,total,stotal)
 	select '1',b.custno,c.nick,a.productno,a.dime
 		,sum(case when b.typea='1' then 1 else -1 end * case when tablea='vccs' then 1 else 0 end * isnull(a.[weight],0))
+		,sum(case when b.typea='1' then 1 else -1 end * case when tablea='vccs' then 1 else 0 end * isnull(a.[gweight],0))
 		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.total,0))
 		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.stotal,0))
 	from #z_anavccpk01 a
@@ -681,7 +692,7 @@ z_anavccpk01:--z_anavccpk01
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+cust+'</a>' a02
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+productno+'</a>' a03
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(dime,-1)+'</a>' a04
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma([weight],0)+'</a>' a05
+		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'" title="'+dbo.getComma([gweight],0)+'">'+dbo.getComma([weight],0)+'</a>' a05
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(total,0)+'</a>' a06
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(stotal,0)+'</a>' a07
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(profit,0)+'</a>' a08
