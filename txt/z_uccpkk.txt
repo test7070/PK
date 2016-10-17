@@ -1064,7 +1064,8 @@ z_uccpkk02:--z_uccpkk02
 		,product a01
 		,case when pno=1 and dime>0 and width>0 and lengthb>0 then CAST(dime as nvarchar)+'T*'+CAST(width as nvarchar)+'*'+CAST(lengthb as nvarchar)
 			when pno=1 and dime>0 and width>0 then CAST(dime as nvarchar)+'T*'+CAST(width as nvarchar)+'*C'
-			else '' end a02
+			when pno=1 and dime=0 and width=0 and lengthb=0 then ''
+			else CAST(dime as nvarchar)+'T*'+CAST(width as nvarchar)+'*'+CAST(lengthb as nvarchar) end a02
 		,dbo.getComma(weight_begin,-1) a03
 		,dbo.getComma(price_begin,-1) a04
 		,dbo.getComma(money_begin,-1) a05
