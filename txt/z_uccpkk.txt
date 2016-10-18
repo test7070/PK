@@ -384,6 +384,7 @@ z_uccpkk02:--z_uccpkk02
 	and d.noa is null
 	
 	--裁剪入庫
+	--不管是不是買賣、裁完的廢鐵都算庫存
 	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],[money])
 	select	a.accy,a.noa,a.noq 
 		,'A3'
@@ -411,8 +412,6 @@ z_uccpkk02:--z_uccpkk02
 	and ((len(@t_waste)=0 and not(LEFT(a.uno,1) between 'X' and 'Z') and (ISNULL(c.productno,'') between @t_bproductno and @t_eproductno))
 		or (len(@t_waste)>0 and LEFT(a.uno,1) between 'X' and 'Z'))
 	and len(ISNULL(a.uno,''))>0
-
-
 	
 	--領料:   出貨扣庫存都是在領料作業
 	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight])
