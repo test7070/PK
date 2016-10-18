@@ -1,0 +1,279 @@
+
+
+ALTER function [dbo].[waste_pk](@t_mon nvarchar(max))
+returns @tmpa table(
+	sel int identity(1,1)
+	,uno nvarchar(30)
+	,mon nvarchar(10)
+	,weight_begin decimal(15,4)
+	,weight_rc2 decimal(15,4)
+	,weight_ina decimal(15,4)
+	,weight_cuts decimal(15,4)
+	,weight_rc2bk decimal(15,4)
+	,weight_vcc decimal(15,4)
+	,weight_vccbk decimal(15,4)
+	,weight_get decimal(15,4)
+	,weight_cut decimal(15,4)
+	,weight_result decimal(15,4)
+	,money_begin decimal(15,4)
+	,money_rc2 decimal(15,4)
+	,money_ina decimal(15,4)
+	,money_cuts decimal(15,4)
+	,money_rc2bk decimal(15,4)
+	,money_vcc decimal(15,4)
+	,money_vccbk decimal(15,4)
+	,money_get decimal(15,4)
+	,money_cut decimal(15,4)
+	,money_result decimal(15,4)
+	,price decimal(15,4)
+) as
+begin	
+	--廢料成本單價
+	---------------------------------------------------------------------------------------------------
+	declare @tmpz table(
+		sel int identity(1,1)
+		,accy nvarchar(10)
+		,noa nvarchar(20)
+		,noq nvarchar(10)
+		,typea nvarchar(20)
+		,itype nvarchar(20)
+		,uno nvarchar(30)
+		,datea nvarchar(10)
+		,[weight] decimal(15,4)
+		,[money] decimal(15,4)
+	)
+	--進貨
+	insert into @tmpz(accy,noa,noq,typea,itype,uno,datea,[weight],[money])
+	select a.accy,a.noa,a.noq 
+		,case when b.typea='1' then 'A1' else 'B1' end
+		,'1',a.uno,b.datea,ISNULL(a.[weight],0),ISNULL(a.[total],0)
+	from view_rc2s a
+	left join view_rc2 b on a.accy=b.accy and a.noa=b.noa
+	where left(b.datea,6) <= @t_mon
+	and LEFT(a.uno,1) between 'X' and 'Z'
+	
+	--入庫:  出貨轉寄庫OR代工的都不算
+	insert into @tmpz(accy,noa,noq,typea,itype,uno,datea,[weight],[money])
+	select a.accy,a.noa,a.noq 
+		,'A2'
+		,b.itype,a.uno,b.datea,ISNULL(a.[weight],0),ISNULL(a.[total],0)
+	from view_inas a
+	left join view_ina b on a.accy=b.accy and a.noa=b.noa
+	left join view_vcc d on a.noa=d.noa
+	where left(b.datea,6) <= @t_mon
+	and (b.itype='1' or LEFT(a.uno,1) between 'X' and 'Z')
+	and LEFT(a.uno,1) between 'X' and 'Z'
+	and d.noa is null
+	
+	--裁剪入庫
+	insert into @tmpz(accy,noa,noq,typea,itype,uno,datea,[weight],[money])
+	select	a.accy,a.noa,a.noq 
+		,'A3'
+		,b.itype,a.bno,b.datea,ISNULL(a.[weight],0),round(ISNULL(a.[weight],0)*ISNULL(a.[sprice],0),0)
+	from view_cuts a
+	left join view_cut b on a.accy=b.accy and a.noa=b.noa
+	where left(b.datea,6) <= @t_mon
+	and (b.itype='1' or LEFT(a.bno,1) between 'X' and 'Z')
+	and LEFT(a.bno,1) between 'X' and 'Z'
+	
+	--出貨
+	insert into @tmpz(accy,noa,noq,typea,itype,uno,datea,[weight],[money])
+	select a.accy,a.noa,a.noq 
+		,case when b.typea='1' then 'B4' else 'A4' end
+		,'',a.uno,b.datea
+		,case when ISNULL(a.[gweight],0)!=0 then a.gweight else a.[weight] end
+		,case when b.typea='1' then null else a.total end
+	from view_vccs a
+	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+	left join view_uccb c on a.uno=c.uno
+	where left(b.datea,6) <= @t_mon
+	and (c.itype='1' or LEFT(a.uno,1) between 'X' and 'Z')
+	and LEFT(a.uno,1) between 'X' and 'Z'
+	
+	--領料:   出貨扣庫存都是在領料作業
+	insert into @tmpz(accy,noa,noq,typea,itype,uno,datea,[weight])
+	select a.accy,a.noa,a.noq 
+		,case when d.noa is not null and d.typea='1' then 'B4' when d.noa is not null then 'A4' else 'B5' end
+		,case when d.noa is not null then d.typea else '' end,a.uno,b.datea
+		,case when ISNULL(a.[gweight],0)!=0 then a.gweight else a.[weight] end
+	from view_gets a
+	left join view_get b on a.accy=b.accy and a.noa=b.noa
+	left join view_uccb c on a.uno=c.uno
+	left join view_vcc d on d.noa=a.noa
+	where left(b.datea,6) <= @t_mon
+	and (c.itype='1' or LEFT(a.uno,1) between 'X' and 'Z')
+	and LEFT(a.uno,1) between 'X' and 'Z'
+
+	--裁剪領料 
+	insert into @tmpz(accy,noa,noq,typea,itype,uno,datea,[weight])
+	select a.accy,a.noa,''
+		,'B6'
+		,'',a.uno,a.datea
+		,ISNULL(a.[gweight],0)
+	from view_cut a	
+	left join view_uccb c on a.uno=c.uno
+	where left(a.datea,6) <= @t_mon
+	and (a.itype='1' or LEFT(a.uno,1) between 'X' and 'Z')
+	and LEFT(a.uno,1) between 'X' and 'Z'
+
+	---------------------------------------------------------------------------------------
+	-- 廢料的成本單價採用月平均
+	declare @sel int
+	declare @accy nvarchar(10)
+	declare @noa nvarchar(20)
+	declare @noq nvarchar(10)
+	declare @sprice float
+	--裁剪入庫的廢料單價依原鋼材的
+	declare cursor_table cursor for 
+	select sel,accy,noa,noq from @tmpz 
+	where LEFT(uno,1) between 'X' and 'Z' 
+	and LEFT(typea,1) = 'A3'
+	open cursor_table 
+	fetch next from cursor_table 
+	into @sel,@accy,@noa,@noq
+	while(@@FETCH_STATUS <> -1) 
+	begin 
+		set @sprice =0
+		select @sprice=b.sprice
+		from view_cut a
+		left join view_uccb b on a.uno=b.uno
+		where a.accy=@accy and a.noa=@noa
+		
+		update @tmpz set [money] = ROUND([weight]*@sprice,0) where sel=@sel
+	
+		fetch next from cursor_table 
+		into @sel,@accy,@noa,@noq
+	end 
+	close cursor_table 
+	deallocate cursor_table 
+	-------------------------------------------------------------------
+	declare @bmon nvarchar(10) = ''
+	declare @emon nvarchar(10) = ''
+	
+	select top 1 @bmon=LEFT(datea,6) from @tmpz 
+	where LEFT(uno,1) between 'X' and 'Z'
+	group by LEFT(datea,6)
+	order by LEFT(datea,6)
+	
+	select top 1 @emon=LEFT(datea,6) from @tmpz 
+	where LEFT(uno,1) between 'X' and 'Z'
+	group by LEFT(datea,6)
+	order by LEFT(datea,6) desc
+	--------------------------------------------------------------------
+	--計算廢料每個月的成本
+	declare @bdate date 
+	declare @edate date
+	declare @mon nvarchar(10)
+	if LEN(ISNULL(@bmon,''))>0
+	begin
+		set @bdate = dbo.ChineseEraName2AD(@bmon+'/01')
+		set @edate = dbo.ChineseEraName2AD(@emon+'/01')
+	end
+	select @bmon = '',@emon = ''
+	
+	while left(dbo.AD2ChineseEraName(@bdate),6)<=left(dbo.AD2ChineseEraName(@edate),6)
+	begin	
+		set @mon = left(dbo.AD2ChineseEraName(@bdate),6)
+		if len(@bmon)>0
+		begin
+			--代入期初
+			insert into @tmpa(uno,mon,weight_begin,money_begin
+				,weight_rc2,money_rc2
+				,weight_ina,money_ina
+				,weight_cuts,money_cuts
+				,weight_rc2bk,money_rc2bk
+				,weight_vcc,money_vcc
+				,weight_vccbk,money_vccbk
+				,weight_get,money_get
+				,weight_cut,money_cut)
+			select uno,@mon,weight_result,money_result
+				,0,0
+				,0,0
+				,0,0
+				,0,0
+				,0,0
+				,0,0
+				,0,0
+				,0,0
+			from @tmpa
+			where mon = @bmon
+		end
+		
+		insert into @tmpa(uno,mon,weight_begin,money_begin
+			,weight_rc2,money_rc2
+			,weight_ina,money_ina
+			,weight_cuts,money_cuts
+			,weight_rc2bk,money_rc2bk
+			,weight_vcc,money_vcc
+			,weight_vccbk,money_vccbk
+			,weight_get,money_get
+			,weight_cut,money_cut)
+		select a.uno,@mon,0,0
+			,0,0
+			,0,0
+			,0,0
+			,0,0
+			,0,0
+			,0,0
+			,0,0
+			,0,0
+		from(select uno from @tmpz 
+			where LEFT(uno,1) between 'X' and 'Z'
+			and left(datea,6)=@mon
+			group by uno) a
+		left join @tmpa b on a.uno=b.uno and b.mon=@mon
+		where b.uno is null
+		
+		update @tmpa set 
+			weight_rc2=isnull(b.weight_rc2,0),money_rc2=ISNULL(b.money_rc2,0)
+			,weight_ina=isnull(b.weight_ina,0),money_ina=ISNULL(b.money_ina,0)
+			,weight_cuts=isnull(b.weight_cuts,0),money_cuts=ISNULL(b.money_cuts,0)
+			,weight_rc2bk=isnull(b.weight_rc2bk,0),money_rc2bk=ISNULL(b.money_rc2bk,0)
+			,weight_vcc=isnull(b.weight_vcc,0),money_vcc=ISNULL(b.money_vcc,0)
+			,weight_vccbk=isnull(b.weight_vccbk,0),money_vccbk=ISNULL(b.money_vccbk,0)
+			,weight_get=isnull(b.weight_get,0),money_get=ISNULL(b.money_get,0)
+			,weight_cut=isnull(b.weight_cut,0),money_cut=ISNULL(b.money_cut,0)
+		from @tmpa a
+		left join (select uno
+			,SUM(case when typea='A1' then [weight] else 0 end) weight_rc2
+			,SUM(case when typea='A1' then [money] else 0 end) money_rc2
+			,SUM(case when typea='A2' then [weight] else 0 end) weight_ina
+			,SUM(case when typea='A2' then [money] else 0 end) money_ina
+			,SUM(case when typea='A3' then [weight] else 0 end) weight_cuts
+			,SUM(case when typea='A3' then [money] else 0 end) money_cuts
+			,SUM(case when typea='B1' then [weight] else 0 end) weight_rc2bk
+			,SUM(case when typea='B1' then [money] else 0 end) money_rc2bk
+			,SUM(case when typea='B4' then [weight] else 0 end) weight_vcc
+			,SUM(case when typea='B4' then [money] else 0 end) money_vcc
+			,SUM(case when typea='A4' then [weight] else 0 end) weight_vccbk
+			,SUM(case when typea='A4' then [money] else 0 end) money_vccbk
+			,SUM(case when typea='B5' then [weight] else 0 end) weight_get
+			,SUM(case when typea='B5' then [money] else 0 end) money_get
+			,SUM(case when typea='B6' then [weight] else 0 end) weight_cut
+			,SUM(case when typea='B6' then [money] else 0 end) money_cut
+			from @tmpz 
+			where LEFT(uno,1) between 'X' and 'Z'
+			and left(datea,6)=@mon
+			group by uno) b on a.uno=b.uno
+		where a.mon=@mon
+		--本期成本單價 = (期初金額+本期入庫金額)/(期初重量+本期入庫重量)
+		update @tmpa set price = case when weight_begin+weight_rc2+weight_ina+weight_cuts-weight_rc2bk=0 then 0 else round((money_begin+money_rc2+money_ina+money_cuts-money_rc2bk)/(weight_begin+weight_rc2+weight_ina+weight_cuts-weight_rc2bk),4) end where mon=@mon
+		update @tmpa set money_vcc = round(weight_vcc*price,0)
+			,money_vccbk = round(weight_vccbk*price,0) 
+			,money_get = round(weight_get*price,0) 
+			,money_cut = round(weight_cut*price,0) 
+			where mon=@mon
+		update @tmpa set weight_result = weight_begin+weight_rc2+weight_ina+weight_cuts-weight_rc2bk - (weight_vcc-weight_vccbk+weight_get+weight_cut)
+			,money_result = money_begin+money_rc2+money_ina+money_cuts-money_rc2bk - (money_vcc-money_vccbk+money_get+money_cut)
+		where mon=@mon
+
+		set @bmon = @mon
+		set @bdate = DATEADD(MM,1,@bdate)
+	end
+	-- 刪除沒資料的
+	--delete @tmpa
+	--where weight_begin=0 and weight_rc2=0 and weight_ina=0 and weight_cuts=0 and weight_rc2bk=0 and weight_vcc=0 and weight_vccbk=0 and weight_get=0 and weight_cut=0
+	
+	return
+end
+
