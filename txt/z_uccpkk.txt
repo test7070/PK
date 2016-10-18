@@ -377,7 +377,7 @@ z_uccpkk02:--z_uccpkk02
 	left join view_ina b on a.accy=b.accy and a.noa=b.noa
 	left join view_vcc d on a.noa=d.noa
 	where left(b.datea,6) <= @t_mon
-	and b.itype = '1'
+	and (b.itype='1' or LEFT(a.uno,1) between 'X' and 'Z')
 	and ((len(@t_waste)=0 and not(LEFT(a.uno,1) between 'X' and 'Z') and (ISNULL(a.productno,'') between @t_bproductno and @t_eproductno))
 		or (len(@t_waste)>0 and LEFT(a.uno,1) between 'X' and 'Z'))
 	and len(ISNULL(a.uno,''))>0
@@ -391,7 +391,7 @@ z_uccpkk02:--z_uccpkk02
 	from view_cuts a
 	left join view_cut b on a.accy=b.accy and a.noa=b.noa
 	where left(b.datea,6) <= @t_mon
-	and b.itype = '1'
+	and (b.itype='1' or LEFT(a.bno,1) between 'X' and 'Z')
 	and ((len(@t_waste)=0 and not(LEFT(a.bno,1) between 'X' and 'Z') and (ISNULL(a.productno,'') between @t_bproductno and @t_eproductno))
 		or (len(@t_waste)>0 and LEFT(a.bno,1) between 'X' and 'Z'))
 	and len(ISNULL(a.bno,''))>0
@@ -407,10 +407,12 @@ z_uccpkk02:--z_uccpkk02
 	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
 	left join view_uccb c on a.uno=c.uno
 	where left(b.datea,6) <= @t_mon
-	and c.itype='1'
+	and (c.itype='1' or LEFT(a.uno,1) between 'X' and 'Z')
 	and ((len(@t_waste)=0 and not(LEFT(a.uno,1) between 'X' and 'Z') and (ISNULL(c.productno,'') between @t_bproductno and @t_eproductno))
 		or (len(@t_waste)>0 and LEFT(a.uno,1) between 'X' and 'Z'))
 	and len(ISNULL(a.uno,''))>0
+
+
 	
 	--領料:   出貨扣庫存都是在領料作業
 	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight])
@@ -423,7 +425,7 @@ z_uccpkk02:--z_uccpkk02
 	left join view_uccb c on a.uno=c.uno
 	left join view_vcc d on d.noa=a.noa
 	where left(b.datea,6) <= @t_mon
-	and c.itype='1'
+	and (c.itype='1' or LEFT(a.uno,1) between 'X' and 'Z')
 	and ((len(@t_waste)=0 and not(LEFT(a.uno,1) between 'X' and 'Z') and (ISNULL(c.productno,'') between @t_bproductno and @t_eproductno))
 		or (len(@t_waste)>0 and LEFT(a.uno,1) between 'X' and 'Z'))
 	and len(ISNULL(a.uno,''))>0
@@ -437,7 +439,7 @@ z_uccpkk02:--z_uccpkk02
 	from view_cut a	
 	left join view_uccb c on a.uno=c.uno
 	where left(a.datea,6) <= @t_mon
-	and a.itype = '1'
+	and (a.itype='1' or LEFT(a.uno,1) between 'X' and 'Z')
 	and ((len(@t_waste)=0 and not(LEFT(a.uno,1) between 'X' and 'Z') and (ISNULL(c.productno,'') between @t_bproductno and @t_eproductno))
 		or (len(@t_waste)>0 and LEFT(a.uno,1) between 'X' and 'Z'))
 	and len(ISNULL(a.uno,''))>0
@@ -499,27 +501,27 @@ z_uccpkk02:--z_uccpkk02
 		sel int identity(1,1)
 		,uno nvarchar(30)
 		,mon nvarchar(10)
-		,weight_begin float
-		,weight_rc2 float
-		,weight_ina float
-		,weight_cuts float
-		,weight_rc2bk float
-		,weight_vcc float
-		,weight_vccbk float
-		,weight_get float
-		,weight_cut float
-		,weight_result float
-		,money_begin float
-		,money_rc2 float
-		,money_ina float
-		,money_cuts float
-		,money_rc2bk float
-		,money_vcc float
-		,money_vccbk float
-		,money_get float
-		,money_cut float
-		,money_result float
-		,price float 
+		,weight_begin decimal(15,4)
+		,weight_rc2 decimal(15,4)
+		,weight_ina decimal(15,4)
+		,weight_cuts decimal(15,4)
+		,weight_rc2bk decimal(15,4)
+		,weight_vcc decimal(15,4)
+		,weight_vccbk decimal(15,4)
+		,weight_get decimal(15,4)
+		,weight_cut decimal(15,4)
+		,weight_result decimal(15,4)
+		,money_begin decimal(15,4)
+		,money_rc2 decimal(15,4)
+		,money_ina decimal(15,4)
+		,money_cuts decimal(15,4)
+		,money_rc2bk decimal(15,4)
+		,money_vcc decimal(15,4)
+		,money_vccbk decimal(15,4)
+		,money_get decimal(15,4)
+		,money_cut decimal(15,4)
+		,money_result decimal(15,4)
+		,price decimal(15,4)
 	)
 	
 	declare @bdate date 
@@ -631,6 +633,10 @@ z_uccpkk02:--z_uccpkk02
 		set @bmon = @mon
 		set @bdate = DATEADD(MM,1,@bdate)
 	end
+	
+	-- 刪除沒資料的
+	delete @tmpa
+	where weight_begin=0 and weight_rc2=0 and weight_ina=0 and weight_cuts=0 and weight_rc2bk=0 and weight_vcc=0 and weight_vccbk=0 and weight_get=0 and weight_cut=0
 	--------------------------------------------------------------------------------------------------------
 	IF OBJECT_ID('tempdb..#z_uccpkk02_b')is not null
 	BEGIN
