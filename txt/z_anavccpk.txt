@@ -527,7 +527,7 @@ z_anavccpk01:--z_anavccpk01
 	where b.datea between @t_bdate and @t_edate
 	and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
 	and (len(@t_stype)=0 or CHARINDEX(b.stype,@t_stype)>0)
-	--and not(ISNULL(a.[weight],0)=0 and ISNULL(a.[total],0)=0)
+	and not(ISNULL(a.[weight],0)=0 and ISNULL(a.[total],0)=0 and len(isnull(a.product,''))=0)
 	and ISNULL(a.productno,'') between @t_bproductno and @t_eproductno
 	and ISNULL(a.dime,0) between @t_bdime and @t_edime
 	
