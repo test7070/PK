@@ -1,4 +1,3 @@
-
 ALTER function [dbo].[waste_pk](@t_mon nvarchar(max))
 returns @tmpa table(
 	sel int identity(1,1)
@@ -176,7 +175,7 @@ begin
 	end
 	select @bmon = '',@emon = ''
 	
-	while  LEN(ISNULL(@bmon,''))>0 and left(dbo.AD2ChineseEraName(@bdate),6)<=left(dbo.AD2ChineseEraName(@edate),6)
+	while  left(dbo.AD2ChineseEraName(@bdate),6)<=left(dbo.AD2ChineseEraName(@edate),6)
 	begin	
 		set @mon = left(dbo.AD2ChineseEraName(@bdate),6)
 		if len(@bmon)>0
@@ -281,5 +280,3 @@ begin
 	
 	return
 end
-
-
