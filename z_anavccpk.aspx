@@ -29,7 +29,7 @@
 			function q_gtPost(t_name) {
 				switch (t_name) {
 					case 'ucc':
-						t_ucc = '';
+						t_ucc = ' @';
 						var as = _q_appendData("ucc", "", true);
 						for ( i = 0; i < as.length; i++) {
 							t_ucc += (t_ucc.length > 0 ? '&' : '') + as[i].noa + '@' + as[i].noa;

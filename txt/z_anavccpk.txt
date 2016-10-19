@@ -497,7 +497,7 @@ z_anavccpk01:--z_anavccpk01
 	declare @t_edate nvarchar(10)= case when '#non'=[2] then char(255) else [2] end
 	declare @t_bcustno nvarchar(20)= case when '#non'=[3] then '' else [3] end
 	declare @t_ecustno nvarchar(20)= case when '#non'=[4] then char(255) else [4] end
-	declare @t_bproductno nvarchar(20) = case when '#non'=[5] then '' else [5] end
+	declare @t_bproductno nvarchar(20) = case when '#non'=[5] or len(rtrim(ltrim([5])))=0 then '' else [5] end
 	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
 	declare @t_bdime float = case when '#non'=[8] then 0 else cast([8] as float) end
 	declare @t_edime float = case when '#non'=[9] then 9999999 else cast([9] as float) end
@@ -527,12 +527,16 @@ z_anavccpk01:--z_anavccpk01
 	where b.datea between @t_bdate and @t_edate
 	and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
 	and (len(@t_stype)=0 or CHARINDEX(b.stype,@t_stype)>0)
-	and not(ISNULL(a.[weight],0)=0 and ISNULL(a.[total],0)=0)
+	--and not(ISNULL(a.[weight],0)=0 and ISNULL(a.[total],0)=0)
 	and ISNULL(a.productno,'') between @t_bproductno and @t_eproductno
 	and ISNULL(a.dime,0) between @t_bdime and @t_edime
 	
 	-- 出貨批號明細(包括 出貨&領料)
-	declare @tmpb table(
+	IF OBJECT_ID('tempdb..#z_anavccpk01_b')is not null
+	BEGIN
+		drop table #z_anavccpk01_b
+	END
+	create table #z_anavccpk01_b(
 		sel int identity(1,1)
 		-------------------------
 		--要算在哪一筆出貨單中
@@ -551,35 +555,49 @@ z_anavccpk01:--z_anavccpk01
 		,sprice float
 		,total float
 	)
-	insert into @tmpb(vccaccy,vccno,vccnoq,typea,datea,tablea,accy,noa,noq,uno,gweight,sprice,total)
+	insert into #z_anavccpk01_b(vccaccy,vccno,vccnoq,typea,datea,tablea,accy,noa,noq,uno,gweight,sprice,total)
 	select a.accy,a.noa,a.noq 
 		,b.typea,b.datea,'vcc',a.accy,a.noa,a.noq,a.uno,case when a.gweight!=0 then a.gweight else a.[weight] end,0,0
 	from view_vccs a
 	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
 	where exists(select * from @tmpa where accy=a.accy and noa=a.noa)
 	and len(a.uno)>0
+	and b.datea between @t_bdate and @t_edate
+	and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
+	and (len(@t_stype)=0 or CHARINDEX(b.stype,@t_stype)>0)
+	and ISNULL(a.productno,'') between @t_bproductno and @t_eproductno
+	and ISNULL(a.dime,0) between @t_bdime and @t_edime
 	
-	insert into @tmpb(vccaccy,vccno,vccnoq,typea,datea,tablea,accy,noa,noq,uno,gweight,sprice,total)
+	insert into #z_anavccpk01_b(vccaccy,vccno,vccnoq,typea,datea,tablea,accy,noa,noq,uno,gweight,sprice,total)
 	select a.accy,a.noa,a.nor 
 		,b.typea,b.datea,'get',a.accy,a.noa,a.noq,a.uno,case when a.gweight!=0 then a.gweight else a.[weight] end,0,0
 	from view_gets a
 	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+	left join view_vccs c on a.accy=c.accy and a.noa=c.noa and a.nor=c.noq
 	where exists(select * from @tmpa where accy=a.accy and noa=a.noa)
 	and len(a.uno)>0
+	and b.datea between @t_bdate and @t_edate
+	and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
+	and (len(@t_stype)=0 or CHARINDEX(b.stype,@t_stype)>0)
+	and ISNULL(c.productno,'') between @t_bproductno and @t_eproductno
+	and ISNULL(c.dime,0) between @t_bdime and @t_edime
 
-	update @tmpb set sprice=isnull(b.sprice,0)
-	from @tmpb a
+	update #z_anavccpk01_b set sprice=isnull(b.sprice,0)
+	from #z_anavccpk01_b a
 	left join view_uccb b on a.uno=b.uno
 	
-	update @tmpb set sprice=isnull(b.price,0)
-	from @tmpb a
+	update #z_anavccpk01_b set sprice=isnull(b.price,0)
+	from #z_anavccpk01_b a
 	outer apply(select * from  dbo.waste_pk(CHAR(255)) where uno=a.uno and mon=LEFT(a.datea,6)) b
 	where left(a.uno,1) between 'X' and 'Z'
 	
-	update @tmpb set total=round(sprice*gweight,0)
+	update #z_anavccpk01_b set total=round(sprice*gweight,0)
 	---------------------------------------------------------------------------------------------------
-	--客戶	　	鋼種	厚	重量	銷售額	進貨成本	毛利	
-	declare @tmpc table(
+	IF OBJECT_ID('tempdb..#z_anavccpk01_c')is not null
+	BEGIN
+		drop table #z_anavccpk01_c
+	END
+	create table #z_anavccpk01_c(
 		sel int identity(1,1)
 		,recno int
 		,gno nvarchar(10)
@@ -614,47 +632,49 @@ z_anavccpk01:--z_anavccpk01
 		,tprice float
 		,tmoney float
 	)
-	insert into @tmpc(gno,pno,custno,product,dime,[weight],[money])
+	insert into #z_anavccpk01_c(gno,pno,custno,product,dime,[weight],[money])
 	select '1',1,custno,product,dime,SUM(ISNULL([weight],0)),SUM(ISNULL([money],0))
 	from @tmpa
 	group by custno,product,dime
 	
-	update @tmpc set cost=ISNULL(b.total,0)
-	from @tmpc a
+	update #z_anavccpk01_c set cost=ISNULL(b.total,0)
+	from #z_anavccpk01_c a
 	left join (select b.custno,b.product,b.dime,sum(isnull(a.total,0)) total
-		from @tmpb a
+		from #z_anavccpk01_b a
 		left join @tmpa b on a.vccaccy=b.accy and a.vccno=b.noa and a.vccnoq=b.noq
 		group by  b.custno,b.product,b.dime
 			) b on a.custno=b.custno and a.product=b.product and a.dime=b.dime
-	update @tmpc set profit = [money]-cost
-	update @tmpc set cust = b.nick
-	from @tmpc a
+	update #z_anavccpk01_c set profit = [money]-cost
+	update #z_anavccpk01_c set cust = b.nick
+	from #z_anavccpk01_c a
 	left join cust b on a.custno=b.noa
 	
-	update @tmpc set recno=b.recno
-	from @tmpc a
-	left join (select sel,ROW_NUMBER()over(order by custno,product,dime) recno from @tmpc) b on a.sel=b.sel
+	update #z_anavccpk01_c set recno=b.recno
+	from #z_anavccpk01_c a
+	left join (select sel,ROW_NUMBER()over(order by custno,product,dime) recno from #z_anavccpk01_c) b on a.sel=b.sel
 	---------------------------------------------------------------------------------
 	if len(@t_detail)>0
 	begin
-		insert into @tmpc(gno,pno,custno,product,dime
+		insert into #z_anavccpk01_c(gno,pno,custno,product,dime
 			,tablea,accy,noa,noq,uno,tproductno,tproduct,tdime,twidth,tlengthb,tradius,tweight,tprice,tmoney)
 		select '2',2,b.custno,b.product,b.dime
 			,a.tablea,a.accy,a.noa,a.noq,a.uno,c.productno,c.product,c.dime,c.width,c.lengthb,c.radius,a.[gweight],a.sprice,a.[total]
-		from @tmpb a
+		from #z_anavccpk01_b a
 		left join @tmpa b on a.vccaccy=b.accy and a.vccno=b.noa and a.vccnoq=b.noq
 		left join view_uccb c on a.uno=c.uno
 		
-		insert into @tmpc(gno,pno,custno,tweight)
+		insert into #z_anavccpk01_c(gno,pno,custno,tweight)
 		select '4',2,CHAR(255),SUM(ISNULL([tweight],0))
-		from @tmpc
+		from #z_anavccpk01_c
 		where gno='2'
 	end
-	
-	insert into @tmpc(gno,pno,custno,[weight],[money],cost,profit)
+
+	insert into #z_anavccpk01_c(gno,pno,custno,[weight],[money],cost,profit)
 	select '3',1,CHAR(255),SUM(ISNULL([weight],0)),SUM(ISNULL([money],0)),SUM(ISNULL([cost],0)),SUM(ISNULL([profit],0))
-	from @tmpc
+	from #z_anavccpk01_c
 	where gno='1'
+	
+	update #z_anavccpk01_c set prate = case when isnull([money],0)=0 then 0 else round(([money]-cost)/[money]*100,2) end
 	
 	select gno
 		,recno rr
@@ -667,12 +687,14 @@ z_anavccpk01:--z_anavccpk01
 		,dbo.getComma([cost],-1) a07
 		,dbo.getComma([profit],-1) a08
 		,dbo.getComma([prate],-1) a09
-		
-		,"<a href="+CHAR(34)+"JavaScript:q_box('"+case tablea when 'get' then 'getst' else 'vcc_pk' end +".aspx',' "+CHAR(59)+""+noa+"','95%','95%',' ')"+char(34)+">＊</a>" b01
+		,'' b01
 		,"<a href="+CHAR(34)+"JavaScript:q_box('z_unobd.aspx',' "+CHAR(59)+""+uno+"','95%','95%',' ')"+char(34)+">"+uno+"</a>" b02
-		,product b03
+		,tproduct b03
 		,dbo.getComma([tweight],-1) b04
 		,dbo.getComma([tprice],-1) b05
 		,dbo.getComma([tmoney],-1) b06
-	from @tmpc
-	order by custno,product,dime,pno;
+	from #z_anavccpk01_c
+	order by custno,product,dime,pno
+	
+	drop table #z_anavccpk01_b
+	drop table #z_anavccpk01_c;

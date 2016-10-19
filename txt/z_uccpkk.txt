@@ -5,7 +5,7 @@ z_uccpkk01:--z_uccpkk01
 	declare @t_db nvarchar(max) = '[2]'
 	declare @t_edate nvarchar(20) = case when '#non'=[3] then '' else [3] end
 	declare @t_mon nvarchar(20) = case when '#non'=[4] then '' else [4] end
-	declare @t_bproductno nvarchar(20) = case when '#non'=[5] or len(rtrim(ltrim([5])))=0 then '' else [6] end
+	declare @t_bproductno nvarchar(20) = case when '#non'=[5] or len(rtrim(ltrim([5])))=0 then '' else [5] end
 	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
 	declare @t_storeno nvarchar(max) = case when '#non'=[7] then '' else [7] end
 	
@@ -51,13 +51,13 @@ z_uccpkk01:--z_uccpkk01
 	left join view_ina b on a.accy=b.accy and a.noa=b.noa
 --cuts
 	insert into @tmp(tablea,accy,noa,noq,uno,bno,isprice,wprice)
-	select 'cuts',a.accy,a.noa,a.noq,b.uno,a.bno,0,a.wprice
+	select 'cuts',a.accy,a.noa,a.noq,a.bno,b.uno,0,a.wprice
 	from view_cuts a
 	left join view_cut b on a.accy=b.accy and a.noa=b.noa
 	where len(isnull(a.bno,''))>0
 --cubt
 	insert into @tmp(tablea,accy,noa,noq,uno,bno,isprice)
-	select 'cubt',a.accy,a.noa,a.noq,a.uno,a.bno,0
+	select 'cubt',a.accy,a.noa,a.noq,a.bno,a.uno,0
 	from view_cubt a
 	where len(isnull(a.bno,''))>0
 ---------------------------------------------------------------------------------------
@@ -68,6 +68,7 @@ z_uccpkk01:--z_uccpkk01
 	declare @noa nvarchar(20)
 	declare @noq nvarchar(10)
 	declare @uno nvarchar(30)
+	declare @bno nvarchar(30)
 	declare @price float
 	declare @sprice float
 	declare @sprice2 float
@@ -77,30 +78,36 @@ z_uccpkk01:--z_uccpkk01
 	begin
 		set @n=@n-1
 		declare cursor_table cursor for
-		select sel,tablea,uno,isprice from @tmp where isprice=0 
+		select sel,tablea,uno,bno,isprice from @tmp where isprice=0 
 		open cursor_table
 		fetch next from cursor_table
-		into @sel,@tablea,@uno,@isprice
+		into @sel,@tablea,@uno,@bno,@isprice
 		while(@@FETCH_STATUS <> -1)
 		begin	
-			set @isprice=0
-			if @isprice=0 and exists(select * from @tmp where uno=@uno and isprice=1)
+			if exists(select * from @tmp where uno=@bno and isprice=1)
 			begin
 				select @sprice=0,@sprice2=0
-				select @sprice=isnull(sprice,0),@sprice2=isnull(sprice2,0) from @tmp where uno=@uno and isprice=1
+				select @sprice=isnull(sprice,0),@sprice2=isnull(sprice2,0) from @tmp where uno=@bno and isprice=1 
 				update @tmp set sprice=@sprice+isnull(wprice,0),sprice2=@sprice2,isprice=1 where sel=@sel
-				set @isprice=1
-			end
-			if @isprice=0 and exists(select * from @tmp where bno=@uno and isprice=1)
-			begin
-				select @sprice=0,@sprice2=0
-				select @sprice=isnull(sprice,0),@sprice2=isnull(sprice2,0)from @tmp where bno=@uno and isprice=1
-				update @tmp set sprice=@sprice+isnull(wprice,0),sprice2=@sprice2,isprice=1 where sel=@sel
-				set @isprice=1
 			end
 			
+			--if @isprice=0 and exists(select * from @tmp where uno=@uno and isprice=1) 
+			--begin
+			--	select @sprice=0,@sprice2=0
+			--	select @sprice=isnull(sprice,0),@sprice2=isnull(sprice2,0) from @tmp where uno=@uno and isprice=1 
+			--	update @tmp set sprice=@sprice+isnull(wprice,0),sprice2=@sprice2,isprice=1 where sel=@sel
+			--	set @isprice=1
+			--end
+			--if @isprice=0 and exists(select * from @tmp where bno=@uno and isprice=1) 
+			--begin
+			--	select @sprice=0,@sprice2=0
+			--	select @sprice=isnull(sprice,0),@sprice2=isnull(sprice2,0)from @tmp where bno=@uno and isprice=1 
+			--	update @tmp set sprice=@sprice+isnull(wprice,0),sprice2=@sprice2,isprice=1 where sel=@sel
+			--	set @isprice=1
+			--end
+			
 			fetch next from cursor_table
-			into @sel,@tablea,@uno,@isprice
+			into @sel,@tablea,@uno,@bno,@isprice
 		end
 		close cursor_table
 		deallocate cursor_table
@@ -333,7 +340,7 @@ z_uccpkk02:--z_uccpkk02
 	declare @t_db nvarchar(max) = '[2]'
 	declare @t_edate nvarchar(20) = case when '#non'=[3] then '' else [3] end
 	declare @t_mon nvarchar(20) = case when '#non'=[4] then '' else [4] end
-	declare @t_bproductno nvarchar(20) = case when '#non'=[5] or len(rtrim(ltrim([5])))=0 then '' else [6] end
+	declare @t_bproductno nvarchar(20) = case when '#non'=[5] or len(rtrim(ltrim([5])))=0 then '' else [5] end
 	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
 	declare @t_storeno nvarchar(max) = case when '#non'=[7] then '' else [7] end
 	declare @t_option nvarchar(max) = case when '#non'=[8] then '' else [8] end

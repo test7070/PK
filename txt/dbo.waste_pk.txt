@@ -1,5 +1,4 @@
 
-
 ALTER function [dbo].[waste_pk](@t_mon nvarchar(max))
 returns @tmpa table(
 	sel int identity(1,1)
@@ -115,7 +114,13 @@ begin
 	where left(a.datea,6) <= @t_mon
 	and (a.itype='1' or LEFT(a.uno,1) between 'X' and 'Z')
 	and LEFT(a.uno,1) between 'X' and 'Z'
-
+	---------------------------------------------------------------------------------------
+	--沒資料 RETURN
+	if not exists(select * from @tmpz)
+		return
+	--不是民國年  RETURN
+	if exists(select * from @tmpz where len(datea)!=9)
+		return
 	---------------------------------------------------------------------------------------
 	-- 廢料的成本單價採用月平均
 	declare @sel int
@@ -171,7 +176,7 @@ begin
 	end
 	select @bmon = '',@emon = ''
 	
-	while left(dbo.AD2ChineseEraName(@bdate),6)<=left(dbo.AD2ChineseEraName(@edate),6)
+	while  LEN(ISNULL(@bmon,''))>0 and left(dbo.AD2ChineseEraName(@bdate),6)<=left(dbo.AD2ChineseEraName(@edate),6)
 	begin	
 		set @mon = left(dbo.AD2ChineseEraName(@bdate),6)
 		if len(@bmon)>0
@@ -276,4 +281,5 @@ begin
 	
 	return
 end
+
 
