@@ -62,13 +62,16 @@
                         type : '6', //[7]  3
                         name : 'xordeno'
                     },{
-                        type : '8',//[8]  2
+                        type : '8',//[8]  4
                         name : 'xmech',
                         value : t_mech.split('&')
                     },{
-                        type : '5',//[8]  2
+                        type : '5',//[9]  5
                         name : 'xenda',
                         value : ' @全部&Y@結案&N@未結案'.split('&')
+                    }, {
+                        type : '6', //[10]  6
+                        name : 'noa'
                     }]
 				});
 				q_popAssign();
