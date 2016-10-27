@@ -1,6 +1,6 @@
 z_cubm_pk02:--z_cubm_pk02   ref.z_cutp01
 	SET QUOTED_IDENTIFIER OFF	
-	declare @t_noa nvarchar(20) = case when '#non'=[9] then '' else [10] end
+	declare @t_noa nvarchar(20) = case when '#non'=[10] then '' else [10] end
 	---------------------------------------------------------
 	declare @sign1 nvarchar(max) = N'<a style="font-family:'+CHAR(39)+'Wingdings 2'+CHAR(39)+'">R</a>'
 	declare @sign2 nvarchar(max) = N'<a style="font-family:'+CHAR(39)+'Wingdings 2'+CHAR(39)+'">'+NCHAR(163)+'</a>'
