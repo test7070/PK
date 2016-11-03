@@ -13,10 +13,11 @@ z_cubm_pk02:--z_cubm_pk02   ref.z_cutp01
 		,noa nvarchar(20)
 		,noq nvarchar(10)
 		,memo nvarchar(max)
-		,memo1 nvarchar(40)
-		,memo2 nvarchar(40)
-		,memo3 nvarchar(40)
-		,memo4 nvarchar(40)
+		,memo1 nvarchar(50)
+		,memo2 nvarchar(50)
+		,memo3 nvarchar(50)
+		,memo4 nvarchar(50)
+		,memo5 nvarchar(50)
 		,productno nvarchar(30)
 		,product nvarchar(50)
 		,dime float
@@ -61,7 +62,7 @@ z_cubm_pk02:--z_cubm_pk02   ref.z_cutp01
 	from @tmp
 	where gno='1'
 		
-	declare @memo nvarchar(max)= '',@memo1 nvarchar(max),@memo2 nvarchar(max),@memo3 nvarchar(max),@memo4 nvarchar(max)
+	declare @memo nvarchar(max)= '',@memo1 nvarchar(max)= '',@memo2 nvarchar(max)= '',@memo3 nvarchar(max)= '',@memo4 nvarchar(max)= '',@memo5 nvarchar(max)= ''
 	select @memo = memo from view_cut where noa=@t_noa
 
 	if CHARINDEX('chr(10)',@memo)>0
@@ -82,6 +83,17 @@ z_cubm_pk02:--z_cubm_pk02   ref.z_cutp01
 				begin
 					set @memo4 = LEFT(@memo,CHARINDEX('chr(10)',@memo)-1)
 					set @memo = SUBSTRING(@memo,CHARINDEX('chr(10)',@memo)+7,LEN(@memo))
+					
+					if CHARINDEX('chr(10)',@memo)>0
+					begin
+						set @memo5 = LEFT(@memo,CHARINDEX('chr(10)',@memo)-1)
+						set @memo = SUBSTRING(@memo,CHARINDEX('chr(10)',@memo)+7,LEN(@memo))
+					end
+					else
+					begin
+						set @memo5 = @memo
+					end
+				
 				end
 				else
 				begin
@@ -102,7 +114,7 @@ z_cubm_pk02:--z_cubm_pk02   ref.z_cutp01
 	begin
 		set @memo1 = @memo
 	end
-	update @tmp set memo1=@memo1,memo2=@memo2,memo3=@memo3,memo4=@memo4
+	update @tmp set memo1=@memo1,memo2=@memo2,memo3=@memo3,memo4=@memo4,memo5=@memo5
 	-----------------------------------------------------------------------
 	declare @pageCount int = 8
 	
@@ -135,11 +147,11 @@ z_cubm_pk02:--z_cubm_pk02   ref.z_cutp01
 		,'' a07
 		,memos a08
 		,cust a09
-		
-		,'爐號移轉：'+isnull(memo1,'') b01
-		,'鋼捲編號：'+isnull(memo2,'') b02
-		,'材質表面：'+isnull(memo3,'') b03
-		,memo4 b04
+		,'重量：　'+isnull(memo1,'') b01
+		,'爐號移轉：'+isnull(memo2,'') b02
+		,'鋼捲編號：'+isnull(memo3,'') b03
+		,'材質表面：'+isnull(memo4,'') b04
+		,memo5 b05
 		
 		,'日期：'+LEFT(datea,3)+'年'+substring(datea,5,2)+'月'+RIGHT(datea,2)+'日' c01
 		,case when len(odate)>0 then '交期：'+LEFT(odate,3)+'年'+substring(odate,5,2)+'月'+RIGHT(odate,2)+'日' else '交期：' end c02
