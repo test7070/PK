@@ -47,13 +47,13 @@ z_cubm_pk02:--z_cubm_pk02   ref.z_cutp01
 	---------------------------
 	--頭尾
 	insert into @tmp(gno,pno,product,dime,width)
-	select '2',2,'頭',dime,width
-	from view_cut
+	select '2',2,'頭',null,null
+	from cubm
 	where noa=@t_noa
 	
 	insert into @tmp(gno,pno,product,dime,width)
-	select '2',2,'尾',dime,width
-	from view_cut
+	select '2',2,'尾',null,null
+	from cubm
 	where noa=@t_noa
 	---------------------------
 	--合計
