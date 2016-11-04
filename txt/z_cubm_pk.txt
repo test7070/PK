@@ -63,7 +63,7 @@ z_cubm_pk02:--z_cubm_pk02   ref.z_cutp01
 	where gno='1'
 		
 	declare @memo nvarchar(max)= '',@memo1 nvarchar(max)= '',@memo2 nvarchar(max)= '',@memo3 nvarchar(max)= '',@memo4 nvarchar(max)= '',@memo5 nvarchar(max)= ''
-	select @memo = memo from view_cut where noa=@t_noa
+	select @memo = memo from cubm where noa=@t_noa
 
 	if CHARINDEX('chr(10)',@memo)>0
 	begin
