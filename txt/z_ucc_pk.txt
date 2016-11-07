@@ -1553,6 +1553,7 @@ z_ucc_pk03:--z_ucc_pk03
 		,memo3 nvarchar(max)
 		
 		,cutordeno nvarchar(20) --裁剪單上的訂單
+		,iscuts int --有裁剪單,但領料重為0, 變色
 	)
 	
 	if CHARINDEX(',02,',','+@t_option+',')>0
@@ -1585,6 +1586,7 @@ z_ucc_pk03:--z_ucc_pk03
 		and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',b.productno)=0))
 		and (len(@t_uno2)=0 or CHARINDEX(@t_uno2,b.uno2)>0)
 		and (len(@t_ordeno)=0 or b.ordeno=@t_ordeno)
+		order by ISNULL(b.dime,0),ISNULL(b.width,0),ISNULL(b.lengthb,0)
 		
 		delete @tmp where not(storeno between @t_bstoreno and @t_estoreno)
 			or not(len(@t_ystore)=0 or charindex(','+storeno+',',','+@t_ystore+',')>0)
@@ -1595,9 +1597,6 @@ z_ucc_pk03:--z_ucc_pk03
 		left join store b on a.storeno=b.noa
 		left join cust c on a.custno=c.noa		
 	end
-	
-	
-
 
 	update @tmp set recno = b.sel
 	from @tmp a
@@ -1807,6 +1806,11 @@ z_ucc_pk03:--z_ucc_pk03
 	left join view_cuts b on a.uno=b.bno
 	where b.noa is not null
 	
+	--判斷要不要變色
+	update @tmp set iscuts=1
+	from @tmp a
+	outer apply(select noa from view_cut where uno=a.uno and ISNULL(gweight,0)=0)b
+	where  b.noa is not null
 	
 	declare @ss nvarchar(max)=
 		'<script type="text/javascript">
@@ -1886,7 +1890,7 @@ z_ucc_pk03:--z_ucc_pk03
 		,datea a01--入庫日期
 		,store a02--倉庫
 		,[source] a03--鋼廠
-		,'<a id="uno'+CAST(sel as nvarchar)+'">'+uno+'</a>' a04--批號
+		,'<a id="uno'+CAST(sel as nvarchar)+'" style="'+case when iscuts=1 then 'color:red' else '' end +'">'+uno+'</a>' a04--批號
 		,cstyle a05--品名
 		,productno a06--材質
 		,[class] a07--表面
