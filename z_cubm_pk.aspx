@@ -72,7 +72,16 @@
                     }, {
                         type : '6', //[10]  6
                         name : 'noa'
-                    }]
+                    },{
+						type : '1', //[11][12]  7  完工日期
+						name : 'ydate'
+					}, { 
+						type : '2', //[13][14]  8 操作人員
+						name : 'xsss',
+						dbf : 'sss',
+						index : 'noa,namea',
+						src : 'sss_b.aspx'
+					}]
 				});
 				q_popAssign();
 				q_langShow();
