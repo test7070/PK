@@ -1897,8 +1897,7 @@ z_ucc_pk03:--z_ucc_pk03
 		,dbo.getComma(dime,-1) a08--厚
 		,dbo.getComma(width,-1) a09--寬
 		,dbo.getComma(lengthb,-1) a10--長
-		,replace(size,"~#$","'") a11--尺寸
-		
+		,'<a style="'+case when iscuts=1 then 'color:red' else '' end +'">'+replace(size,"~#$","'")+'</a>' a11--尺寸
 		,dbo.getComma(emount,-1) a12--庫存數
 		,dbo.getComma(eweight,-1) a13--庫存重
 		,dbo.getComma(price,-1) a14--單價
