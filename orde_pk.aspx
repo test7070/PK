@@ -359,7 +359,9 @@
                                 /// 最後 aEmpField 不可以有【數字欄位】
                                 if (qBoxNo3id != -1) {
                                     for (var i = 0; i < ret.length; i++) {
-                                        $('#txtNo3__' + ret[i]).val(padL($('#lblNo_' + qBoxNo3id).text(), '0', 3));
+                                        //$('#txtNo3__' + ret[i]).val(padL($('#lblNo_' + qBoxNo3id).text(), '0', 3));
+                                        
+                                        $('#txtNo3__' + ret[i]).val($('#txtNo2_' + qBoxNo3id).val());
                                     }
                                 }
                                 qBoxNo3id = -1;
