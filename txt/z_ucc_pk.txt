@@ -1497,7 +1497,11 @@ z_ucc_pk03:--z_ucc_pk03
 		set @t_elengthb = @t_eval04
 	end
 
-	declare @tmp table(
+	IF OBJECT_ID('tempdb..#z_ucc_pk03')is not null
+	BEGIN
+		drop table #z_ucc_pk03
+	END
+	create table #z_ucc_pk03(
 		sel int identity(1,1)
 		,trecno int
 		,gno nvarchar(10)
@@ -1558,7 +1562,7 @@ z_ucc_pk03:--z_ucc_pk03
 	
 	if CHARINDEX(',02,',','+@t_option+',')>0
 	begin
-		insert into @tmp(gno,datea,storeno,[source],uno,place,style,productno,product,[class]
+		insert into #z_ucc_pk03(gno,datea,storeno,[source],uno,place,style,productno,product,[class]
 			,dime,width,lengthb,radius,size,mount,[weight],price,emount,eweight,memo
 			,custno,uno2,tdime,twidth,tlength,spec)
 		select '1',b.datea
@@ -1586,24 +1590,24 @@ z_ucc_pk03:--z_ucc_pk03
 		and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',b.productno)=0))
 		and (len(@t_uno2)=0 or CHARINDEX(@t_uno2,b.uno2)>0)
 		and (len(@t_ordeno)=0 or b.ordeno=@t_ordeno)
-		order by ISNULL(b.dime,0),ISNULL(b.width,0),ISNULL(b.lengthb,0)
+		order by style,productno,ISNULL(b.dime,0),ISNULL(b.width,0),ISNULL(b.lengthb,0)
 		
-		delete @tmp where not(storeno between @t_bstoreno and @t_estoreno)
+		delete #z_ucc_pk03 where not(storeno between @t_bstoreno and @t_estoreno)
 			or not(len(@t_ystore)=0 or charindex(','+storeno+',',','+@t_ystore+',')>0)
 			
-		update @tmp set store=ISNULL(b.store,'')
+		update #z_ucc_pk03 set store=ISNULL(b.store,'')
 			,cust=ISNULL(c.nick,'')
-		from @tmp a
+		from #z_ucc_pk03 a
 		left join store b on a.storeno=b.noa
 		left join cust c on a.custno=c.noa		
 	end
 
-	update @tmp set recno = b.sel
-	from @tmp a
-	left join (select ROW_NUMBER()over(order by uno)  recno,sel from @tmp) b on a.sel=b.sel
+	update #z_ucc_pk03 set recno = b.sel
+	from #z_ucc_pk03 a
+	left join (select ROW_NUMBER()over(order by uno)  recno,sel from #z_ucc_pk03) b on a.sel=b.sel
 	--寄庫
-	update @tmp set custno=c.custno,msg=a.msg+' 寄庫'
-	from @tmp a
+	update #z_ucc_pk03 set custno=c.custno,msg=a.msg+' 寄庫'
+	from #z_ucc_pk03 a
 	left join view_inas b on a.uno=b.uno
 	left join view_ina c on b.accy=c.accy and b.noa=c.noa
 	where c.itype='3'
@@ -1613,10 +1617,10 @@ z_ucc_pk03:--z_ucc_pk03
 	declare @n int
 	declare @recno int
 	
-	update @tmp set recno2=1
+	update #z_ucc_pk03 set recno2=1
 	
 	declare cursor_table cursor for
-	select sel,a.uno,recno from @tmp a where recno2=1
+	select sel,a.uno,recno from #z_ucc_pk03 a where recno2=1
 	open cursor_table
 	fetch next from cursor_table
 	into @sel,@uno,@recno
@@ -1624,7 +1628,7 @@ z_ucc_pk03:--z_ucc_pk03
 	begin
 		select @n=0
 		select @n=count(1) 
-		from @tmp a
+		from #z_ucc_pk03 a
 		left join view_ordet b on a.uno=b.uno
 		where b.noa is not null
 		and not exists(select noa from view_orde where accy=b.accy and noa=b.noa and (isnull(enda,0)=1 or isnull(cancel,0)=1))
@@ -1634,32 +1638,32 @@ z_ucc_pk03:--z_ucc_pk03
 		
 		--if @n=1
 		--begin
-		--	update @tmp set ordeno=b.noa,ordesno2=b.no3,ordetno2=b.no2,omount=b.mount,oweight=b.[weight]
-		--	from @tmp a
+		--	update #z_ucc_pk03 set ordeno=b.noa,ordesno2=b.no3,ordetno2=b.no2,omount=b.mount,oweight=b.[weight]
+		--	from #z_ucc_pk03 a
 		--	left join view_ordet b on a.uno=b.uno
 		--	where a.sel=@sel
 		--end		
 		--else if @n>1
 		--begin
 		--	if @n>1
-				update @tmp set gno = '2' where sel=@sel --格線
-			insert into @tmp(gno,recno,recno2,uno,ordeno,ordesno2,ordetno2,omount,oweight
+				update #z_ucc_pk03 set gno = '2' where sel=@sel --格線
+			insert into #z_ucc_pk03(gno,recno,recno2,uno,ordeno,ordesno2,ordetno2,omount,oweight
 				,style,productno,dime,width,isend,iscancel)	
 			select '3',a.recno,row_number()over(partition by a.uno order by b.noa,b.no3,b.no2)+1
 				,a.uno,b.noa,b.no3,b.no2,b.mount,b.[weight] 
 				,a.style,a.productno,a.dime,a.width
 				,case when isnull(c.enda,0)=1 or isnull(d.enda,0)=1 then 1 else 0 end
 				,case when isnull(c.cancel,0)=1 or isnull(d.cancel,0)=1 then 1 else 0 end 
-			from @tmp a
+			from #z_ucc_pk03 a
 			left join view_ordet b on a.uno=b.uno
 			left join view_orde c on b.accy=c.accy and b.noa=c.noa 
 			left join view_ordes d on b.accy=d.accy and b.noa=d.noa and b.no3=d.no2
 			where b.noa is not null 
 			and a.sel=@sel
 
-			update @tmp set gno=case when b.recno2>1 then '2' else '1' end
-			from @tmp a
-			outer apply(select MAX(recno2) recno2 from @tmp where recno=a.recno) b
+			update #z_ucc_pk03 set gno=case when b.recno2>1 then '2' else '1' end
+			from #z_ucc_pk03 a
+			outer apply(select MAX(recno2) recno2 from #z_ucc_pk03 where recno=a.recno) b
 			where a.sel=@sel
 		--end
 	
@@ -1669,19 +1673,19 @@ z_ucc_pk03:--z_ucc_pk03
 	close cursor_table
 	deallocate cursor_table
 
-	update @tmp set custno=b.custno,cust=c.nick,msg=a.msg+' 受訂'
-	from @tmp a
+	update #z_ucc_pk03 set custno=b.custno,cust=c.nick,msg=a.msg+' 受訂'
+	from #z_ucc_pk03 a
 	left join view_orde b on a.ordeno=b.noa
 	left join cust c on b.custno=c.noa
 	where b.noa is not null
 
 	--結案的不顯示、不計算
-	delete @tmp where iscancel=1 or isend = 1 
+	delete #z_ucc_pk03 where iscancel=1 or isend = 1 
 	----------------------------------------------------------------------------------------------
 	if CHARINDEX(',03,',','+@t_option+',')>0 and (len(@t_itype)=0 or @t_itype='1')
 	begin
 		--採購
-		insert into @tmp(gno,recno,recno2,datea,storeno,[source],uno,place,style,productno,product,[class]
+		insert into #z_ucc_pk03(gno,recno,recno2,datea,storeno,[source],uno,place,style,productno,product,[class]
 			,dime,width,lengthb,radius,size,mount,[weight],emount,[eweight],price,memo
 			,ordcno,ordcsno2,msg,spec)
 		select '5',ROW_NUMBER()over(order by '*'+a.noa+'-'+a.no2),1
@@ -1706,24 +1710,24 @@ z_ucc_pk03:--z_ucc_pk03
 		and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',a.productno)=0))
 	
 		declare cursor_table cursor for
-		select sel,a.uno,recno from @tmp a where gno='5'
+		select sel,a.uno,recno from #z_ucc_pk03 a where gno='5'
 		open cursor_table
 		fetch next from cursor_table
 		into @sel,@uno,@recno
 		while(@@FETCH_STATUS <> -1)
 		begin
 			select @n = count(1)
-			from @tmp a
+			from #z_ucc_pk03 a
 			left join view_ordct b on a.ordcno=b.noa and a.ordcsno2=b.no2
 			where b.noa is not null
 			and a.uno=@uno
 			
 			if @n=1
 			begin
-				update @tmp set ordeno=b.ordeno,ordesno2=b.no4,ordctnoq=b.noq
+				update #z_ucc_pk03 set ordeno=b.ordeno,ordesno2=b.no4,ordctnoq=b.noq
 					,custno=b.custno,cust=c.nick,omount2=b.mount,oweight2=b.[weight]	
 					,msg=a.msg+' 期貨'	
-				from @tmp a
+				from #z_ucc_pk03 a
 				left join view_ordct b on a.ordcno=b.noa and a.ordcsno2=b.no2
 				left join cust c on b.custno=c.noa
 				where b.noa is not null
@@ -1732,25 +1736,25 @@ z_ucc_pk03:--z_ucc_pk03
 			else if @n>1
 			begin
 				if @n>1
-					update @tmp set gno = '6' where sel=@sel --格線
+					update #z_ucc_pk03 set gno = '6' where sel=@sel --格線
 				
-				insert into @tmp(gno,recno,recno2
+				insert into #z_ucc_pk03(gno,recno,recno2
 					,uno,ordeno,ordesno2,ordcno,ordcsno2,ordctnoq,omount2,oweight2
 					,style,productno,dime,width)	
 				select '7',a.recno,row_number()over(partition by a.uno order by a.ordcno,a.ordcsno2,a.ordctnoq)+1 
 					,a.uno,b.ordeno,b.no4,a.ordcno,a.ordcsno2,b.noq,b.mount,b.[weight]
 					,a.style,a.productno,a.dime,a.width
-				from @tmp a
+				from #z_ucc_pk03 a
 				left join view_ordct b on a.ordcno=b.noa and a.ordcsno2=b.no2
 				left join cust c on b.custno=c.noa
 				where b.noa is not null
 				and a.sel=@sel
 				
 				select top 1 @n=sel
-				from @tmp where uno=@uno and recno=@recno
+				from #z_ucc_pk03 where uno=@uno and recno=@recno
 				order by uno desc,ordcno desc,ordcsno2 desc,ordctnoq desc
 				
-				update @tmp set gno='8' where sel=@n			
+				update #z_ucc_pk03 set gno='8' where sel=@n			
 			end
 		
 			fetch next from cursor_table
@@ -1761,8 +1765,8 @@ z_ucc_pk03:--z_ucc_pk03
 	end	
 	
 	-------------------------------------------------------------------------
-	update @tmp set cstyle=ISNULL(b.product,'')
-	from @tmp a
+	update #z_ucc_pk03 set cstyle=ISNULL(b.product,'')
+	from #z_ucc_pk03 a
 	left join style b on a.style=b.noa
 
 	declare @tmpz table(
@@ -1770,47 +1774,57 @@ z_ucc_pk03:--z_ucc_pk03
 		,recno int
 	)
 	insert into @tmpz(sel,recno)
-	select sel,ROW_NUMBER()over(order by style,productno,dime,width,uno,recno,recno2) recno from @tmp where recno2=1
+	select sel,ROW_NUMBER()over(order by style,productno,dime,width,uno,recno,recno2) recno from #z_ucc_pk03 where recno2=1
 		
-	update @tmp set trecno=b.recno
-	from @tmp a
+	update #z_ucc_pk03 set trecno=b.recno
+	from #z_ucc_pk03 a
 	left join @tmpz b on a.sel=b.sel
 	where b.sel is not null	
 	--因為很慢,所以換方式
-	--update @tmp set trecno=b.recno
-	--from @tmp a
+	--update #z_ucc_pk03 set trecno=b.recno
+	--from #z_ucc_pk03 a
 	--left join (select sel,ROW_NUMBER()over(order by style,productno,dime,width,uno,recno,recno2) recno 
-	--	from @tmp where recno2=1)b on a.sel=b.sel
+	--	from #z_ucc_pk03 where recno2=1)b on a.sel=b.sel
 	--where b.sel is not null
 	
-	insert into @tmp(gno,style,emount,eweight,omount,oweight,omount2,oweight2)
+	insert into #z_ucc_pk03(gno,style,emount,eweight,omount,oweight,omount2,oweight2)
 	select '9',CHAR(255),SUM(isnull(emount,0)),SUM(isnull(eweight,0))
 		,SUM(isnull(omount,0)),SUM(isnull(oweight,0))
 		,SUM(isnull(omount2,0)),SUM(isnull(oweight2,0))
-	from @tmp
+	from #z_ucc_pk03
 
-	update @tmp set xweight=ISNULL(a.eweight,0)-ISNULL(b.oweight,0)
-	from @tmp a
-	left join (select uno,SUM(ISNULL(oweight,0)+ISNULL(oweight2,0)) oweight from @tmp group by uno) b on a.uno=b.uno
+	update #z_ucc_pk03 set xweight=ISNULL(a.eweight,0)-ISNULL(b.oweight,0)
+	from #z_ucc_pk03 a
+	left join (select uno,SUM(ISNULL(oweight,0)+ISNULL(oweight2,0)) oweight from #z_ucc_pk03 group by uno) b on a.uno=b.uno
 	where a.recno2=1
 	
 	
 
-	update @tmp set memo2 = ISNULL(b.memo,''),memo3 = ISNULL(b.memo2,'')
-	from @tmp a
+	update #z_ucc_pk03 set memo2 = ISNULL(b.memo,''),memo3 = ISNULL(b.memo2,'')
+	from #z_ucc_pk03 a
 	left join unolist b on a.uno=b.uno
 	
 	--裁剪訂單
-	update @tmp set cutordeno=ISNULL(b.ordeno,'')
-	from @tmp a
+	update #z_ucc_pk03 set cutordeno=ISNULL(b.ordeno,'')
+	from #z_ucc_pk03 a
 	left join view_cuts b on a.uno=b.bno
 	where b.noa is not null
 	
 	--判斷要不要變色
-	update @tmp set iscuts=1
-	from @tmp a
+	update #z_ucc_pk03 set iscuts=1
+	from #z_ucc_pk03 a
 	outer apply(select noa from view_cut where uno=a.uno and ISNULL(gweight,0)=0)b
 	where  b.noa is not null
+	
+	--進貨後, 庫存表中的訂單編號可show出採購單上預佔的訂單號碼(粉紅色)
+	update #z_ucc_pk03 set ordeno="<a style='color:pink'>"+d.ordeno+"-"+d.no4+"</a>"
+	from #z_ucc_pk03 a
+	left join view_rc2s b on a.uno=b.uno
+	left join view_ordcs c on b.ordeno=c.noa and b.no2=c.no2
+	outer apply(select top 1 * from view_ordct where accy=c.accy and noa=c.noa and no2=c.no2 order by noq) d
+	where len(a.ordeno)=0 
+	and c.noa is not null 
+	and d.noa is not null
 	
 	declare @ss nvarchar(max)=
 		'<script type="text/javascript">
@@ -1920,5 +1934,6 @@ z_ucc_pk03:--z_ucc_pk03
 		,'<textarea type="text" id="txt'+CAST(sel as nvarchar)+'" onchange="SaveMemo(this)" style="width:95%" >'+memo2+'</textarea>'a29
 		,'<textarea type="text" id="memo'+CAST(sel as nvarchar)+'" onchange="SaveMemo2(this)" style="width:95%" >'+memo3+'</textarea>'a30
 		,cutordeno a31
-	from @tmp
-	order by style,productno,dime,width,uno,recno,recno2;
+	from #z_ucc_pk03
+	order by style,productno,dime,width,uno,recno,recno2
+	drop table #z_ucc_pk03;
