@@ -1774,7 +1774,7 @@ z_ucc_pk03:--z_ucc_pk03
 		,recno int
 	)
 	insert into @tmpz(sel,recno)
-	select sel,ROW_NUMBER()over(order by style,productno,dime,width,uno,recno,recno2) recno from #z_ucc_pk03 where recno2=1
+	select sel,ROW_NUMBER()over(order by style,productno,dime,width,lengthb,uno,recno,recno2) recno from #z_ucc_pk03 where recno2=1
 		
 	update #z_ucc_pk03 set trecno=b.recno
 	from #z_ucc_pk03 a
@@ -1783,7 +1783,7 @@ z_ucc_pk03:--z_ucc_pk03
 	--因為很慢,所以換方式
 	--update #z_ucc_pk03 set trecno=b.recno
 	--from #z_ucc_pk03 a
-	--left join (select sel,ROW_NUMBER()over(order by style,productno,dime,width,uno,recno,recno2) recno 
+	--left join (select sel,ROW_NUMBER()over(order by style,productno,dime,width,lengthb,uno,recno,recno2) recno 
 	--	from #z_ucc_pk03 where recno2=1)b on a.sel=b.sel
 	--where b.sel is not null
 	
@@ -1935,5 +1935,5 @@ z_ucc_pk03:--z_ucc_pk03
 		,'<textarea type="text" id="memo'+CAST(sel as nvarchar)+'" onchange="SaveMemo2(this)" style="width:95%" >'+memo3+'</textarea>'a30
 		,cutordeno a31
 	from #z_ucc_pk03
-	order by style,productno,dime,width,uno,recno,recno2
+	order by style,productno,dime,width,lengthb,uno,recno,recno2
 	drop table #z_ucc_pk03;
