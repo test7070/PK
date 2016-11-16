@@ -1,0 +1,111 @@
+ALTER PROCEDURE [dbo].[sprice_rk]
+as
+begin
+	SET QUOTED_IDENTIFIER OFF 
+	declare @cmd nvarchar(max)
+	declare @tmp table(
+		sel int identity(1,1)
+		,tablea nvarchar(20)
+		,accy nvarchar(10)
+		,noa nvarchar(20)
+		,noq nvarchar(10)
+		,uno nvarchar(30)
+		,bno nvarchar(30)
+		,price float
+		,sprice float
+		,sprice2 float
+		,isprice bit
+		,wprice float
+	)
+--rc2
+	insert into @tmp(tablea,accy,noa,noq,uno,price,sprice,sprice2,isprice)
+	select 'rc2s',a.accy,a.noa,a.noq,a.uno
+		--,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		--,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		--,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		--若修改 deli.txt也要一起改
+		,case when isnull(b.floata,0)=0 then a.price else ROUND(a.price*b.floata,4) end
+		,case when isnull(b.floata,0)=0 then a.price else ROUND(a.price*b.floata,4) end
+		,case when isnull(b.floata,0)=0 then a.price else ROUND(a.price*b.floata,4) end
+		,1
+	from view_rc2s a
+	left join view_rc2 b on a.accy=b.accy and a.noa=b.noa
+--ina	
+	insert into @tmp(tablea,accy,noa,noq,uno,price,sprice,sprice2,isprice)
+	select 'inas',a.accy,a.noa,a.noq,a.uno
+		--,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		--,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		--,case when a.[weight]=0 then 0 else ROUND(a.total/a.[weight],4) end
+		,a.price
+		,a.price
+		,a.price
+		,1
+	from view_inas a
+	left join view_ina b on a.accy=b.accy and a.noa=b.noa
+--cuts
+	insert into @tmp(tablea,accy,noa,noq,uno,bno,isprice,wprice)
+	select 'cuts',a.accy,a.noa,a.noq,a.bno,b.uno,0,a.wprice
+	from view_cuts a
+	left join view_cut b on a.accy=b.accy and a.noa=b.noa
+	where len(isnull(a.bno,''))>0
+--cubt
+	insert into @tmp(tablea,accy,noa,noq,uno,bno,isprice)
+	select 'cubt',a.accy,a.noa,a.noq,a.bno,a.uno,0
+	from view_cubt a
+	where len(isnull(a.bno,''))>0
+---------------------------------------------------------------------------------------
+	declare @n int = 10
+	declare @sel int
+	declare @tablea nvarchar(20)
+	declare @accy nvarchar(10)
+	declare @noa nvarchar(20)
+	declare @noq nvarchar(10)
+	declare @uno nvarchar(30)
+	declare @bno nvarchar(30)
+	declare @price float
+	declare @sprice float
+	declare @sprice2 float
+	declare @isprice bit
+
+	while @n>0
+	begin
+		set @n=@n-1
+		declare cursor_table cursor for
+		select sel,tablea,uno,bno,isprice from @tmp where isprice=0 
+		open cursor_table
+		fetch next from cursor_table
+		into @sel,@tablea,@uno,@bno,@isprice
+		while(@@FETCH_STATUS <> -1)
+		begin	
+			if exists(select * from @tmp where uno=@bno and isprice=1)
+			begin
+				select @sprice=0,@sprice2=0
+				select @sprice=isnull(sprice,0),@sprice2=isnull(sprice2,0) from @tmp where uno=@bno and isprice=1 
+				update @tmp set sprice=@sprice+isnull(wprice,0),sprice2=@sprice2,isprice=1 where sel=@sel
+			end
+
+			fetch next from cursor_table
+			into @sel,@tablea,@uno,@bno,@isprice
+		end
+		close cursor_table
+		deallocate cursor_table
+	end
+----------------------------------------------------------------------------------------------------
+	--回寫 SPRICE
+	declare cursor_table cursor for
+	select tablea,accy,noa,noq,price,sprice,sprice2 from @tmp where isprice=1
+	open cursor_table
+	fetch next from cursor_table
+	into @tablea,@accy,@noa,@noq,@price,@sprice,@sprice2
+	while(@@FETCH_STATUS <> -1)
+	begin	
+	
+		set @cmd = "update "+@tablea+@accy+" set sprice=@sprice,sprice2=@sprice2 where noa=@noa and noq=@noq"
+		execute sp_executesql @cmd,N'@price float,@sprice float,@sprice2 float,@noa nvarchar(20),@noq nvarchar(10)'
+			,@price=@price,@sprice=@sprice,@sprice2=@sprice2,@noa=@noa,@noq=@noq
+		
+		fetch next from cursor_table
+		into @tablea,@accy,@noa,@noq,@price,@sprice,@sprice2
+	end
+	close cursor_table
+	deallocate cursor_table	
