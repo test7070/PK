@@ -31,19 +31,53 @@ z_cubm_pk02:--z_cubm_pk02   ref.z_cutp01
 		,datea nvarchar(10)--日期：X年X月X日
 		,odate nvarchar(10)--交期： X年X月X日
 		,memos nvarchar(max)
+		,size nvarchar(max)
 	)
 	insert into @tmp(gno,pno,noa,noq,memo
 		,productno,product,dime,width,lengthb,mount,[weight],custno,cust
-		,datea,odate,memos)
+		,datea,odate,memos,size)
 	select '1',1,b.noa,b.noq,a.memo
 		,b.productno,b.product,d.dime,d.width,d.lengthb,b.mount,b.[weight],d.custno,d.cust
-		,a.datea,ISNULL(c.datea,''),b.memo
+		,a.datea,ISNULL(c.datea,''),b.memo,b.size
 	from cubm a
 	left join cubms b on a.noa=b.noa
 	left join view_orde c on b.ordeno=c.noa
 	left join view_ordes d on b.ordeno=d.noa and b.no2=d.no2
 	where a.noa=@t_noa
 	order by a.noa,b.noq
+	
+	--訂單沒尺寸就從排程找
+	declare @sel int
+	declare @size nvarchar(max)
+	declare @dime nvarchar(max)
+	declare @width nvarchar(max)
+	declare @lengthb nvarchar(max)
+	
+	declare cursor_table cursor for
+	select sel,size from @tmp where dime=0 and width=0
+	open cursor_table
+	fetch next from cursor_table
+	into @sel,@size
+	while(@@FETCH_STATUS <> -1)
+	begin
+		select @dime='',@width='',@lengthb=''
+		set @dime = LEFT(@size,CHARINDEX('T',@size)-1)
+		set @size = SUBSTRING(@size,CHARINDEX('T*',@size)+2,LEN(@size))
+		set @width = LEFT(@size,CHARINDEX('*',@size)-1)
+		set @size = SUBSTRING(@size,CHARINDEX('*',@size)+1,LEN(@size))
+		set @lengthb = @size
+		begin try
+			update @tmp set dime=cast(@dime as float),width=cast(@width as float),lengthb=cast(@lengthb as float) where sel=@sel
+		end try
+		begin catch
+			--
+		end catch
+		
+		fetch next from cursor_table
+		into @sel,@size
+	end
+	close cursor_table
+	deallocate cursor_table	
 	---------------------------
 	--頭尾
 	insert into @tmp(gno,pno,product,dime,width)

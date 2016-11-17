@@ -1898,7 +1898,7 @@ z_ucc_pk03:--z_ucc_pk03
 			}
 		</script>'
 	
-	--排序目前是: 材質、 品名、厚、寬
+	--排序目前是: 品名、材質、 厚、寬
 	
 	select  "<a href="+CHAR(34)+"JavaScript:q_box('z_unobd.aspx',' "+CHAR(59)+""+uno+"','95%','95%',' ')"+char(34)+">"+cast(trecno as nvarchar)+"</a>" rr
 		,gno
