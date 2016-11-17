@@ -1590,7 +1590,7 @@ z_ucc_pk03:--z_ucc_pk03
 		and (CHARINDEX(',01,',','+@t_option+',')=0 or (CHARINDEX(',01,',','+@t_option+',')>0 and CHARINDEX('H',b.productno)=0))
 		and (len(@t_uno2)=0 or CHARINDEX(@t_uno2,b.uno2)>0)
 		and (len(@t_ordeno)=0 or b.ordeno=@t_ordeno)
-		order by style,productno,ISNULL(b.dime,0),ISNULL(b.width,0),ISNULL(b.lengthb,0)
+		order by style,productno,ISNULL(b.dime,0),ISNULL(b.width,0)
 		
 		delete #z_ucc_pk03 where not(storeno between @t_bstoreno and @t_estoreno)
 			or not(len(@t_ystore)=0 or charindex(','+storeno+',',','+@t_ystore+',')>0)
@@ -1646,7 +1646,7 @@ z_ucc_pk03:--z_ucc_pk03
 		--else if @n>1
 		--begin
 		--	if @n>1
-				update #z_ucc_pk03 set gno = '2' where sel=@sel --格線
+			update #z_ucc_pk03 set gno = '2' where sel=@sel --格線
 			insert into #z_ucc_pk03(gno,recno,recno2,uno,ordeno,ordesno2,ordetno2,omount,oweight
 				,style,productno,dime,width,isend,iscancel)	
 			select '3',a.recno,row_number()over(partition by a.uno order by b.noa,b.no3,b.no2)+1
@@ -1774,7 +1774,7 @@ z_ucc_pk03:--z_ucc_pk03
 		,recno int
 	)
 	insert into @tmpz(sel,recno)
-	select sel,ROW_NUMBER()over(order by style,productno,dime,width,lengthb,uno,recno,recno2) recno from #z_ucc_pk03 where recno2=1
+	select sel,ROW_NUMBER()over(order by style,productno,dime,width,uno,recno,recno2) recno from #z_ucc_pk03 where recno2=1
 		
 	update #z_ucc_pk03 set trecno=b.recno
 	from #z_ucc_pk03 a
@@ -1898,6 +1898,8 @@ z_ucc_pk03:--z_ucc_pk03
 			}
 		</script>'
 	
+	--排序目前是: 材質、 品名、厚、寬
+	
 	select  "<a href="+CHAR(34)+"JavaScript:q_box('z_unobd.aspx',' "+CHAR(59)+""+uno+"','95%','95%',' ')"+char(34)+">"+cast(trecno as nvarchar)+"</a>" rr
 		,gno
 		,@ss ss
@@ -1935,5 +1937,5 @@ z_ucc_pk03:--z_ucc_pk03
 		,'<textarea type="text" id="memo'+CAST(sel as nvarchar)+'" onchange="SaveMemo2(this)" style="width:95%" >'+memo3+'</textarea>'a30
 		,cutordeno a31
 	from #z_ucc_pk03
-	order by style,productno,dime,width,lengthb,uno,recno,recno2
+	order by style,productno,dime,width,uno,recno,recno2
 	drop table #z_ucc_pk03;
