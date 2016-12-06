@@ -538,7 +538,7 @@ z_anavccpk01:--z_anavccpk01
 	and not(ISNULL(a.[weight],0)=0 and ISNULL(a.[total],0)=0 and len(isnull(a.product,''))=0)
 	and ISNULL(a.productno,'') between @t_bproductno and @t_eproductno
 	and ISNULL(a.dime,0) between @t_bdime and @t_edime
-	
+
 	-- 出貨批號明細(包括 出貨&領料)
 	IF OBJECT_ID('tempdb..#z_anavccpk01_b')is not null
 	BEGIN
@@ -565,9 +565,11 @@ z_anavccpk01:--z_anavccpk01
 	)
 	insert into #z_anavccpk01_b(vccaccy,vccno,vccnoq,typea,datea,tablea,accy,noa,noq,uno,gweight,sprice,total)
 	select a.accy,a.noa,a.noq 
-		,b.typea,b.datea,'vcc',a.accy,a.noa,a.noq,a.uno,case when a.gweight!=0 then a.gweight else a.[weight] end,0,0
+		,b.typea,b.datea,'vcc',a.accy,a.noa,a.noq,a.uno
+		,case when a.gweight!=0 then a.gweight else a.[weight] end,0,0
 	from view_vccs a
 	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+	left join view_uccb c on a.uno=c.uno
 	where exists(select * from @tmpa where accy=a.accy and noa=a.noa)
 	and len(a.uno)>0
 	and b.datea between @t_bdate and @t_edate
@@ -575,10 +577,12 @@ z_anavccpk01:--z_anavccpk01
 	and (len(@t_stype)=0 or CHARINDEX(b.stype,@t_stype)>0)
 	and ISNULL(a.productno,'') between @t_bproductno and @t_eproductno
 	and ISNULL(a.dime,0) between @t_bdime and @t_edime
-	
+
 	insert into #z_anavccpk01_b(vccaccy,vccno,vccnoq,typea,datea,tablea,accy,noa,noq,uno,gweight,sprice,total)
 	select a.accy,a.noa,a.nor 
-		,b.typea,b.datea,'get',a.accy,a.noa,a.noq,a.uno,case when a.gweight!=0 then a.gweight else a.[weight] end,0,0
+		,b.typea,b.datea,'get',a.accy,a.noa,a.noq,a.uno
+		,case when a.gweight!=0 then a.gweight else a.[weight] end
+		,0,0
 	from view_gets a
 	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
 	left join view_vccs c on a.accy=c.accy and a.noa=c.noa and a.nor=c.noq
@@ -598,8 +602,9 @@ z_anavccpk01:--z_anavccpk01
 	from #z_anavccpk01_b a
 	outer apply(select * from  dbo.waste_pk(CHAR(255)) where uno=a.uno and mon=LEFT(a.datea,6)) b
 	where left(a.uno,1) between 'X' and 'Z'
-	
+
 	update #z_anavccpk01_b set total=round(sprice*gweight,0)
+
 	---------------------------------------------------------------------------------------------------
 	IF OBJECT_ID('tempdb..#z_anavccpk01_c')is not null
 	BEGIN
@@ -647,11 +652,13 @@ z_anavccpk01:--z_anavccpk01
 	
 	update #z_anavccpk01_c set cost=ISNULL(b.total,0)
 	from #z_anavccpk01_c a
-	left join (select b.custno,b.product,b.dime,sum(isnull(a.total,0)) total
+	left join (select b.custno,b.product,b.dime,sum(case when b.typea='2' then -1 else 1 end *isnull(a.total,0)) total
 		from #z_anavccpk01_b a
 		left join @tmpa b on a.vccaccy=b.accy and a.vccno=b.noa and a.vccnoq=b.noq
 		group by  b.custno,b.product,b.dime
 			) b on a.custno=b.custno and a.product=b.product and a.dime=b.dime
+	
+	
 	update #z_anavccpk01_c set profit = [money]-cost
 	update #z_anavccpk01_c set cust = b.nick
 	from #z_anavccpk01_c a
