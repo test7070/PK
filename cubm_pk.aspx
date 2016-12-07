@@ -35,11 +35,13 @@
 			);
 			brwCount2 = 5;
 			
+			var ucc = new Array();
+			
 			$(document).ready(function() {
 				bbmKey = ['noa'];
 				bbsKey = ['noa', 'noq'];
 				q_brwCount();
-				q_gt(q_name, q_content, q_sqlCount, 1, 0, '', r_accy);
+				q_gt('ucc', '', 0, 0, 0, "getUcc", r_accy);
 			});
 
 			function main() {
@@ -53,6 +55,53 @@
 			function sum() {
 				if (!(q_cur == 1 || q_cur == 2))
 					return;
+				for(var i=0;i<q_bbsCount;i++){
+					//備註第一個字是"*",重量會重新計算
+					if($('#txtMemo_'+i).val().substring(0,1)!='*')
+						continue;
+						
+					productno = $.trim($('#txtProductno_'+i).val()); 
+					mount = $.trim($('#txtMount_'+i).val());
+					size = $.trim($('#txtSize_'+i).val()).replace(' ','');
+					patt = /(.*)T\*(\d+)\*(\d+)/;
+					if(!patt.test(size)){
+						$('#txtWeight_'+i).val(0);
+						continue;
+					}
+					dime = size.replace(patt,'$1');
+					width = size.replace(patt,'$2');
+					length = size.replace(patt,'$3');
+					try{
+						dime = isNaN(parseFloat(dime))?0:parseFloat(dime); 
+					}catch(e){
+						dime = 0;
+					}
+					try{
+						width = isNaN(parseFloat(width))?0:parseFloat(width); 
+					}catch(e){
+						width = 0;
+					}
+					try{
+						length = isNaN(parseFloat(length))?0:parseFloat(length); 
+					}catch(e){
+						length = 0;
+					}
+					try{
+						mount = isNaN(parseFloat(mount))?0:parseFloat(mount);
+					}catch(e){
+						mount = 0;
+					}
+					density = 0;
+					for(var j=0;j<ucc.length;j++){
+						if(ucc[j].noa==productno){
+							density = ucc[j].density ;
+							break;
+						}
+					}
+					weight = round(q_mul(q_mul(q_mul(q_mul(dime,width),length),density),mount)/ 1000000,2);
+					console.log(dime*width*length*density*mount/1000000);
+					$('#txtWeight_'+i).val(weight);
+				}	
 			}
 
 			function mainPost() {
@@ -81,6 +130,7 @@
                         }else{
                         	Unlock(1);
                         }
+                        sum();
                         break;
 					case q_name + '_s':
 						q_boxClose2(s2);
@@ -91,6 +141,15 @@
 
 			function q_gtPost(t_name) {/// 資料下載後 ...
 				switch (t_name) {
+					case 'getUcc':
+						var as = _q_appendData("ucc", "", true);
+						if (as[0] != undefined){
+							for(var i=0;i<as.length;i++){
+								ucc.push({noa:as[i].noa,density:as[i].density});
+							}
+						}
+						q_gt(q_name, q_content, q_sqlCount, 1, 0, '', r_accy);
+						break;
 					case q_name:
 						if (q_cur == 4)// 查詢
 							q_Seek_gtPost();
@@ -141,16 +200,24 @@
 					$('#lblNo_' + i).text(i + 1);
 					if ($('#btnMinus_' + i).hasClass('isAssign')) 
 						continue;
-					$('#txtMount_'+i).change(function(e){
-						var n = $(this).attr('id').replace(/^(.*)_(\d+)$/,'$2');
-						
-					});
 					$('#txtSssno_' + i).bind('contextmenu', function(e) {
                         /*滑鼠右鍵*/
                         e.preventDefault();
                         var n = $(this).attr('id').replace(/^(.*)_(\d+)$/,'$2');
                         $('#btnSss_'+n).click();
                     });
+                    $('#txtProductno_'+i).change(function(e){
+						sum();
+					});
+                    $('#txtSize_'+i).change(function(e){
+						sum();
+					});
+					$('#txtMount_'+i).change(function(e){
+						sum();
+					});
+					$('#txtMemo_'+i).change(function(e){
+						sum();
+					});
 				}
 				_bbsAssign();
 			}
@@ -196,6 +263,9 @@
 
 			function q_popPost(s1) {
 				switch (s1) {
+					case 'txtProductno_':
+						sum();
+						break;
 					default:
                         break;
 				}
