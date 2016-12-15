@@ -1685,15 +1685,17 @@ z_ucc_pk03:--z_ucc_pk03
 	if CHARINDEX(',03,',','+@t_option+',')>0 and (len(@t_itype)=0 or @t_itype='1')
 	begin
 		--採購
+		--要扣除已進貨的,因為進貨已算入庫存
 		insert into #z_ucc_pk03(gno,recno,recno2,datea,storeno,[source],uno,place,style,productno,product,[class]
 			,dime,width,lengthb,radius,size,mount,[weight],emount,[eweight],price,memo
 			,ordcno,ordcsno2,msg,spec)
 		select '5',ROW_NUMBER()over(order by '*'+a.noa+'-'+a.no2),1
 			,b.datea,'',a.[source],'*'+a.noa+'-'+a.no2,'',a.style,a.productno,a.product,a.[class]
-			,a.dime,a.width,a.lengthb,a.radius,a.size,a.mount,a.[weight],a.mount,a.[weight],a.price,a.memo
+			,a.dime,a.width,a.lengthb,a.radius,a.size,a.mount,a.[weight],isnull(a.mount,0)-ISNULL(c.mount,0),isnull(a.[weight],0)-ISNULL(c.[weight],0),a.price,a.memo
 			,a.noa,a.no2,'採購',a.spec
 		from view_ordcs a
 		left join view_ordc b on a.accy=b.accy and a.noa=b.noa
+		outer apply(select SUM(ISNULL(mount,0)) mount,SUM(ISNULL([weight],0)) [weight] from view_rc2s where ordeno=a.noa and no2=a.no2) c
 		where ISNULL(b.enda,0)=0
 		and ISNULL(a.enda,0)=0
 		and ISNULL(b.cancel,0)=0
