@@ -349,7 +349,8 @@ z_uccpkk02:--z_uccpkk02
 	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
 	declare @t_storeno nvarchar(max) = case when '#non'=[7] then '' else [7] end
 	declare @t_option nvarchar(max) = case when '#non'=[8] then '' else [8] end
-
+	declare @t_uno nvarchar(max) = case when '#non'=[9] then '' else [9] end
+	
 	declare @t_waste nvarchar(max) = case when charindex('waste',@t_option)>0 then '1' else '' end
 	declare @t_detail nvarchar(max) = case when charindex('detail',@t_option)>0 then '1' else '' end
 	---------------------------------------------------------------------------------------------------
@@ -369,12 +370,14 @@ z_uccpkk02:--z_uccpkk02
 		,datea nvarchar(10)
 		,[weight] decimal(15,4)
 		,[money] decimal(15,4)
+		,storeno nvarchar(20)
 	)
 	--進貨
-	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],[money])
+	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],[money],storeno)
 	select a.accy,a.noa,a.noq 
 		,case when b.typea='1' then 'A1' else 'B1' end
 		,'1',a.uno,b.datea,ISNULL(a.[weight],0),ISNULL(a.[total],0)
+		,isnull(a.storeno,'')
 	from view_rc2s a
 	left join view_rc2 b on a.accy=b.accy and a.noa=b.noa
 	where left(b.datea,6) <= @t_mon
@@ -383,10 +386,11 @@ z_uccpkk02:--z_uccpkk02
 	and len(ISNULL(a.uno,''))>0
 	
 	--入庫:  出貨轉寄庫OR代工的都不算
-	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],[money])
+	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],[money],storeno)
 	select a.accy,a.noa,a.noq 
 		,'A2'
 		,b.itype,a.uno,b.datea,ISNULL(a.[weight],0),ISNULL(a.[total],0)
+		,isnull(a.storeno,'')
 	from view_inas a
 	left join view_ina b on a.accy=b.accy and a.noa=b.noa
 	left join view_vcc d on a.noa=d.noa
@@ -399,10 +403,11 @@ z_uccpkk02:--z_uccpkk02
 	
 	--裁剪入庫
 	--不管是不是買賣、裁完的廢鐵都算庫存
-	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],[money])
+	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],[money],storeno)
 	select	a.accy,a.noa,a.noq 
 		,'A3'
 		,b.itype,a.bno,b.datea,ISNULL(a.[weight],0),round(ISNULL(a.[weight],0)*ISNULL(a.[sprice],0),0)
+		,isnull(a.storeno,'')
 	from view_cuts a
 	left join view_cut b on a.accy=b.accy and a.noa=b.noa
 	where left(b.datea,6) <= @t_mon
@@ -412,12 +417,13 @@ z_uccpkk02:--z_uccpkk02
 	and len(ISNULL(a.bno,''))>0
 	
 	--出貨
-	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],[money])
+	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],[money],storeno)
 	select a.accy,a.noa,a.noq 
 		,case when b.typea='1' then 'B4' else 'A4' end
 		,'',a.uno,b.datea
 		,case when ISNULL(a.[gweight],0)!=0 then a.gweight else a.[weight] end
 		,case when b.typea='1' then null else a.total end
+		,isnull(a.storeno,'')
 	from view_vccs a
 	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
 	left join view_uccb c on a.uno=c.uno
@@ -428,11 +434,12 @@ z_uccpkk02:--z_uccpkk02
 	and len(ISNULL(a.uno,''))>0
 	
 	--領料:   出貨扣庫存都是在領料作業
-	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight])
+	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],storeno)
 	select a.accy,a.noa,a.noq 
 		,case when d.noa is not null and d.typea='1' then 'B4' when d.noa is not null then 'A4' else 'B5' end
 		,case when d.noa is not null then d.typea else '' end,a.uno,b.datea
 		,case when ISNULL(a.[gweight],0)!=0 then a.gweight else a.[weight] end
+		,isnull(a.storeno,'')
 	from view_gets a
 	left join view_get b on a.accy=b.accy and a.noa=b.noa
 	left join view_uccb c on a.uno=c.uno
@@ -444,11 +451,12 @@ z_uccpkk02:--z_uccpkk02
 	and len(ISNULL(a.uno,''))>0
 
 	--裁剪領料 
-	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight])
+	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],storeno)
 	select a.accy,a.noa,''
 		,'B6'
 		,'',a.uno,a.datea
 		,ISNULL(a.[gweight],0)
+		,isnull(a.storeno,'')
 	from view_cut a	
 	left join view_uccb c on a.uno=c.uno
 	where left(a.datea,6) <= @t_mon
@@ -456,7 +464,39 @@ z_uccpkk02:--z_uccpkk02
 	and ((len(@t_waste)=0 and not(LEFT(a.uno,1) between 'X' and 'Z') and (ISNULL(c.productno,'') between @t_bproductno and @t_eproductno))
 		or (len(@t_waste)>0 and LEFT(a.uno,1) between 'X' and 'Z'))
 	and len(ISNULL(a.uno,''))>0
-
+	
+	--調撥入庫
+	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],storeno)
+	select a.accy,a.noa,a.noq
+		,'A7'
+		,'',a.uno,b.datea
+		,ISNULL(a.[weight],0)
+		,isnull(b.storeinno,'')
+	from view_cngs a	
+	left join view_cng b on a.accy=b.accy and a.noa=b.noa
+	where left(b.datea,6) <= @t_mon
+	and ((len(@t_waste)=0 and not(LEFT(a.uno,1) between 'X' and 'Z') and (ISNULL(a.productno,'') between @t_bproductno and @t_eproductno))
+		or (len(@t_waste)>0 and LEFT(a.uno,1) between 'X' and 'Z'))
+	and len(ISNULL(a.uno,''))>0
+	
+	--調撥出庫
+	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],storeno)
+	select a.accy,a.noa,a.noq
+		,'B7'
+		,'',a.uno,b.datea
+		,ISNULL(a.[weight],0)
+		,isnull(b.storeno,'')
+	from view_cngs a	
+	left join view_cng b on a.accy=b.accy and a.noa=b.noa
+	where left(b.datea,6) <= @t_mon
+	and ((len(@t_waste)=0 and not(LEFT(a.uno,1) between 'X' and 'Z') and (ISNULL(a.productno,'') between @t_bproductno and @t_eproductno))
+		or (len(@t_waste)>0 and LEFT(a.uno,1) between 'X' and 'Z'))
+	and len(ISNULL(a.uno,''))>0
+	--------------------------------------------------------------------------------------
+	if LEN(@t_uno)>0
+	begin
+		delete #z_uccpkk02 where uno!=@t_uno
+	end
 	---------------------------------------------------------------------------------------
 	-- 一般庫存
 	update #z_uccpkk02 set [money]= round(a.[weight]*b.sprice,0)
@@ -513,6 +553,7 @@ z_uccpkk02:--z_uccpkk02
 	declare @tmpa table(
 		sel int identity(1,1)
 		,uno nvarchar(30)
+		,storeno nvarchar(20)
 		,mon nvarchar(10)
 		,weight_begin decimal(15,4)
 		,weight_rc2 decimal(15,4)
@@ -523,6 +564,8 @@ z_uccpkk02:--z_uccpkk02
 		,weight_vccbk decimal(15,4)
 		,weight_get decimal(15,4)
 		,weight_cut decimal(15,4)
+		,weight_cngin decimal(15,4)
+		,weight_cngout decimal(15,4)
 		,weight_result decimal(15,4)
 		,money_begin decimal(15,4)
 		,money_rc2 decimal(15,4)
@@ -533,6 +576,8 @@ z_uccpkk02:--z_uccpkk02
 		,money_vccbk decimal(15,4)
 		,money_get decimal(15,4)
 		,money_cut decimal(15,4)
+		,money_cngin decimal(15,4)
+		,money_cngout decimal(15,4)
 		,money_result decimal(15,4)
 		,price decimal(15,4)
 	)
@@ -553,7 +598,7 @@ z_uccpkk02:--z_uccpkk02
 		if len(@bmon)>0
 		begin
 			--代入期初
-			insert into @tmpa(uno,mon,weight_begin,money_begin
+			insert into @tmpa(uno,storeno,mon,weight_begin,money_begin
 				,weight_rc2,money_rc2
 				,weight_ina,money_ina
 				,weight_cuts,money_cuts
@@ -561,8 +606,12 @@ z_uccpkk02:--z_uccpkk02
 				,weight_vcc,money_vcc
 				,weight_vccbk,money_vccbk
 				,weight_get,money_get
-				,weight_cut,money_cut)
-			select uno,@mon,weight_result,money_result
+				,weight_cut,money_cut
+				,weight_cngin,money_cngin
+				,weight_cngout,money_cngout)
+			select uno,storeno,@mon,weight_result,money_result
+				,0,0
+				,0,0
 				,0,0
 				,0,0
 				,0,0
@@ -574,8 +623,14 @@ z_uccpkk02:--z_uccpkk02
 			from @tmpa
 			where mon = @bmon
 		end
+		--調撥的單價都以上個月的為依據
+		update #z_uccpkk02 set [money]=round(a.[weight]*isnull(c.[price],0),0)
+		from #z_uccpkk02 a
+		left join view_cng b on b.accy=a.accy and b.noa=a.noa
+		left join @tmpa c on a.uno=c.uno and b.storeno=c.storeno and c.mon = @bmon
+		where (a.typea='A7') and LEFT(a.datea,6)=@mon
 		
-		insert into @tmpa(uno,mon,weight_begin,money_begin
+		insert into @tmpa(uno,storeno,mon,weight_begin,money_begin
 			,weight_rc2,money_rc2
 			,weight_ina,money_ina
 			,weight_cuts,money_cuts
@@ -583,8 +638,10 @@ z_uccpkk02:--z_uccpkk02
 			,weight_vcc,money_vcc
 			,weight_vccbk,money_vccbk
 			,weight_get,money_get
-			,weight_cut,money_cut)
-		select a.uno,@mon,0,0
+			,weight_cut,money_cut
+			,weight_cngin,money_cngin
+			,weight_cngout,money_cngout)
+		select a.uno,a.storeno,@mon,0,0
 			,0,0
 			,0,0
 			,0,0
@@ -593,11 +650,13 @@ z_uccpkk02:--z_uccpkk02
 			,0,0
 			,0,0
 			,0,0
-		from(select uno from #z_uccpkk02 
+			,0,0
+			,0,0
+		from(select uno,storeno from #z_uccpkk02 
 			where LEFT(uno,1) between 'X' and 'Z'
 			and left(datea,6)=@mon
-			group by uno) a
-		left join @tmpa b on a.uno=b.uno and b.mon=@mon
+			group by uno,storeno) a
+		left join @tmpa b on a.uno=b.uno and a.storeno=b.storeno and b.mon=@mon
 		where b.uno is null
 		
 		update @tmpa set 
@@ -609,8 +668,10 @@ z_uccpkk02:--z_uccpkk02
 			,weight_vccbk=isnull(b.weight_vccbk,0),money_vccbk=ISNULL(b.money_vccbk,0)
 			,weight_get=isnull(b.weight_get,0),money_get=ISNULL(b.money_get,0)
 			,weight_cut=isnull(b.weight_cut,0),money_cut=ISNULL(b.money_cut,0)
+			,weight_cngin=isnull(b.weight_cngin,0),money_cngin=ISNULL(b.money_cngin,0)
+			,weight_cngout=isnull(b.weight_cngout,0),money_cngout=ISNULL(b.money_cngout,0)
 		from @tmpa a
-		left join (select uno
+		left join (select uno,storeno
 			,SUM(case when typea='A1' then [weight] else 0 end) weight_rc2
 			,SUM(case when typea='A1' then [money] else 0 end) money_rc2
 			,SUM(case when typea='A2' then [weight] else 0 end) weight_ina
@@ -627,29 +688,34 @@ z_uccpkk02:--z_uccpkk02
 			,SUM(case when typea='B5' then [money] else 0 end) money_get
 			,SUM(case when typea='B6' then [weight] else 0 end) weight_cut
 			,SUM(case when typea='B6' then [money] else 0 end) money_cut
+			,SUM(case when typea='A7' then [weight] else 0 end) weight_cngin
+			,SUM(case when typea='A7' then [money] else 0 end) money_cngin
+			,SUM(case when typea='B7' then [weight] else 0 end) weight_cngout
+			,SUM(case when typea='B7' then [money] else 0 end) money_cngout
 			from #z_uccpkk02 
 			where LEFT(uno,1) between 'X' and 'Z'
 			and left(datea,6)=@mon
-			group by uno) b on a.uno=b.uno
+			group by uno,storeno) b on a.uno=b.uno and a.storeno=b.storeno
 		where a.mon=@mon
 		--本期成本單價 = (期初金額+本期入庫金額)/(期初重量+本期入庫重量)
-		update @tmpa set price = case when weight_begin+weight_rc2+weight_ina+weight_cuts-weight_rc2bk=0 then 0 else round((money_begin+money_rc2+money_ina+money_cuts-money_rc2bk)/(weight_begin+weight_rc2+weight_ina+weight_cuts-weight_rc2bk),4) end where mon=@mon
+		update @tmpa set price = case when weight_begin+weight_rc2+weight_ina+weight_cuts-weight_rc2bk+weight_cngin=0 then 0 else round((money_begin+money_rc2+money_ina+money_cuts-money_rc2bk+money_cngin)/(weight_begin+weight_rc2+weight_ina+weight_cuts-weight_rc2bk+weight_cngin),4) end where mon=@mon
 		update @tmpa set money_vcc = round(weight_vcc*price,0)
 			,money_vccbk = round(weight_vccbk*price,0) 
 			,money_get = round(weight_get*price,0) 
 			,money_cut = round(weight_cut*price,0) 
+			,money_cngout = round(weight_cngout*price,0) 
 			where mon=@mon
-		update @tmpa set weight_result = weight_begin+weight_rc2+weight_ina+weight_cuts-weight_rc2bk - (weight_vcc-weight_vccbk+weight_get+weight_cut)
-			,money_result = money_begin+money_rc2+money_ina+money_cuts-money_rc2bk - (money_vcc-money_vccbk+money_get+money_cut)
+		update @tmpa set weight_result = weight_begin+weight_rc2+weight_ina+weight_cuts+weight_cngin-weight_rc2bk - (weight_vcc-weight_vccbk+weight_get+weight_cut+weight_cngout)
+			,money_result = money_begin+money_rc2+money_ina+money_cuts-money_rc2bk+money_cngin - (money_vcc-money_vccbk+money_get+money_cut+money_cngout)
 		where mon=@mon
 
 		set @bmon = @mon
 		set @bdate = DATEADD(MM,1,@bdate)
 	end
-	
+
 	-- 刪除沒資料的
 	delete @tmpa
-	where weight_begin=0 and weight_rc2=0 and weight_ina=0 and weight_cuts=0 and weight_rc2bk=0 and weight_vcc=0 and weight_vccbk=0 and weight_get=0 and weight_cut=0
+	where weight_begin=0 and weight_rc2=0 and weight_ina=0 and weight_cuts=0 and weight_rc2bk=0 and weight_vcc=0 and weight_vccbk=0 and weight_get=0 and weight_cut=0 and weight_cngin=0 and weight_cngout=0
 	--------------------------------------------------------------------------------------------------------
 	IF OBJECT_ID('tempdb..#z_uccpkk02_b')is not null
 	BEGIN
@@ -658,6 +724,7 @@ z_uccpkk02:--z_uccpkk02
 	create table #z_uccpkk02_b(
 		sel int identity(1,1)
 		,uno nvarchar(30)
+		,storeno nvarchar(20)
 		,productno nvarchar(30)
 		,product nvarchar(50)
 		,dime float
@@ -673,6 +740,8 @@ z_uccpkk02:--z_uccpkk02
 		,weight_vccbk float
 		,weight_get float
 		,weight_cut float
+		,weight_cngin float
+		,weight_cngout float
 		,weight_result float
 		,money_begin float
 		,money_rc2 float
@@ -683,9 +752,11 @@ z_uccpkk02:--z_uccpkk02
 		,money_vccbk float
 		,money_get float
 		,money_cut float
+		,money_cngin float
+		,money_cngout float
 		,money_result float
 	)
-	insert into #z_uccpkk02_b(uno,weight_begin,money_begin
+	insert into #z_uccpkk02_b(uno,storeno,weight_begin,money_begin
 		,weight_rc2,money_rc2
 		,weight_ina,money_ina
 		,weight_cuts,money_cuts
@@ -693,10 +764,14 @@ z_uccpkk02:--z_uccpkk02
 		,weight_vcc,money_vcc
 		,weight_vccbk,money_vccbk
 		,weight_get,money_get
-		,weight_cut,money_cut)
-	select uno
+		,weight_cut,money_cut
+		,weight_cngin,money_cngin
+		,weight_cngout,money_cngout)
+	select uno,storeno
 		,SUM(case when LEFT(typea,1)='A' then 1 else -1 end * ISNULL([weight],0)) [weight]
 		,SUM(case when LEFT(typea,1)='A' then 1 else -1 end * ISNULL([money],0)) [money]
+		,0,0
+		,0,0
 		,0,0
 		,0,0
 		,0,0
@@ -708,9 +783,10 @@ z_uccpkk02:--z_uccpkk02
 	from #z_uccpkk02
 	where left(datea,6)<@t_mon
 	and not(LEFT(uno,1) between 'X' and 'Z')
-	group by uno
+	group by uno,storeno
 	-----------------------------------------------------------------------------------------------
 	declare @uno nvarchar(30)
+	declare @storeno nvarchar(20)
 	declare @weight_rc2 float
 	declare @weight_ina float
 	declare @weight_cuts float
@@ -719,6 +795,8 @@ z_uccpkk02:--z_uccpkk02
 	declare @weight_vccbk float
 	declare @weight_get float
 	declare @weight_cut float
+	declare @weight_cngin float
+	declare @weight_cngout float
 	
 	declare @money_rc2 float
 	declare @money_ina float
@@ -728,9 +806,11 @@ z_uccpkk02:--z_uccpkk02
 	declare @money_vccbk float
 	declare @money_get float
 	declare @money_cut float
+	declare @money_cngin float
+	declare @money_cngout float
 	
 	declare cursor_table cursor for
-	select uno
+	select uno,storeno
 		,SUM(case when typea='A1' then [weight] else 0 end) weight_rc2
 		,SUM(case when typea='A1' then [money] else 0 end) money_rc2
 		,SUM(case when typea='A2' then [weight] else 0 end) weight_ina
@@ -747,13 +827,17 @@ z_uccpkk02:--z_uccpkk02
 		,SUM(case when typea='B5' then [money] else 0 end) money_get
 		,SUM(case when typea='B6' then [weight] else 0 end) weight_cut
 		,SUM(case when typea='B6' then [money] else 0 end) money_cut
+		,SUM(case when typea='A7' then [weight] else 0 end) weight_cngin
+		,SUM(case when typea='A7' then [money] else 0 end) money_cngin
+		,SUM(case when typea='B7' then [weight] else 0 end) weight_cngout
+		,SUM(case when typea='B7' then [money] else 0 end) money_cngout
 	from #z_uccpkk02
 	where left(datea,6)=@t_mon
 	and not(LEFT(uno,1) between 'X' and 'Z')
-	group by uno
+	group by uno,storeno
 	open cursor_table
 	fetch next from cursor_table
-	into @uno,@weight_rc2,@money_rc2
+	into @uno,@storeno,@weight_rc2,@money_rc2
 		,@weight_ina,@money_ina
 		,@weight_cuts,@money_cuts
 		,@weight_rc2bk,@money_rc2bk
@@ -761,6 +845,8 @@ z_uccpkk02:--z_uccpkk02
 		,@weight_vccbk,@money_vccbk
 		,@weight_get,@money_get
 		,@weight_cut,@money_cut
+		,@weight_cngin,@money_cngin
+		,@weight_cngout,@money_cngout
 	while(@@FETCH_STATUS <> -1)
 	begin	
 		if not exists(select * from #z_uccpkk02_b where uno=@uno)
@@ -773,8 +859,12 @@ z_uccpkk02:--z_uccpkk02
 				,weight_vcc,money_vcc
 				,weight_vccbk,money_vccbk
 				,weight_get,money_get
-				,weight_cut,money_cut)
+				,weight_cut,money_cut
+				,weight_cngin,money_cngin
+				,weight_cngout,money_cngout)
 			select @uno,0,0
+				,0,0
+				,0,0
 				,0,0
 				,0,0
 				,0,0
@@ -793,6 +883,8 @@ z_uccpkk02:--z_uccpkk02
 			,weight_vccbk = weight_vccbk + @weight_vccbk
 			,weight_get = weight_get + @weight_get
 			,weight_cut = weight_cut + @weight_cut
+			,weight_cngin = weight_cngin + @weight_cngin
+			,weight_cngout = weight_cngout + @weight_cngout
 			,money_rc2 = money_rc2 + @money_rc2
 			,money_ina = money_ina + @money_ina
 			,money_cuts = money_cuts + @money_cuts
@@ -801,10 +893,12 @@ z_uccpkk02:--z_uccpkk02
 			,money_vccbk = money_vccbk + @money_vccbk
 			,money_get = money_get + @money_get
 			,money_cut = money_cut + @money_cut
-		where uno = @uno
+			,money_cngin = money_cngin + @money_cngin
+			,money_cngout = money_cngout + @money_cngout
+		where uno = @uno and storeno=@storeno
 			
 		fetch next from cursor_table
-		into @uno,@weight_rc2,@money_rc2
+		into @uno,@storeno,@weight_rc2,@money_rc2
 		,@weight_ina,@money_ina
 		,@weight_cuts,@money_cuts
 		,@weight_rc2bk,@money_rc2bk
@@ -812,13 +906,15 @@ z_uccpkk02:--z_uccpkk02
 		,@weight_vccbk,@money_vccbk
 		,@weight_get,@money_get
 		,@weight_cut,@money_cut
+		,@weight_cngin,@money_cngin
+		,@weight_cngout,@money_cngout
 	end
 	close cursor_table
 	deallocate cursor_table
 	
 	-- 刪除沒資料的
 	delete #z_uccpkk02_b 
-	where weight_begin=0 and weight_rc2=0 and weight_ina=0 and weight_cuts=0 and weight_rc2bk=0 and weight_vcc=0 and weight_vccbk=0 and weight_get=0 and weight_cut=0
+	where weight_begin=0 and weight_rc2=0 and weight_ina=0 and weight_cuts=0 and weight_rc2bk=0 and weight_vcc=0 and weight_vccbk=0 and weight_get=0 and weight_cut=0 and weight_cngin=0 and weight_cngout=0
 	--and money_begin=0 and money_rc2=0 and money_ina=0 and money_cuts=0 and money_rc2bk=0 and money_vcc=0 and money_vccbk=0 and money_get=0 and money_cut=0
 
 	update #z_uccpkk02_b set productno=ISNULL(b.productno,'')
@@ -841,6 +937,8 @@ z_uccpkk02:--z_uccpkk02
 		,gno nvarchar(10)
 		,pno int
 		,uno nvarchar(30)
+		,storeno nvarchar(20)
+		,store nvarchar(20)
 		,productno nvarchar(30)
 		,product nvarchar(50)
 		,dime float
@@ -856,6 +954,8 @@ z_uccpkk02:--z_uccpkk02
 		,weight_vccbk float
 		,weight_get float
 		,weight_cut float
+		,weight_cngin float
+		,weight_cngout float
 		,weight_result float
 		,money_begin float
 		,money_rc2 float
@@ -866,6 +966,8 @@ z_uccpkk02:--z_uccpkk02
 		,money_vccbk float
 		,money_get float
 		,money_cut float
+		,money_cngin float
+		,money_cngout float
 		,money_result float
 		,price_begin float
 		,price_rc2 float
@@ -876,6 +978,8 @@ z_uccpkk02:--z_uccpkk02
 		,price_vccbk float
 		,price_get float
 		,price_cut float
+		,price_cngin float
+		,price_cngout float
 		,price_result float
 		
 		,href nvarchar(max)
@@ -891,7 +995,9 @@ z_uccpkk02:--z_uccpkk02
 		,weight_vcc,money_vcc
 		,weight_vccbk,money_vccbk
 		,weight_get,money_get
-		,weight_cut,money_cut)
+		,weight_cut,money_cut
+		,weight_cngin,money_cngin
+		,weight_cngout,money_cngout)
 	select '1',1,productno,product,dime,width,lengthb,radius
 		,sum(isnull(weight_begin,0)),sum(isnull(money_begin,0))
 		,sum(isnull(weight_rc2,0)),sum(isnull(money_rc2,0))
@@ -902,10 +1008,12 @@ z_uccpkk02:--z_uccpkk02
 		,sum(isnull(weight_vccbk,0)),sum(isnull(money_vccbk,0))
 		,sum(isnull(weight_get,0)),sum(isnull(money_get,0))
 		,sum(isnull(weight_cut,0)),sum(isnull(money_cut,0))
+		,sum(isnull(weight_cngin,0)),sum(isnull(money_cngin,0))
+		,sum(isnull(weight_cngout,0)),sum(isnull(money_cngout,0))
 	from #z_uccpkk02_b 
 	group by productno,product,dime,width,lengthb,radius
 	-- 廢料
-	insert into #z_uccpkk02_c(gno,pno,productno,product
+	insert into #z_uccpkk02_c(gno,pno,productno,product,storeno
 		,weight_begin,money_begin
 		,weight_rc2,money_rc2
 		,weight_ina,money_ina
@@ -914,8 +1022,10 @@ z_uccpkk02:--z_uccpkk02
 		,weight_vcc,money_vcc
 		,weight_vccbk,money_vccbk
 		,weight_get,money_get
-		,weight_cut,money_cut)
-	select '1',2,uno,uno
+		,weight_cut,money_cut
+		,weight_cngin,money_cngin
+		,weight_cngout,money_cngout)
+	select '1',2,uno,uno,storeno
 		,sum(isnull(weight_begin,0)),sum(isnull(money_begin,0))
 		,sum(isnull(weight_rc2,0)),sum(isnull(money_rc2,0))
 		,sum(isnull(weight_ina,0)),sum(isnull(money_ina,0))
@@ -925,15 +1035,15 @@ z_uccpkk02:--z_uccpkk02
 		,sum(isnull(weight_vccbk,0)),sum(isnull(money_vccbk,0))
 		,sum(isnull(weight_get,0)),sum(isnull(money_get,0))
 		,sum(isnull(weight_cut,0)),sum(isnull(money_cut,0))
+		,sum(isnull(weight_cngin,0)),sum(isnull(money_cngin,0))
+		,sum(isnull(weight_cngout,0)),sum(isnull(money_cngout,0))
 	from @tmpa
 	where mon=@t_mon
-	group by uno
+	group by uno,storeno
 
-
-	
 	update #z_uccpkk02_c set recno=b.recno
 	from #z_uccpkk02_c a
-	left join (select sel,ROW_NUMBER()over(order by pno,product,dime,width,lengthb) recno from #z_uccpkk02_c) b on a.sel=b.sel
+	left join (select sel,ROW_NUMBER()over(order by pno,product,storeno,dime,width,lengthb) recno from #z_uccpkk02_c) b on a.sel=b.sel
 
 	-- sum
 	insert into #z_uccpkk02_c(gno,pno
@@ -945,7 +1055,9 @@ z_uccpkk02:--z_uccpkk02
 		,weight_vcc,money_vcc
 		,weight_vccbk,money_vccbk
 		,weight_get,money_get
-		,weight_cut,money_cut)
+		,weight_cut,money_cut
+		,weight_cngin,money_cngin
+		,weight_cngout,money_cngout)
 	select '2',3
 		,sum(isnull(weight_begin,0)),sum(isnull(money_begin,0))
 		,sum(isnull(weight_rc2,0)),sum(isnull(money_rc2,0))
@@ -956,21 +1068,13 @@ z_uccpkk02:--z_uccpkk02
 		,sum(isnull(weight_vccbk,0)),sum(isnull(money_vccbk,0))
 		,sum(isnull(weight_get,0)),sum(isnull(money_get,0))
 		,sum(isnull(weight_cut,0)),sum(isnull(money_cut,0))
+		,sum(isnull(weight_cngin,0)),sum(isnull(money_cngin,0))
+		,sum(isnull(weight_cngout,0)),sum(isnull(money_cngout,0))
 	from #z_uccpkk02_c
 	
 	if len(@t_detail)>0
 	begin
-		insert into #z_uccpkk02_c(gno,pno,uno,productno,product,dime,width,lengthb,radius
-			,weight_begin,money_begin
-			,weight_rc2,money_rc2
-			,weight_ina,money_ina
-			,weight_cuts,money_cuts
-			,weight_rc2bk,money_rc2bk
-			,weight_vcc,money_vcc
-			,weight_vccbk,money_vccbk
-			,weight_get,money_get
-			,weight_cut,money_cut)
-		select '3',1,uno,productno,product,dime,width,lengthb,radius
+		insert into #z_uccpkk02_c(gno,pno,uno,productno,product,storeno,dime,width,lengthb,radius
 			,weight_begin,money_begin
 			,weight_rc2,money_rc2
 			,weight_ina,money_ina
@@ -980,6 +1084,20 @@ z_uccpkk02:--z_uccpkk02
 			,weight_vccbk,money_vccbk
 			,weight_get,money_get
 			,weight_cut,money_cut
+			,weight_cngin,money_cngin
+			,weight_cngout,money_cngout)
+		select '3',1,uno,productno,product,storeno,dime,width,lengthb,radius
+			,weight_begin,money_begin
+			,weight_rc2,money_rc2
+			,weight_ina,money_ina
+			,weight_cuts,money_cuts
+			,weight_rc2bk,money_rc2bk
+			,weight_vcc,money_vcc
+			,weight_vccbk,money_vccbk
+			,weight_get,money_get
+			,weight_cut,money_cut
+			,weight_cngin,money_cngin
+			,weight_cngout,money_cngout
 		from #z_uccpkk02_b
 		order by product,dime,width,lengthb,uno
 	end
@@ -988,8 +1106,8 @@ z_uccpkk02:--z_uccpkk02
 	if len(@t_waste)>0 and len(@t_detail)>0
 	begin
 		--進貨
-		insert into #z_uccpkk02_c(gno,pno,product,weight_rc2,money_rc2,href)
-		select '4',2,uno,[weight],[money]
+		insert into #z_uccpkk02_c(gno,pno,product,storeno,weight_rc2,money_rc2,href)
+		select '4',2,uno,storeno,[weight],[money]
 			,"<a href="+CHAR(34)+"JavaScript:q_box('rc2st.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
 		from #z_uccpkk02
 		where LEFT(datea,6)=@t_mon 
@@ -997,8 +1115,8 @@ z_uccpkk02:--z_uccpkk02
 		and typea='A1'
 		order by datea,noa,noq
 		--進貨退回
-		insert into #z_uccpkk02_c(gno,pno,product,weight_rc2bk,money_rc2bk,href)
-		select '4',2,uno,[weight],[money]
+		insert into #z_uccpkk02_c(gno,pno,product,storeno,weight_rc2bk,money_rc2bk,href)
+		select '4',2,uno,storeno,[weight],[money]
 			,"<a href="+CHAR(34)+"JavaScript:q_box('rc2st.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
 		from #z_uccpkk02
 		where LEFT(datea,6)=@t_mon 
@@ -1006,8 +1124,8 @@ z_uccpkk02:--z_uccpkk02
 		and typea='B1'
 		order by datea,noa,noq
 		--入庫
-		insert into #z_uccpkk02_c(gno,pno,product,weight_ina,money_ina,href)
-		select '4',2,uno,[weight],[money]
+		insert into #z_uccpkk02_c(gno,pno,product,storeno,weight_ina,money_ina,href)
+		select '4',2,uno,storeno,[weight],[money]
 			,"<a href="+CHAR(34)+"JavaScript:q_box('inast.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
 		from #z_uccpkk02
 		where LEFT(datea,6)=@t_mon 
@@ -1015,8 +1133,8 @@ z_uccpkk02:--z_uccpkk02
 		and typea='A2'
 		order by datea,noa,noq
 		--裁剪入庫
-		insert into #z_uccpkk02_c(gno,pno,product,weight_cuts,money_cuts,href)
-		select '4',2,uno,[weight],[money]
+		insert into #z_uccpkk02_c(gno,pno,product,storeno,weight_cuts,money_cuts,href)
+		select '4',2,uno,storeno,[weight],[money]
 			,"<a href="+CHAR(34)+"JavaScript:q_box('cut.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
 		from #z_uccpkk02
 		where LEFT(datea,6)=@t_mon 
@@ -1024,8 +1142,8 @@ z_uccpkk02:--z_uccpkk02
 		and typea='A3'
 		order by datea,noa,noq
 		--出貨
-		insert into #z_uccpkk02_c(gno,pno,product,weight_vcc,money_vcc,href)
-		select '4',2,uno,[weight],[money]
+		insert into #z_uccpkk02_c(gno,pno,product,storeno,weight_vcc,money_vcc,href)
+		select '4',2,uno,storeno,[weight],[money]
 			,"<a href="+CHAR(34)+"JavaScript:q_box('vcc_pk.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
 		from #z_uccpkk02
 		where LEFT(datea,6)=@t_mon 
@@ -1033,8 +1151,8 @@ z_uccpkk02:--z_uccpkk02
 		and typea='B4'
 		order by datea,noa,noq
 		--出貨退回
-		insert into #z_uccpkk02_c(gno,pno,product,weight_vccbk,money_vccbk,href)
-		select '4',2,uno,[weight],[money]
+		insert into #z_uccpkk02_c(gno,pno,product,storeno,weight_vccbk,money_vccbk,href)
+		select '4',2,uno,storeno,[weight],[money]
 			,"<a href="+CHAR(34)+"JavaScript:q_box('vcc_pk.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
 		from #z_uccpkk02
 		where LEFT(datea,6)=@t_mon 
@@ -1042,8 +1160,8 @@ z_uccpkk02:--z_uccpkk02
 		and typea='A4'
 		order by datea,noa,noq
 		--領料
-		insert into #z_uccpkk02_c(gno,pno,product,weight_get,money_get,href)
-		select '4',2,uno,[weight],[money]
+		insert into #z_uccpkk02_c(gno,pno,product,storeno,weight_get,money_get,href)
+		select '4',2,uno,storeno,[weight],[money]
 			,"<a href="+CHAR(34)+"JavaScript:q_box('getst.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
 		from #z_uccpkk02
 		where LEFT(datea,6)=@t_mon 
@@ -1051,19 +1169,37 @@ z_uccpkk02:--z_uccpkk02
 		and typea='B5'
 		order by datea,noa,noq
 		--裁剪領料
-		insert into #z_uccpkk02_c(gno,pno,product,weight_cut,money_cut,href)
-		select '4',2,uno,[weight],[money]
+		insert into #z_uccpkk02_c(gno,pno,product,storeno,weight_cut,money_cut,href)
+		select '4',2,uno,storeno,[weight],[money]
 			,"<a href="+CHAR(34)+"JavaScript:q_box('cut.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
 		from #z_uccpkk02
 		where LEFT(datea,6)=@t_mon 
 		and LEFT(uno,1)between 'X' and 'Z'
 		and typea='B6'
 		order by datea,noa,noq
+		--調撥入庫
+		insert into #z_uccpkk02_c(gno,pno,product,storeno,weight_cngin,money_cngin,href)
+		select '4',2,uno,storeno,[weight],[money]
+			,"<a href="+CHAR(34)+"JavaScript:q_box('cngst.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
+		from #z_uccpkk02
+		where LEFT(datea,6)=@t_mon 
+		and LEFT(uno,1)between 'X' and 'Z'
+		and typea='A7'
+		order by datea,noa,noq
+		--調撥出庫
+		insert into #z_uccpkk02_c(gno,pno,product,storeno,weight_cngout,money_cngout,href)
+		select '4',2,uno,storeno,[weight],[money]
+			,"<a href="+CHAR(34)+"JavaScript:q_box('cngst.aspx',' "+CHAR(59)+"noa=\'"+noa+"\'','95%','95%','"+accy+"')"+char(34)+">"+noa+"</a>"
+		from #z_uccpkk02
+		where LEFT(datea,6)=@t_mon 
+		and LEFT(uno,1)between 'X' and 'Z'
+		and typea='B7'
+		order by datea,noa,noq
 	end
 	
 	-- total & price
-	update #z_uccpkk02_c set weight_result = weight_begin + weight_rc2 + weight_ina + weight_cuts - weight_rc2bk - weight_vcc + weight_vccbk - weight_get - weight_cut
-		,money_result = money_begin + money_rc2 + money_ina + money_cuts - money_rc2bk - money_vcc + money_vccbk - money_get - money_cut
+	update #z_uccpkk02_c set weight_result = weight_begin + weight_rc2 + weight_ina + weight_cuts - weight_rc2bk - weight_vcc + weight_vccbk - weight_get - weight_cut + weight_cngin - weight_cngout 
+		,money_result = money_begin + money_rc2 + money_ina + money_cuts - money_rc2bk - money_vcc + money_vccbk - money_get - money_cut + money_cngin - money_cngout
 	where gno='1' or gno='2'
 	update #z_uccpkk02_c set price_begin = case when weight_begin=0 then 0 else ROUND(money_begin/weight_begin,4) end
 		,price_rc2 = case when weight_rc2=0 then 0 else ROUND(money_rc2/weight_rc2,4) end
@@ -1074,12 +1210,20 @@ z_uccpkk02:--z_uccpkk02
 		,price_vccbk = case when weight_vccbk=0 then 0 else ROUND(money_vccbk/weight_vccbk,4) end
 		,price_get = case when weight_get=0 then 0 else ROUND(money_get/weight_get,4) end
 		,price_cut = case when weight_cut=0 then 0 else ROUND(money_cut/weight_cut,4) end
+		,price_cngin = case when weight_cngin=0 then 0 else ROUND(money_cngin/weight_cngin,4) end
+		,price_cngout = case when weight_cngout=0 then 0 else ROUND(money_cngout/weight_cngout,4) end
 		,price_result = case when weight_result=0 then 0 else ROUND(money_result/weight_result,4) end
 	where gno='1' or gno='2'
-		
+	
+	update #z_uccpkk02_c set store=b.store
+	from #z_uccpkk02_c a
+	left join store b on a.storeno=b.noa
+	
 	select gno
 		,recno rr
 		,uno
+		,storeno
+		,store
 		,"<a href="+CHAR(34)+"JavaScript:q_box('z_unobd.aspx',' "+CHAR(59)+""+uno+"','95%','95%',' ')"+char(34)+">"+uno+"</a>"  a00
 		,href b00
 		,product a01
@@ -1126,6 +1270,16 @@ z_uccpkk02:--z_uccpkk02
 		,dbo.getComma(weight_result,-1) a30
 		,dbo.getComma(price_result,-1) a31
 		,dbo.getComma(money_result,-1) a32
+		
+		,dbo.getComma(weight_cngin,-1) a33
+		,dbo.getComma(price_cngin,-1) a34
+		,dbo.getComma(money_cngin,-1) a35
+		
+		,dbo.getComma(weight_cngout,-1) a36
+		,dbo.getComma(price_cngout,-1) a37
+		,dbo.getComma(money_cngout,-1) a38
+		
+		,store a39
 	from #z_uccpkk02_c
 	order by pno,product,dime,width,lengthb,sel
 	

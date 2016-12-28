@@ -78,6 +78,9 @@
 						type : '8', //[8] 6
 						name : 'xoption',
 						value : "detail@明細,waste@廢料".split(',')
+					},{
+						type : '6', //[9] 7
+						name : 'xuno'
 					}]
 				});
 				q_popAssign();
