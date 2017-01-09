@@ -78,6 +78,14 @@ z_cubm_pk02:--z_cubm_pk02   ref.z_cutp01
 	end
 	close cursor_table
 	deallocate cursor_table	
+	----------------------------------------------
+	--備註為"*",重量為0,重新計算重量
+	update @tmp set [weight]=ROUND(a.dime*a.width*a.lengthb*b.density*a.mount/ 1000000,2)
+	from @tmp a
+	left join ucc b on a.productno=b.product
+	where LEFT(a.memos,1)='*'
+	and ISNULL(a.[weight],0)=0
+	and b.noa is not null
 	---------------------------
 	--頭尾
 	insert into @tmp(gno,pno,product,dime,width)
