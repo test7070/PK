@@ -945,7 +945,7 @@ z_uccpkk02:--z_uccpkk02
 		,width float
 		,lengthb float
 		,radius float
-		,weight_begin float
+		,weight_begin decimal(15,4) --105/02  有問題,先改這樣
 		,weight_rc2 float
 		,weight_ina float
 		,weight_cuts float
