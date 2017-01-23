@@ -851,7 +851,7 @@ z_uccpkk02:--z_uccpkk02
 	begin	
 		if not exists(select * from #z_uccpkk02_b where uno=@uno)
 		begin
-			insert into #z_uccpkk02_b(uno,weight_begin,money_begin
+			insert into #z_uccpkk02_b(uno,storeno,weight_begin,money_begin
 				,weight_rc2,money_rc2
 				,weight_ina,money_ina
 				,weight_cuts,money_cuts
@@ -862,7 +862,7 @@ z_uccpkk02:--z_uccpkk02
 				,weight_cut,money_cut
 				,weight_cngin,money_cngin
 				,weight_cngout,money_cngout)
-			select @uno,0,0
+			select @uno,@storeno,0,0
 				,0,0
 				,0,0
 				,0,0
