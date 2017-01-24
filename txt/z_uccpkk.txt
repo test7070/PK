@@ -369,6 +369,7 @@ z_uccpkk02:--z_uccpkk02
 		,uno nvarchar(30)
 		,datea nvarchar(10)
 		,[weight] decimal(15,4)
+		,price float
 		,[money] decimal(15,4)
 		,storeno nvarchar(20)
 	)
@@ -423,7 +424,7 @@ z_uccpkk02:--z_uccpkk02
 		,'',a.uno,b.datea
 		,case when ISNULL(a.[gweight],0)!=0 then a.gweight else a.[weight] end
 		,case when b.typea='1' then null else a.total end
-		,isnull(a.storeno,'')
+		,isnull(c.storeno,'')
 	from view_vccs a
 	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
 	left join view_uccb c on a.uno=c.uno
@@ -432,7 +433,7 @@ z_uccpkk02:--z_uccpkk02
 	and ((len(@t_waste)=0 and not(LEFT(a.uno,1) between 'X' and 'Z') and (ISNULL(c.productno,'') between @t_bproductno and @t_eproductno))
 		or (len(@t_waste)>0 and LEFT(a.uno,1) between 'X' and 'Z'))
 	and len(ISNULL(a.uno,''))>0
-	
+
 	--領料:   出貨扣庫存都是在領料作業
 	insert into #z_uccpkk02(accy,noa,noq,typea,itype,uno,datea,[weight],storeno)
 	select a.accy,a.noa,a.noq 
@@ -497,14 +498,17 @@ z_uccpkk02:--z_uccpkk02
 	begin
 		delete #z_uccpkk02 where uno!=@t_uno
 	end
+	
+	
 	---------------------------------------------------------------------------------------
 	-- 一般庫存
 	update #z_uccpkk02 set [money]= round(a.[weight]*b.sprice,0)
+		,price =b.sprice
 	from #z_uccpkk02 a
 	left join view_uccb b on a.uno=b.uno
-	where (left(a.typea,1)='B' or a.typea='A7')
+	where (left(a.typea,1)='B' or a.typea='A7' or a.typea='A4')
 	and not(LEFT(a.uno,1) between 'X' and 'Z')
-	
+
 	-- 廢料的成本單價採用月平均
 	
 	declare @sel int
@@ -849,7 +853,7 @@ z_uccpkk02:--z_uccpkk02
 		,@weight_cngout,@money_cngout
 	while(@@FETCH_STATUS <> -1)
 	begin	
-		if not exists(select * from #z_uccpkk02_b where uno=@uno)
+		if not exists(select * from #z_uccpkk02_b where uno=@uno and storeno=@storeno)
 		begin
 			insert into #z_uccpkk02_b(uno,storeno,weight_begin,money_begin
 				,weight_rc2,money_rc2
