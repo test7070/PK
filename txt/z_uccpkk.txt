@@ -502,7 +502,7 @@ z_uccpkk02:--z_uccpkk02
 	update #z_uccpkk02 set [money]= round(a.[weight]*b.sprice,0)
 	from #z_uccpkk02 a
 	left join view_uccb b on a.uno=b.uno
-	where left(a.typea,1)='B'
+	where (left(a.typea,1)='B' or a.typea='A7')
 	and not(LEFT(a.uno,1) between 'X' and 'Z')
 	
 	-- 廢料的成本單價採用月平均
