@@ -294,7 +294,7 @@ z_cubm_pk01:--z_cubm_pk01
 		,mechno,mech,datea,btime,etime
 		,mount2,weight2,mount3,weight3,memo,enda)
 	select a.ordeno,a.no2,a.noa,a.noq
-		,b.mechno,b.mech,b.datea,a.btime,a.etime
+		,b.mechno,b.mech,a.edate,a.btime,a.etime
 		,ISNULL(a.mount2,0),ISNULL(a.weight2,0),ISNULL(a.mount3,0),ISNULL(a.weight3,0),a.memo,a.enda
 	from cubms a
 	left join cubm b on a.noa=b.noa
