@@ -91,6 +91,11 @@
 				$('#txtXdate2').mask('999/99/99');
 				$('#txtXdate2').datepicker();
 				
+				$('#txtYdate1').mask('999/99/99');
+				$('#txtYdate1').datepicker();
+				$('#txtYdate2').mask('999/99/99');
+				$('#txtYdate2').datepicker();
+				
 				var t_date,
                     t_year,
                     t_month,
