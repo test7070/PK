@@ -307,21 +307,23 @@ z_cubm_pk01:--z_cubm_pk01
 	and ISNULL(a.sssno,'') between @t_bsssno and @t_esssno
 	
 	--and (len(@t_mechno)=0 or charindex(','+b.mechno+',',','+@t_mechno+',')>0) 
-	
+
 	-------------------------------------------------------------------------
 	declare @tmpe table(
 		sel int identity(1,1)
 		,ordeno nvarchar(20)
 		,ordeno2 nvarchar(10)
 		,mount float
+		,[weight] float
 		,fmount float
+		,fweight float
 	)
-	insert into @tmpe(ordeno,ordeno2,mount,fmount)
-	select ordeno,ordeno2,0,sum(isnull(mount3,0))
+	insert into @tmpe(ordeno,ordeno2,mount,[weight],fmount,fweight)
+	select ordeno,ordeno2,0,0,sum(isnull(mount3,0)),sum(isnull(weight3,0))
 	from @tmpb
 	group by ordeno,ordeno2
 	
-	update @tmpe set mount=ISNULL(b.mount,0)
+	update @tmpe set mount=ISNULL(b.mount,0),[weight]=ISNULL(b.[weight],0)
 	from @tmpe a
 	left join view_ordes b on a.ordeno=b.noa and a.ordeno2=b.no2
 
@@ -334,14 +336,14 @@ z_cubm_pk01:--z_cubm_pk01
 		delete @tmpb 
 		from @tmpb a
 		left join @tmpe b on a.ordeno=b.ordeno and a.ordeno2=b.ordeno2
-		where b.fmount>=b.mount
+		where ((b.fmount>=b.mount and b.mount!=0) or (b.fweight>=b.[weight] and b.[weight]!=0))
 	end
 	if @t_enda='Y'
 	begin
 		delete @tmpb 
 		from @tmpb a
 		left join @tmpe b on a.ordeno=b.ordeno and a.ordeno2=b.ordeno2
-		where b.fmount<b.mount
+		where not ((b.fmount>=b.mount and b.mount!=0) or (b.fweight>=b.[weight] and b.[weight]!=0))
 		and not exists(select * from @tmpb where ISNULL(enda,0)=1 and ordeno=a.ordeno and ordeno2=a.ordeno2)
 	end
 	delete @tmpb where not(len(@t_mechno)=0 or charindex(','+mechno+',',','+@t_mechno+',')>0) 
@@ -429,7 +431,6 @@ z_cubm_pk01:--z_cubm_pk01
 	declare @sel int
 	declare @ordeno nvarchar(20)
 	declare @ordeno2 nvarchar(10)
-	
 	
 	declare cursor_table cursor for
 	select ordeno,ordeno2 from @tmpb group by ordeno,ordeno2
