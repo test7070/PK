@@ -978,7 +978,7 @@
                     $('#btnOrdei').show();
                 else
                     $('#btnOrdei').hide();
-                var t_where = "where=^^ noa='"+$('#txtCustno').val()+"'^^";
+                var t_where = "where=^^ noa='"+$('#txtCustno').val()+"'^^ stop=100";
 				q_gt('custaddr', t_where, 0, 0, 0, "");
                 sum();
             }
@@ -1110,7 +1110,7 @@
                         break;
                     case 'txtCustno':
                         if (!emp($('#txtCustno').val())) {
-							var t_where = "where=^^ noa='" + $('#txtCustno').val() + "' ^^";
+							var t_where = "where=^^ noa='" + $('#txtCustno').val() + "' ^^ stop=100";
 							q_gt('custaddr', t_where, 0, 0, 0, "");
 						}
 						break;

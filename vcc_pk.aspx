@@ -336,7 +336,7 @@
 
 				$('#txtCustno').change(function() {
 					if (!emp($('#txtCustno').val())) {
-						var t_where = "where=^^ noa='" + $('#txtCustno').val() + "' ^^";
+						var t_where = "where=^^ noa='" + $('#txtCustno').val() + "' ^^ stop=100";
 						q_gt('custaddr', t_where, 0, 0, 0, "");
 					}
 				});
@@ -1375,7 +1375,7 @@
 					return;
 				var t_where = "where=^^ vccno='"+$('#txtNoa').val()+"' and isnull(paysale,0)!=0^^";	
 				q_gt('umms', t_where, 0, 0, 0, 'checkUmm');
-				var t_where = "where=^^ noa='"+$('#txtCustno').val()+"'^^";
+				var t_where = "where=^^ noa='"+$('#txtCustno').val()+"'^^ stop=100";
 				q_gt('custaddr', t_where, 0, 0, 0, "");
 				/* var s1 = '';
 				 for (var j = 0; j < aPop.length; j++) {
@@ -1494,7 +1494,7 @@
 						break;
 					case 'txtCustno':
 						if (!emp($('#txtCustno').val())) {
-							var t_where = "where=^^ noa='" + $('#txtCustno').val() + "' ^^";
+							var t_where = "where=^^ noa='" + $('#txtCustno').val() + "' ^^ stop=100";
 							q_gt('custaddr', t_where, 0, 0, 0, "");
 						}
 						break;
