@@ -560,7 +560,7 @@
 				<tr style='color:white; background:#003366;' >
 					<td align="center" style="width:30px;"><input class="btn"  id="btnPlus" type="button" value='+' style="font-weight: bold;"  /></td>
 					<td align="center" style="width:20px;"> </td>
-					<td align="center" style="width:150px;">訂單號碼</td>
+					<td align="center" style="width:180px;">訂單號碼</td>
 					<td align="center" style="width:100px;">日期</td>
 					<td align="center" style="width:100px;">客戶</td>
 					<td align="center" style="width:150px;"><a>品號<BR>品名</a></td>
@@ -583,8 +583,8 @@
 					</td>
 					<td><a id="lblNo.*" style="font-weight: bold;text-align: center;display: block;"> </a></td>
 					<td>
-						<input id="txtOrdeno.*" type="text" style="width:70%;float:left;" />
-						<input type="text" id="txtNo2.*" style="width:20%;float:left;" />						
+						<input id="txtOrdeno.*" type="text" style="width:65%;float:left;" />
+						<input type="text" id="txtNo2.*" style="width:28%;float:left;" />						
 					</td>
 					<td><input type="text" id="txtDatea.*" style="width:95%;text-align:center;" /></td>
 					<td>
