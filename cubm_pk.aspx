@@ -117,6 +117,11 @@
 						q_box("orde_pk_b.aspx?" + r_userno + ";" + r_name + ";" + q_time + ";" + t_where+";"+";"+JSON.stringify({no:t_noa,page:'cubm_pk'}), "orde_cubm", "95%", "95%", '');
 					}
 				});
+				
+				$('#checkAll').click(function(e){
+					for(var i=0;i<q_bbsCount;i++)
+						$('#chkEnda_'+i).prop('checked',$('#checkAll').prop('checked'));
+				});
 			}
 
 			function q_boxClose(s2) {
@@ -276,9 +281,11 @@
 				if (t_para) {
                     $('#txtDatea').datepicker('destroy');
                     $('#btnOrdesImport').prop( "disabled", true );
+                    $('#checkAll').prop( "disabled", true );
                 } else {	
                     $('#txtDatea').datepicker();
                     $('#btnOrdesImport').prop( "disabled", false );
+                    $('#checkAll').prop( "disabled", false );
                 }
 			}
 			function btnMinus(id) {
@@ -521,10 +528,11 @@
 					</tr>
 					<tr>
 						<td><span> </span><a id='lblMech' class="lbl btn"> </a></td>
-						<td colspan="4">
+						<td colspan="3">
 							<input id="txtMechno" type="text" style="float:left;width:25%;"/>
 							<input id="txtMech" type="text" style="float:left;width:75%;"/>
 						</td>
+						<td><input id="checkAll"  type="checkbox" class="txt c1" title="結案"/></td>
 					</tr>
 					<tr style="display:none;">
 						<td><span> </span><a id='lblTime' class="lbl">時間</a></td>
@@ -540,6 +548,7 @@
 							<input id="txtSssno" type="text" style="float:left;width:25%;"/>
 							<input id="txtSname" type="text" style="float:left;width:75%;"/>
 						</td>
+						
 					</tr>
 					<tr>
 						<td><span> </span><a id='lblMemo' class="lbl"> </a></td>
@@ -551,6 +560,7 @@
 						<td><span> </span><a id='lblWorker2' class="lbl"> </a></td>
 						<td><input id="txtWorker2"  type="text" class="txt c1"/></td>
 						<td><input id="btnOrdesImport" type="button" value="訂單匯入"/></td>
+						
 					</tr>
 				</table>
 			</div>
