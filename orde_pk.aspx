@@ -776,6 +776,15 @@
             function bbtAssign() {
                 for (var j = 0; j < q_bbtCount; j++) {
                     $('#lblNo__' + j).text(j + 1);
+                    if($('#btnMinut__' + j).hasClass('isAssign'))
+                    	continue;
+                    $('#txtUno__' + j).bind('contextmenu', function(e) {
+                        /*滑鼠右鍵*/
+                        e.preventDefault();
+                        var n = $(this).attr('id').replace(/^(.*)_(\d+)$/,'$2');
+                        t_where = $(this).val() ;
+                        q_box("z_unobd.aspx?" + r_userno + ";" + r_name + ";" + q_time + ";" + t_where, 'z_unobd', "95%", "95%", "");
+                    });
                     $('#txtDime__' + j).change(function() {
                         sum();
                     });
@@ -789,7 +798,7 @@
                         sum();
                     });
                     $('#txtMount__'+j).change(function(){
-                        var n = $(this).attr('id').split('_')[$(this).attr('id').split('_').length-1];
+                        var n = $(this).attr('id').replace(/^(.*)_(\d+)$/,'$2');
                         q_gt('view_uccb',"where=^^ uno='"+$.trim($('#txtUno__'+n).val())+"'^^", 0, 0, 0, 'checkUccbMount_'+n, r_accy);
                     });
                 }
@@ -956,6 +965,11 @@
                     }
                 }
                 _bbsAssign();
+                $('#tbbs').find('tr.data').children().hover(function(e){
+					$(this).parent().css('background','yellow');
+				},function(e){
+					$(this).parent().css('background','#cad3ff');
+				});
             }
 
             function btnIns() {
@@ -1581,7 +1595,7 @@
                     <td align="center" style="width:40px;"><a id='lblBorn'> </a></td>
                     <td align="center" style="width:200px;"><a id='lblCustpro'>客戶產編</a></td>
                 </tr>
-                <tr style='background:#cad3ff;'>
+                <tr  class="data" style='background:#cad3ff;'>
                     <td align="center">
                         <input class="btn"  id="btnMinus.*" type="button" value='-' style=" font-weight: bold;" />
                         <input class="btn" id="btnUno.*" type="button" value='' style="display:none;float:left;width:20px;height:25px;"/>
