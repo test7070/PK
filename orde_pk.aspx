@@ -965,8 +965,16 @@
                     }
                 }
                 _bbsAssign();
+                for(var i=0;i<q_bbsCount;i++){
+                	if (q_cur==1 || q_cur==2){
+                		$('#txtDatea_'+i).datepicker();
+	                }
+	                else{
+	                	$('#txtDatea_'+i).datepicker('destroy');
+	                }
+                }
                 $('#tbbs').find('tr.data').children().hover(function(e){
-					$(this).parent().css('background','yellow');
+					$(this).parent().css('background','#F2F5A9');
 				},function(e){
 					$(this).parent().css('background','#cad3ff');
 				});
@@ -1160,7 +1168,15 @@
                 	$('#txtDatea').datepicker();
                 	$('#txtOdate').datepicker();
                 }
-                    
+                
+                for(var i=0;i<q_bbsCount;i++){
+                	if (t_para){
+	                	$('#txtDatea_'+i).datepicker('destroy');
+	                }
+	                else{
+	                	$('#txtDatea_'+i).datepicker();
+	                }
+                }
 
                 if (q_cur == 1 || q_cur==0)
                     $('#btnOrdem').attr('disabled', 'disabled');
