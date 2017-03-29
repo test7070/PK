@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" dir="ltr">
 	<head>
-		<title></title>
+		<title> </title>
 		<script src="../script/jquery.min.js" type="text/javascript"></script>
 		<script src='../script/qj2.js' type="text/javascript"></script>
 		<script src='qset.js' type="text/javascript"></script>
@@ -241,6 +241,11 @@
 				});
 				//變動尺寸欄位
 				$('#cmbKind').change(function() {
+					for(var i=0;i<q_bbsCount;i++){
+						$('#txtProductno_'+i).val('');
+						$('#txtProductno1_'+i).val('');
+						$('#txtProduct_'+i).val('');
+					}
 					size_change();
 				});
 			}
@@ -404,12 +409,13 @@
 			}
 
 			function btnOk() {
-				//物料品名欄位寫入
+				/* cmbKind.change ,  poppost
+				 //物料品名欄位寫入
 				if($('#cmbKind').val()=='1'){
 					for (var j = 0; j < q_bbsCount; j++) {
 						$('#txtProductno_' + j).val($('#txtProductno1_' + j).val());
 					}
-				}
+				}*/
 				
 				Lock(1, {
 					opacity : 0
@@ -560,16 +566,16 @@
 			function refresh(recno) {
 				_refresh(recno);
 				size_change();
-				//q_popPost('txtProductno_');
-				$('input[id*="txtProduct_"]').each(function() {
-					thisId = $(this).attr('id').split('_')[$(this).attr('id').split('_').length-1];
-		          	$(this).attr('OldValue',$('#txtProductno_'+thisId).val());
-				});
  			}
 
 			function q_popPost(s1) {
 				switch (s1) {
 					case 'txtProductno1_':
+						if($('#cmbKind').val()=='1'){
+							for (var j = 0; j < q_bbsCount; j++) {
+								$('#txtProductno_' + j).val($('#txtProductno1_' + j).val());
+							}
+						}
 						var t_productno = $.trim($('#txtProductno1_'+b_seq).val());
 	                	var t_style = $.trim($('#txtStyle_'+b_seq).val());
 	                	var t_comp = q_getPara('sys.comp');          	
@@ -577,6 +583,11 @@
                         $('#txtStyle_' + b_seq).focus();
 						break;
 					case 'txtProductno_':
+						if($('#cmbKind').val()=='1'){
+							for (var j = 0; j < q_bbsCount; j++) {
+								$('#txtProductno_' + j).val($('#txtProductno1_' + j).val());
+							}
+						}
 						var t_productno = $.trim($('#txtProductno_'+b_seq).val());
 	                	var t_style = $.trim($('#txtStyle_'+b_seq).val());
 	                	var t_comp = q_getPara('sys.comp');          	
