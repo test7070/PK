@@ -265,7 +265,7 @@
 								inStr += "'"+distinctArray[i]+"',";
 							}
 							inStr = inStr.substring(0,inStr.length-1);
-							var t_where = "where=^^ ordeno in("+inStr+") and (isnull(ordeno,'') != '') ^^";
+							var t_where = "where=^^ a.ordeno in("+inStr+") and (isnull(a.ordeno,'') != '') ^^";
 							q_gt('ordbs', t_where , 0, 0, 0, "", r_accy);
 						}
 						break;
