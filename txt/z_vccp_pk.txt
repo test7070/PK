@@ -71,11 +71,11 @@ z_vccp_pk01:--z_vccp_pk01
 	
 	if len(@t_issum)>0
 	begin
-		insert into @tmp(gno,pno,mount,item,[tranmoney],unit)
-		select '3','1',SUM(ISNULL(mount,0)),item,SUM(ISNULL(tranmoney,0)),case when ISNULL(tranmoney,0)=0 then '' else unit end
+		insert into @tmp(gno,pno,accy,noa,mount,item,[tranmoney],unit)
+		select '3','1',accy,noa,SUM(ISNULL(mount,0)),item,SUM(ISNULL(tranmoney,0)),case when ISNULL(tranmoney,0)=0 then '' else unit end
 		from @tmp
 		where pno='1' and not(mount=0 and [tranmoney]=0) 
-		group by item,case when ISNULL(tranmoney,0)=0 then '' else unit end
+		group by accy,noa,item,case when ISNULL(tranmoney,0)=0 then '' else unit end
 	end
 	---------------------------------------------------------------------------------
 	declare @pagecount int = 6
