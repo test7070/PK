@@ -33,6 +33,10 @@
 						type : '8', //[3]
 						name : 'xprice',
 						value : ['1@顯示單價']
+					},{
+						type : '8', //[4]
+						name : 'xsum',
+						value : ['1@顯示合計']
 					}]
 				});
 				q_popAssign();

@@ -3,6 +3,7 @@ z_vccp_pk01:--z_vccp_pk01
 	declare @t_noa nvarchar(max) = case when '#non'=[1] then '' else [1] end
 	declare @t_isweight nvarchar(max) = case when '#non'=[2] then '' else [2] end
 	declare @t_isprice nvarchar(max) = case when '#non'=[3] then '' else [3] end
+	declare @t_issum nvarchar(max) =  case when '#non'=[4] then '' else [4] end
 	-------------------------------------------------------------------------------------------------
 	-- unit=KG   才顯示重量
 	declare @tmp table(
@@ -67,6 +68,15 @@ z_vccp_pk01:--z_vccp_pk01
 	update @tmp set size = cast(dime as nvarchar) +' X '+cast(width as nvarchar) +' X '
 		+case when lengthb=0 then 'C' else cast(lengthb as nvarchar) end
 	where len(isnull(size,''))=0 and dime!=0
+	
+	if len(@t_issum)>0
+	begin
+		insert into @tmp(gno,pno,mount,item,[tranmoney],unit)
+		select '3','1',SUM(ISNULL(mount,0)),item,SUM(ISNULL(tranmoney,0)),case when ISNULL(tranmoney,0)=0 then '' else unit end
+		from @tmp
+		where pno='1' and not(mount=0 and [tranmoney]=0) 
+		group by item,case when ISNULL(tranmoney,0)=0 then '' else unit end
+	end
 	---------------------------------------------------------------------------------
 	declare @pagecount int = 6
 	declare @n int
@@ -138,8 +148,8 @@ z_vccp_pk01:--z_vccp_pk01
 	--,case when (unit='KG' or unit='公斤' or unit='M' or unit='㎡' or unit='M²') and isnull([weight],0)=0 then '' when not(unit='KG' or unit='公斤' or unit='M' or unit='㎡' or unit='M²') and isnull([mount],0)=0 then '' else unit end b06
 	--,case when len(@t_isweight)>0 and [weight]!=0 and unit='KG' then dbo.getComma([weight],-1) else '' end b05
 	--,case when len(@t_isweight)>0 and [weight]!=0 and unit='KG' then unit  else '' end b06
-	,case when isnull(tranmoney,0)!=0 then dbo.getComma([tranmoney],-1) else '' end b05
-	,case when isnull(tranmoney,0)!=0 then unit else '' end b06
+	,case when isnull([tranmoney],0)!=0 then dbo.getComma([tranmoney],-1) else '' end b05
+	,case when isnull([tranmoney],0)!=0 then unit else '' end b06
 	
 	,case when len(@t_isprice)>0 and [price]!=0 then dbo.getComma(case when floata=0 then [price] else ROUND(floata*price,4) end,-1) else '' end b07
 	,case when len(@t_isprice)>0 and [moneys]!=0 then dbo.getComma([moneys],0) else '' end b08
