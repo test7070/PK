@@ -169,6 +169,9 @@
 					}, {
 						type : '6', //[40] 31
 						name : 'xordeno'
+					}, {
+						type : '6', //[41] 32
+						name : 'xplace'
 					}]
 				});
 				q_popAssign();

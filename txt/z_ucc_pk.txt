@@ -1485,6 +1485,8 @@ z_ucc_pk05:--z_ucc_pk05
 	declare @t_source nvarchar(max) = case when '#non'=[35] then '' else [35] end
 	
 	declare @t_ystore nvarchar(max) = case when '#non'=[38] then '' else [38] end
+	declare @t_place nvarchar(max) = case when '#non'=[41] then '' else [41] end
+	
 	declare @t_bradius float,@t_eradius float,@t_bdime float,@t_edime float
 		,@t_bwidth float,@t_ewidth float,@t_blengthb float,@t_elengthb float
 	if left(@t_kind,1)='A'
@@ -1570,6 +1572,7 @@ z_ucc_pk05:--z_ucc_pk05
 	and (len(@t_spec)=0 or isnull(a.class,'') = @t_spec)
 	and (len(@t_source)=0 or isnull(a.[source],'') = @t_source)
 	and ISNULL(a.productno,'') between @t_bproductno3 and @t_eproductno3
+	and (len(@t_place)=0 or ISNULL(a.place,'') = @t_place)
 	
 	update @tmp set cstyle=isnull(b.product,'')
 	from @tmp a
