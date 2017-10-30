@@ -88,15 +88,15 @@
                 $('#txtXmon2').mask('999/99');
                 //--------------------------------
                 $('#Xmemo1').css('width','98%');
-                $('#txtXmemo1').css('width','85%');
+                $('#txtXmemo1').css('width','80%');
                 $('#Xmemo2').css('width','98%');
-                $('#txtXmemo2').css('width','85%');
+                $('#txtXmemo2').css('width','80%');
                 $('#Xmemo3').css('width','98%');
-                $('#txtXmemo3').css('width','85%');
+                $('#txtXmemo3').css('width','80%');
                 $('#Xmemo4').css('width','98%');
-                $('#txtXmemo4').css('width','85%');
+                $('#txtXmemo4').css('width','80%');
                 $('#Xmemo5').css('width','98%');
-                $('#txtXmemo5').css('width','85%');
+                $('#txtXmemo5').css('width','80%');
                 
                 $('#chkXispayed input[type="checkbox"]').prop("checked",true);
                 $('#chkXisunpay input[type="checkbox"]').prop("checked",true);
