@@ -28,7 +28,7 @@ z_vccp_pk01:--z_vccp_pk01
 		floata decimal(20,4),
 		
 		productno nvarchar(20),
-		product nvarchar(50),
+		product nvarchar(max),
 		dime float,
 		width float,
 		lengthb float,
