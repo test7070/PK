@@ -87,7 +87,8 @@ z_quat_pkp01:--z_quat_pkp01
 	set @memo = LTRIM(rtrim(@memo))
 	
 	insert into @tmp(gno,pno,memo)values('5',5,'')
-	insert into @tmp(gno,pno,memo)values('5',5,'收款方式：'+@paytype)
+	--insert into @tmp(gno,pno,memo)values('5',5,'收款方式：'+@paytype)  --2017/10/31  modi
+	insert into @tmp(gno,pno,memo)values('5',5,'收款方式：')
 	while LEN(@memo)>0 
 	begin
 		if CHARINDEX('chr(10)',@memo)>0
