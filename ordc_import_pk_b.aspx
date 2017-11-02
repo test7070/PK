@@ -63,6 +63,13 @@
                 _refresh();
                 for(var i=0;i<q_bbsCount;i++){
 					$('#lblNo_'+i).text(i+1);
+					
+					if(q_getPara('sys.project').toUpperCase()=='PK'){
+						$('#txtNoa_'+i).css('width0','45%');
+						$('#txtNo2_'+i).css('width0','45%');
+						$('#txtOrdeno_'+i).show();
+						$('#txtOrdeno2_'+i).show();
+					}
 				}
             }
             function bbsAssign() {
@@ -80,15 +87,15 @@
 				<tr style='color:white; background:#003366;' >
 					<th align="center" style="width:25px;"><input type="checkbox" id="checkAllCheckbox"/></th>
 					<td align="center" style="width:30px;"> </td>
-					<td align="center" style="width:80px;">交貨日期</td>
-					<td align="center" style="width:100px;">廠商</td>
-					<td align="center" style="width:150px;">品名</td>
-					<td align="center" style="width:70px;">等級<BR>鋼廠</td>
-					<td align="center" style="width:70px;">規範<BR>國別</td>
-					<td align="center" style="width:170px;">厚度x寬度x長度<BR>規格</td>
-					<td align="center" style="width:120px;">尺寸<BR>備註</td>
-					<td align="center" style="width:70px;">數量<BR>重量</td>
-					<td align="center" style="width:80px;">數量單位<BR>計價單位</td>		
+					<td align="center" style="width:70px;">交貨日期</td>
+					<td align="center" style="width:90px;">廠商</td>
+					<td align="center" style="width:120px;">品名</td>
+					<td align="center" style="width:60px;">等級<BR>鋼廠</td>
+					<td align="center" style="width:60px;">規範<BR>國別</td>
+					<td align="center" style="width:160px;">厚度x寬度x長度<BR>規格</td>
+					<td align="center" style="width:110px;">尺寸<BR>備註</td>
+					<td align="center" style="width:60px;">數量<BR>重量</td>
+					<td align="center" style="width:70px;">數量單位<BR>計價單位</td>		
 					<td align="center" style="width:60px;">單價</td>
 					<td align="center" style="width:70px;">本次<BR>進貨數</td>
 					<td align="center" style="width:100px;">採購單號</td>
@@ -100,15 +107,15 @@
 				<tr style="display:none;">
 					<th align="center" style="width:25px;"> </th>
 					<td align="center" style="width:30px;"> </td>
-					<td align="center" style="width:80px;">交貨日期</td>
-					<td align="center" style="width:100px;">廠商</td>
-					<td align="center" style="width:150px;">品名</td>
-					<td align="center" style="width:70px;">等級<BR>鋼廠</td>
-					<td align="center" style="width:70px;">規範<BR>國別</td>
-					<td align="center" style="width:170px;">厚度x寬度x長度<BR>規格</td>
-					<td align="center" style="width:120px;">尺寸<BR>備註</td>
-					<td align="center" style="width:70px;">數量<BR>重量</td>
-					<td align="center" style="width:80px;">數量單位<BR>計價單位</td>		
+					<td align="center" style="width:70px;">交貨日期</td>
+					<td align="center" style="width:90px;">廠商</td>
+					<td align="center" style="width:120px;">品名</td>
+					<td align="center" style="width:60px;">等級<BR>鋼廠</td>
+					<td align="center" style="width:60px;">規範<BR>國別</td>
+					<td align="center" style="width:160px;">厚度x寬度x長度<BR>規格</td>
+					<td align="center" style="width:110px;">尺寸<BR>備註</td>
+					<td align="center" style="width:60px;">數量<BR>重量</td>
+					<td align="center" style="width:70px;">數量單位<BR>計價單位</td>		
 					<td align="center" style="width:60px;">單價</td>
 					<td align="center" style="width:70px;">本次<BR>進貨數</td>
 					<td align="center" style="width:100px;">採購單號</td>
@@ -116,37 +123,37 @@
 				<tr style='background:#cad3ff;'>
 					<td style="width:25px;"><input type="checkbox" class="ccheck" id="chkSel.*"/></td>
 					<td style="width:30px;text-align: center;"><a id="lblNo.*" style="font-weight: bold;" readonly="readonly"> </a></td>
-					<td style="width:80px;"><input type="text" readonly="readonly" id="txtRdate.*" style="float:left;width:95%;"/></td>
-					<td style="width:100px;"><input type="text" readonly="readonly" id="txtTgg.*" style="float:left;width:95%;"/></td>
-					<td style="width:150px">
+					<td style="width:70px;"><input type="text" readonly="readonly" id="txtRdate.*" style="float:left;width:95%;"/></td>
+					<td style="width:90px;"><input type="text" readonly="readonly" id="txtTgg.*" style="float:left;width:95%;"/></td>
+					<td style="width:120px;">
 						<input type="text" readonly="readonly" id="txtProductno.*" style="float:left;width:95%;"/>
 						<input type="text" readonly="readonly" id="txtProduct.*" style="float:left;width:95%;"/>
 					</td>
-					<td style="width:70px">
+					<td style="width:60px">
 						<input type="text" readonly="readonly" id="txtClass.*" style="float:left;width:95%;"/>
 						<input type="text" readonly="readonly" id="txtSource.*" style="float:left;width:95%;"/>
 					</td>
-					<td style="width:70px">
+					<td style="width:60px">
 						<input type="text" readonly="readonly" id="txtUcolor.*" style="float:left;width:95%;"/>
 						<input type="text" readonly="readonly" id="txtScolor.*" style="float:left;width:95%;"/>
 					</td>
-					<td style="width:170px">
-						<input type="text" readonly="readonly" id="txtDime.*" style="float:left;width:40px;text-align: right;"/>
+					<td style="width:160px">
+						<input type="text" readonly="readonly" id="txtDime.*" style="float:left;width:30px;text-align: right;"/>
 						<a style="float:left;width:15px;">X</a>
 						<input type="text" readonly="readonly" id="txtWidth.*" style="float:left;width:40px;text-align: right;"/>
 						<a style="float:left;width:15px;">X</a>
 						<input type="text" readonly="readonly" id="txtLengthb.*" style="float:left;width:40px;text-align: right;"/>
-						<input type="text" readonly="readonly" id="txtSpec.*" style="width:162px;"/>
+						<input type="text" readonly="readonly" id="txtSpec.*" style="width:152px;"/>
 					</td>
-					<td style="width:120px">
+					<td style="width:110px">
 						<input type="text" readonly="readonly" id="txtSize.*" style="float:left;width:95%;"/>
 						<input type="text" readonly="readonly" id="txtMemo.*" style="float:left;width:95%;"/>
 					</td>
-					<td style="width:70px;">
+					<td style="width:60px;">
 						<input type="text" readonly="readonly" id="txtMount.*" style="float:left;width:95%;text-align: right;"/>
 						<input type="text" readonly="readonly" id="txtWeight.*" style="float:left;width:95%;text-align: right;"/>
 					</td>
-					<td style="width:80px;">
+					<td style="width:70px;">
 						<input type="text" readonly="readonly" id="txtUnit2.*" style="float:left;width:95%;text-align: center;"/>
 						<input type="text" readonly="readonly" id="txtUnit.*" style="float:left;width:95%;text-align: center;"/>
 					</td>
@@ -155,6 +162,8 @@
 					<td style="width:100px;">
 						<input type="text" readonly="readonly" id="txtNoa.*" style="float:left;width:95%;"/>
 						<input type="text" readonly="readonly" id="txtNo2.*" style="float:left;width:95%;"/>
+						<input type="text" readonly="readonly" id="txtOrdeno.*" style="float:left;width:45%;display:none;"/>
+						<input type="text" readonly="readonly" id="txtOrdeno2.*" style="float:left;width:45%;display:none;"/>
 					</td>
 				</tr>
 			</table>
