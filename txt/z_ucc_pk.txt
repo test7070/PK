@@ -1892,6 +1892,10 @@ z_ucc_pk03:--z_ucc_pk03
 	END
 	create table #z_ucc_pk03(
 		sel int identity(1,1)
+		,tablea nvarchar(20)
+		,accy nvarchar(10)
+		,noa nvarchar(20)
+		,noq nvarchar(10)
 		,trecno int
 		,gno nvarchar(10)
 		,recno int
@@ -1951,10 +1955,11 @@ z_ucc_pk03:--z_ucc_pk03
 	
 	if CHARINDEX(',02,',','+@t_option+',')>0
 	begin
-		insert into #z_ucc_pk03(gno,datea,storeno,[source],uno,place,style,productno,product,[class]
+		insert into #z_ucc_pk03(tablea,accy,noa,noq,gno,datea,storeno,[source],uno,place,style,productno,product,[class]
 			,dime,width,lengthb,radius,size,mount,[weight],price,emount,eweight,memo
 			,custno,uno2,tdime,twidth,tlength,spec)
-		select '1',b.datea
+		select b.tablea,b.accy,b.noa,b.noq 
+			,'1',b.datea
 			,case when ltrim(rtrim(isnull(a.cngstoreno,''))) = '' then b.storeno else a.cngstoreno end storeno
 			,b.[source],a.uno,b.place,b.style,b.productno,b.product,b.[class]
 			,b.dime,b.width,b.lengthb,b.radius,b.size,b.mount,b.[weight],b.sprice,a.emount,a.eweight,b.memo
@@ -1990,7 +1995,17 @@ z_ucc_pk03:--z_ucc_pk03
 		left join store b on a.storeno=b.noa
 		left join cust c on a.custno=c.noa		
 	end
-
+	
+	--傑期 rc2s.errmemo 記錄訂單編號
+	update #z_ucc_pk03 set ordeno=LEFT(b.errmemo,CHARINDEX('-',b.errmemo)-1)
+		,ordesno2=right(errmemo,len(errmemo) - CHARINDEX('-',errmemo))
+	from #z_ucc_pk03 a
+	left join view_rc2s b on a.accy=b.accy and a.noa=b.noa and a.noq=b.noq
+	where a.tablea='rc2s' 
+	and len(ISNULL(a.ordeno,''))=0
+	and b.noa is not null
+	and charindex('-',isnull(b.errmemo,''))>0
+	
 	update #z_ucc_pk03 set recno = b.sel
 	from #z_ucc_pk03 a
 	left join (select ROW_NUMBER()over(order by uno)  recno,sel from #z_ucc_pk03) b on a.sel=b.sel
