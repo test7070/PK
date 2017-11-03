@@ -383,9 +383,9 @@
                     				newArray.push(as[i]);
                         		}
                         	}
-                        	q_gridAddRow(bbsHtm, 'tbbs', 'txtProductno,txtProduct,txtStyle,txtSpec,combSpec,txtDime,txtWidth,txtLengthb,txtRadius,txtOrdeno,txtNo2,txtPrice,txtMount,txtWeight,txtTotal,txtMemo,txtUnit,txtClass,txtSource,txtScolor,txtUcolor,txtSize,txtUnit2'
+                        	q_gridAddRow(bbsHtm, 'tbbs', 'txtProductno,txtProduct,txtStyle,txtSpec,combSpec,txtDime,txtWidth,txtLengthb,txtRadius,txtOrdeno,txtNo2,txtPrice,txtMount,txtWeight,txtTotal,txtMemo,txtUnit,txtClass,txtSource,txtScolor,txtUcolor,txtSize,txtUnit2,txtErrmemo'
                         	, newArray.length, newArray
-							, 'productno,product,style,spec,spec,dime,width,lengthb,radius,noa,no2,price,mount,weight,total,memo,unit,class,source,scolor,ucolor,size,unit2', 'txtProductno');        	
+							, 'productno,product,style,spec,spec,dime,width,lengthb,radius,noa,no2,price,mount,weight,total,memo,unit,class,source,scolor,ucolor,size,unit2,errmemo', 'txtProductno');        	
                         	sum();
                         }else{
                         	Unlock(1);
@@ -1802,6 +1802,7 @@
 					<td>
 						<input id="txtOrdeno.*" type="text"  style="width:140px;float:left;"/>
 						<input id="txtNo2.*" type="text"  style="width:40px;float:left;"/>
+						<input id="txtErrmemo.*" type="text"  style="display:none;"/>
 					</td>
 				</tr>
 			</table>
