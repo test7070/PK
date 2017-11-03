@@ -160,10 +160,11 @@
 					<td style="width:60px;"><input type="text" readonly="readonly" id="txtPrice.*" style="float:left;width:95%;text-align: right;"/></td>
 					<td style="width:70px;background-color: pink;"><input type="text" id="txtCnt.*" class="txt num" style="float:left;width:95%;text-align: right;"/></td>
 					<td style="width:100px;">
-						<input type="text" readonly="readonly" id="txtNoa.*" style="float:left;width:95%;"/>
-						<input type="text" readonly="readonly" id="txtNo2.*" style="float:left;width:95%;"/>
-						<input type="text" readonly="readonly" id="txtOrdeno.*" style="float:left;width:45%;display:none;"/>
-						<input type="text" readonly="readonly" id="txtOrdeno2.*" style="float:left;width:45%;display:none;"/>
+						<!-- dir="rtl"  由右往左顯示-->
+						<input type="text" readonly="readonly" id="txtNoa.*" dir="rtl" style="float:left;width:95%;text-align:right;"/>
+						<input type="text" readonly="readonly" id="txtNo2.*" style="float:left;width:95%;text-align:right;"/>
+						<input type="text" readonly="readonly" id="txtOrdeno.*" dir="rtl" style="float:left;width:45%;text-align:right;display:none;"/>
+						<input type="text" readonly="readonly" id="txtOrdeno2.*" style="float:left;width:45%;text-align:right;display:none;"/>
 						<input type="text" readonly="readonly" id="txtErrmemo.*" style="display:none;"/>
 					</td>
 				</tr>
