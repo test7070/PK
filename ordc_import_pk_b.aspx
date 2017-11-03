@@ -65,8 +65,8 @@
 					$('#lblNo_'+i).text(i+1);
 					
 					if(q_getPara('sys.project').toUpperCase()=='PK'){
-						$('#txtNoa_'+i).css('width0','45%');
-						$('#txtNo2_'+i).css('width0','45%');
+						$('#txtNoa_'+i).css('width','45%');
+						$('#txtNo2_'+i).css('width','45%');
 						$('#txtOrdeno_'+i).show();
 						$('#txtOrdeno2_'+i).show();
 					}
@@ -164,6 +164,7 @@
 						<input type="text" readonly="readonly" id="txtNo2.*" style="float:left;width:95%;"/>
 						<input type="text" readonly="readonly" id="txtOrdeno.*" style="float:left;width:45%;display:none;"/>
 						<input type="text" readonly="readonly" id="txtOrdeno2.*" style="float:left;width:45%;display:none;"/>
+						<input type="text" readonly="readonly" id="txtErrmemo.*" style="display:none;"/>
 					</td>
 				</tr>
 			</table>
