@@ -253,9 +253,14 @@
 			}
 
 			function bbsSave(as) {/// 表身 寫入資料庫前，寫入需要欄位
-				if (!as['ordeno'] && !as['no2']) {//不存檔條件
+				/*if (!as['ordeno'] && !as['no2']) {//不存檔條件
 					as[bbsKey[1]] = '';
 					/// noq 為空，不存檔
+					return;
+				}*/
+				//2017/12/20 改為判斷日期
+				if (!as['datea'] ) {//不存檔條件
+					as[bbsKey[1]] = '';
 					return;
 				}
 				q_nowf();
