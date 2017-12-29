@@ -1930,7 +1930,7 @@ z_ucc_pk03:--z_ucc_pk03
 		,twidth float
 		,tlength float
 		
-		,ordeno nvarchar(20)
+		,ordeno nvarchar(max)
 		,ordesno2 nvarchar(10)
 		,ordetno2 nvarchar(10)
 		,omount float
@@ -1939,7 +1939,7 @@ z_ucc_pk03:--z_ucc_pk03
 		,isend int
 		,iscancel int
 		
-		,ordcno nvarchar(20)
+		,ordcno nvarchar(max)
 		,ordcsno2 nvarchar(10)
 		,ordctnoq nvarchar(10)
 		,omount2 float
@@ -1995,7 +1995,7 @@ z_ucc_pk03:--z_ucc_pk03
 		left join store b on a.storeno=b.noa
 		left join cust c on a.custno=c.noa		
 	end
-	
+		
 	--傑期 rc2s.errmemo 記錄訂單編號
 	update #z_ucc_pk03 set ordeno=LEFT(b.errmemo,CHARINDEX('-',b.errmemo)-1)
 		,ordesno2=right(errmemo,len(errmemo) - CHARINDEX('-',errmemo))
@@ -2005,7 +2005,15 @@ z_ucc_pk03:--z_ucc_pk03
 	and len(ISNULL(a.ordeno,''))=0
 	and b.noa is not null
 	and charindex('-',isnull(b.errmemo,''))>0
-	
+	--結案的不算
+	update #z_ucc_pk03 set ordeno='',ordesno2=''
+	from #z_ucc_pk03 a
+	outer apply(select case when x.enda=1 or y.enda=1 then 1 else 0 end enda 
+			from view_ordes x 
+			left join view_orde y on x.accy=y.accy and x.noa=y.noa
+			where x.noa=a.ordeno and x.no2=a.ordesno2 ) b
+	where b.enda = 1
+
 	update #z_ucc_pk03 set recno = b.sel
 	from #z_ucc_pk03 a
 	left join (select ROW_NUMBER()over(order by uno)  recno,sel from #z_ucc_pk03) b on a.sel=b.sel
@@ -2169,6 +2177,8 @@ z_ucc_pk03:--z_ucc_pk03
 		close cursor_table
 		deallocate cursor_table
 	end	
+
+
 	
 	-------------------------------------------------------------------------
 	update #z_ucc_pk03 set cstyle=ISNULL(b.product,'')
@@ -2221,17 +2231,23 @@ z_ucc_pk03:--z_ucc_pk03
 	from #z_ucc_pk03 a
 	outer apply(select noa from view_cut where uno=a.uno and ISNULL(gweight,0)=0)b
 	where  b.noa is not null
-	
+
+
 	--進貨後, 庫存表中的訂單編號可show出採購單上預佔的訂單號碼(粉紅色)
-	update #z_ucc_pk03 set ordeno="<a style='color:pink'>"+d.ordeno+"-"+d.no4+"</a>"
+	update #z_ucc_pk03 set ordeno= "<a style='color:pink'>"+d.ordeno+"-"+d.no4+"</a>"
 	from #z_ucc_pk03 a
 	left join view_rc2s b on a.uno=b.uno
 	left join view_ordcs c on b.ordeno=c.noa and b.no2=c.no2
 	outer apply(select top 1 * from view_ordct where accy=c.accy and noa=c.noa and no2=c.no2 order by noq) d
+	outer apply(select case when x.enda=1 or y.enda=1 then 1 else 0 end enda 
+			from view_ordes x 
+			left join view_orde y on x.accy=y.accy and x.noa=y.noa
+			where x.noa=d.ordeno and x.no2=d.no4 ) e
 	where len(a.ordeno)=0 
 	and c.noa is not null 
 	and d.noa is not null
-	
+	and e.enda=0
+
 	declare @ss nvarchar(max)=
 		'<script type="text/javascript">
 			function SaveMemo(obj){
