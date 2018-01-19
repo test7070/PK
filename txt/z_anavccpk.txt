@@ -402,8 +402,11 @@ z_anavccpk02:--z_anavccpk02
 				insert into #z_anavccpk02(pno,tablea,accy,noa,noq
 					,uno,productno,style,dime,width,size,mount,[weight])
 				select '2','gets',a.accy,a.noa,a.nor
-					,a.uno,@productno,a.style,@dime,@width,a.size,a.gmount,a.gweight
+					,a.uno,@productno,a.style,@dime,@width,a.size
+					,case when b.typea='1' then a.gmount else -a.gmount end
+					,case when b.typea='1' then a.[gweight] else -a.[gweight] end
 				from view_gets a
+				left join view_vcc b on a.noa=b.noa
 				where a.noa=@noa and a.nor=@noq
 			end
 			fetch next from cursor_table2
@@ -421,6 +424,7 @@ z_anavccpk02:--z_anavccpk02
 	update #z_anavccpk02 set sprice=isnull(b.sprice,0),stotal=ROUND(isnull(a.[weight],0)*ISNULL(b.sprice,0),0)
 	from #z_anavccpk02 a
 	left join view_uccb b on a.uno=b.uno
+
 	-----------------------------------------------------------------------------------------------------
 	declare @tmpc table(
 		sel int identity(1,1),
@@ -438,9 +442,12 @@ z_anavccpk02:--z_anavccpk02
 	)
 	insert into @tmpc(gno,productno,dime,[weight],total,stotal)
 	select '1',a.productno,a.dime
-		,sum(case when b.typea='1' then 1 else -1 end * case when tablea='vccs' then 1 else 0 end * isnull(a.[weight],0))
-		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.total,0))
-		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.stotal,0))
+		,sum( case when tablea='vccs' then 1 else 0 end * isnull(a.[weight],0))
+		,sum( isnull(a.total,0))
+		,sum( isnull(a.stotal,0))
+		--,sum(case when b.typea='1' then 1 else -1 end * case when tablea='vccs' then 1 else 0 end * isnull(a.[weight],0))
+		--,sum(case when b.typea='1' then 1 else -1 end * isnull(a.total,0))
+		--,sum(case when b.typea='1' then 1 else -1 end * isnull(a.stotal,0))
 	from #z_anavccpk02 a
 	left join @tmpa b on a.noa=b.noa
 	group by a.productno,a.dime
@@ -493,7 +500,7 @@ z_anavccpk02:--z_anavccpk02
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(profit,0)+'</a>' a08
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(rate,2)+'</a>' a09
 	from @tmpc order by recno;
-
+	
 z_anavccpk01:--z_anavccpk01	
 	SET QUOTED_IDENTIFIER OFF 
 	declare @cmd nvarchar(max) 
