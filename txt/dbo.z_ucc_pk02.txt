@@ -1,8 +1,6 @@
 
-create PROCEDURE [dbo].[z_ucc_pk02]
-	 @t_edate nvarchar(20)
-	 ,@t_detail nvarchar(20)
-	 ,@t_uno nvarchar(max)
+alter PROCEDURE [dbo].[z_ucc_pk02]
+	 @t_edate nvarchar(20),@t_detail nvarchar(20)
 as
 begin
 	------------------------------------------------------------------------------------------
@@ -491,6 +489,197 @@ begin
 	update @tmpa set eweight = isnull([weight],0)-ISNULL(vccweight,0)-ISNULL(getweight,0)-ISNULL(cngweight,0)
 		--,emoney = isnull([money],0)-ISNULL(vccmoney,0)-ISNULL(getmoney,0)
 	update @tmpa set emoney = round(isnull(price,0)*isnull(eweight,0),0)
+	
+	declare @productno nvarchar(50)
+	declare @product nvarchar(50)
+	declare @size nvarchar(50)
+	declare @mount float
+	declare @unit nvarchar(20)
+	declare @datea nvarchar(20)
+	
+	if LEN(@t_detail)>0
+	begin
+		--vcc
+		declare cursor_table cursor for
+		select a.uno,isnull(a.storeno,'')
+			,-1*case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end 
+			,isnull(a.total,0)
+			,a.accy,a.noa,a.noq,a.productno,a.product,a.size
+			,a.mount,a.unit,b.datea
+		from view_vccs a
+		left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+		where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
+		and b.datea<=@t_edate
+		open cursor_table
+		fetch next from cursor_table
+		into @uno,@storeno,@weight,@money,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		while(@@FETCH_STATUS <> -1)
+		begin
+
+			insert into @tmpa(pno,form,uno,storeno,accy,noa,noq,productno,product,size,mount2,weight2,unit2,datea)
+			select '2','vcc',@uno,@storeno,@accy,@noa,@noq,@productno,@product,@size,@mount,@weight,@unit,@datea
+			
+			fetch next from cursor_table
+			into @uno,@storeno,@weight,@money,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		end
+		close cursor_table
+		deallocate cursor_table
+		--get
+		declare cursor_table cursor for
+		select a.uno,isnull(a.storeno,'')
+			,-1*case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end 
+			,a.accy,a.noa,a.noq,a.productno,a.product,a.size
+			,a.mount,a.unit,b.datea
+		from view_gets a
+		left join view_get b on a.accy=b.accy and a.noa=b.noa
+		where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
+		and b.datea<=@t_edate
+	
+		open cursor_table
+		fetch next from cursor_table
+		into @uno,@storeno,@weight,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		while(@@FETCH_STATUS <> -1)
+		begin
+			insert into @tmpa(pno,form,uno,storeno,accy,noa,noq,productno,product,size,mount2,weight2,unit2,datea)
+			select '2','get',@uno,@storeno,@accy,@noa,@noq,@productno,@product,@size,@mount,@weight,@unit,@datea
+
+			fetch next from cursor_table
+			into @uno,@storeno,@weight,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		end
+		close cursor_table
+		deallocate cursor_table
+		
+		--rc2
+		declare cursor_table cursor for
+		select a.uno,isnull(a.storeno,'')
+			,ISNULL(a.[weight],0)
+			,isnull(a.total,0)
+			,a.accy,a.noa,a.noq,a.productno,a.product,a.size
+			,a.mount,a.unit,b.datea
+		from view_rc2s a
+		left join view_rc2 b on a.accy=b.accy and a.noa=b.noa
+		where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
+		and b.datea<=@t_edate
+		open cursor_table
+		fetch next from cursor_table
+		into @uno,@storeno,@weight,@money,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		while(@@FETCH_STATUS <> -1)
+		begin
+
+			insert into @tmpa(pno,form,uno,storeno,accy,noa,noq,productno,product,size,mount2,weight2,unit2,datea)
+			select '2','rc2',@uno,@storeno,@accy,@noa,@noq,@productno,@product,@size,@mount,@weight,@unit,@datea
+			
+			fetch next from cursor_table
+			into @uno,@storeno,@weight,@money,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		end
+		close cursor_table
+		deallocate cursor_table
+		--ina
+		declare cursor_table cursor for
+		select a.uno,isnull(a.storeno,'')
+			,ISNULL(a.[weight],0)
+			,isnull(a.total,0)
+			,a.accy,a.noa,a.noq,a.productno,a.product,a.size
+			,a.mount,a.unit,b.datea
+		from view_inas a
+		left join view_ina b on a.accy=b.accy and a.noa=b.noa
+		where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
+		and b.datea<=@t_edate
+		open cursor_table
+		fetch next from cursor_table
+		into @uno,@storeno,@weight,@money,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		while(@@FETCH_STATUS <> -1)
+		begin
+
+			insert into @tmpa(pno,form,uno,storeno,accy,noa,noq,productno,product,size,mount2,weight2,unit2,datea)
+			select '2','ina',@uno,@storeno,@accy,@noa,@noq,@productno,@product,@size,@mount,@weight,@unit,@datea
+			
+			fetch next from cursor_table
+			into @uno,@storeno,@weight,@money,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		end
+		close cursor_table
+		deallocate cursor_table
+		--cut
+		declare cursor_table cursor for
+		select a.bno,isnull(a.storeno,'')
+			,ISNULL(a.[weight],0)
+			,0
+			,a.accy,a.noa,a.noq,a.productno,a.product,a.size
+			,a.mount,'',b.datea
+		from view_cuts a
+		left join view_cut b on a.accy=b.accy and a.noa=b.noa
+		where LEFT(isnull(a.bno,''),1) between 'X' and 'Z'
+		and b.datea<=@t_edate
+		open cursor_table
+		fetch next from cursor_table
+		into @uno,@storeno,@weight,@money,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		while(@@FETCH_STATUS <> -1)
+		begin
+
+			insert into @tmpa(pno,form,uno,storeno,accy,noa,noq,productno,product,size,mount2,weight2,unit2,datea)
+			select '2','cut',@uno,@storeno,@accy,@noa,@noq,@productno,@product,@size,@mount,@weight,@unit,@datea
+			
+			fetch next from cursor_table
+			into @uno,@storeno,@weight,@money,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		end
+		close cursor_table
+		deallocate cursor_table
+		--cub
+		--cng領
+		declare cursor_table cursor for
+		select a.uno,isnull(b.storeno,'')
+			,-1* ISNULL(a.[weight],0) 
+			,round(ISNULL(a.[weight],0)*ISNULL(c.price,0),0)
+			,a.accy,a.noa,a.noq,a.productno,a.product,a.size
+			,a.mount,a.unit,b.datea
+		from view_cngs a
+		left join view_cng b on a.accy=b.accy and a.noa=b.noa
+		left join @tmpz c on a.uno=c.uno and a.storeno=c.storeno and left(b.datea,6)=c.mon
+		where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
+		and b.datea<=@t_edate
+		open cursor_table
+		fetch next from cursor_table
+		into @uno,@storeno,@weight,@money,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		while(@@FETCH_STATUS <> -1)
+		begin
+
+			insert into @tmpa(pno,form,uno,storeno,accy,noa,noq,productno,product,size,mount2,weight2,unit2,datea)
+			select '2','cng',@uno,@storeno,@accy,@noa,@noq,@productno,@product,@size,@mount,@weight,@unit,@datea
+			
+			fetch next from cursor_table
+			into @uno,@storeno,@weight,@money,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		end
+		close cursor_table
+		deallocate cursor_table
+		--cng入
+		declare cursor_table cursor for
+		select a.uno,isnull(b.storeinno,'')
+			,ISNULL(a.[weight],0) 
+			,round(ISNULL(a.[weight],0)*ISNULL(c.price,0),0)
+			,a.accy,a.noa,a.noq,a.productno,a.product,a.size
+			,a.mount,a.unit,b.datea
+		from view_cngs a
+		left join view_cng b on a.accy=b.accy and a.noa=b.noa
+		left join @tmpz c on a.uno=c.uno and a.storeno=c.storeno and left(b.datea,6)=c.mon
+		where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
+		and b.datea<=@t_edate
+		open cursor_table
+		fetch next from cursor_table
+		into @uno,@storeno,@weight,@money,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		while(@@FETCH_STATUS <> -1)
+		begin
+
+			insert into @tmpa(pno,form,uno,storeno,accy,noa,noq,productno,product,size,mount2,weight2,unit2,datea)
+			select '2','cng',@uno,@storeno,@accy,@noa,@noq,@productno,@product,@size,@mount,@weight,@unit,@datea
+			
+			fetch next from cursor_table
+			into @uno,@storeno,@weight,@money,@accy,@noa,@noq,@productno,@product,@size,@mount,@unit,@datea
+		end
+		close cursor_table
+		deallocate cursor_table
+	end
+	
+	
 	drop table #z_ucc_pk02
 	select * from @tmpa
 end

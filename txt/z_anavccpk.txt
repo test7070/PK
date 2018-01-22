@@ -303,7 +303,6 @@ z_anavccpk02:--z_anavccpk02
 	declare @t_sort nvarchar(max) = case when '#non'=[7] then '' else [7] end
 	declare @t_bdime float = case when '#non'=[8] then 0 else cast([8] as float) end
 	declare @t_edime float = case when '#non'=[9] then 9999999 else cast([9] as float) end
-	
 	-----------------------------------------------------------------------------------
 	declare @tmpa table(
 		sel int identity(1,1),
@@ -333,6 +332,7 @@ z_anavccpk02:--z_anavccpk02
 		accy nvarchar(20),
 		noa nvarchar(20),
 		noq nvarchar(20),
+		datea nvarchar(20),
 		custno nvarchar(20),
 		tranmoney float,
 		uno nvarchar(30),
@@ -384,9 +384,9 @@ z_anavccpk02:--z_anavccpk02
 		into @noq,@uno,@productno,@dime,@width,@size,@mount,@weight,@price,@total
 		while(@@FETCH_STATUS <> -1)
 		begin
-			insert into #z_anavccpk02(pno,tablea,accy,noa,noq
+			insert into #z_anavccpk02(pno,tablea,accy,noa,noq,datea
 				,uno,productno,style,size,dime,width,mount,[weight],price,total)
-			select '1','vccs',a.accy,a.noa,a.noq
+			select '1','vccs',a.accy,a.noa,a.noq,b.datea
 				,a.uno,a.productno,a.style,a.size,a.dime,a.width
 				,case when b.typea='1' then a.mount else -a.mount end
 				,case when b.typea='1' then a.[weight] else -a.[weight] end
@@ -399,9 +399,9 @@ z_anavccpk02:--z_anavccpk02
 			--productno都依出貨單
 			if LEN(@uno)=0
 			begin			
-				insert into #z_anavccpk02(pno,tablea,accy,noa,noq
+				insert into #z_anavccpk02(pno,tablea,accy,noa,noq,datea
 					,uno,productno,style,dime,width,size,mount,[weight])
-				select '2','gets',a.accy,a.noa,a.nor
+				select '2','gets',a.accy,a.noa,a.nor,b.datea
 					,a.uno,@productno,a.style,@dime,@width,a.size
 					,case when b.typea='1' then a.gmount else -a.gmount end
 					,case when b.typea='1' then a.[gweight] else -a.[gweight] end
@@ -424,7 +424,62 @@ z_anavccpk02:--z_anavccpk02
 	update #z_anavccpk02 set sprice=isnull(b.sprice,0),stotal=ROUND(isnull(a.[weight],0)*ISNULL(b.sprice,0),0)
 	from #z_anavccpk02 a
 	left join view_uccb b on a.uno=b.uno
-
+	--廢料單價
+	declare @tmpb table(
+		gno nvarchar(10),
+		pno nvarchar(10),
+		uno nvarchar(30),
+		storeno nvarchar(20),
+		store nvarchar(50),
+		[weight] float,
+		[money] float,
+		price float,
+		vccweight float,
+		vccmoney float,
+		getweight float,
+		getmoney float,
+		cngweight float,
+		cngmoney float,
+		eweight float,
+		emoney float,
+		
+		form nvarchar(20),
+		accy nvarchar(20),
+		noa nvarchar(20),
+		noq nvarchar(10),
+		datea nvarchar(10),
+		productno nvarchar(50),
+		product nvarchar(50),
+		size nvarchar(100),
+		mount2 float,
+		weight2 float,
+		unit2 nvarchar(20)
+	)
+	declare @datea nvarchar(20)
+	
+	declare cursor_table3 cursor for
+		select datea 
+		from #z_anavccpk02 
+		where LEFT(uno,1) between 'X' and 'Z'
+		group by datea
+	open cursor_table3
+	fetch next from cursor_table3
+	into @datea
+	while(@@FETCH_STATUS <> -1)
+	begin
+		insert into @tmpb
+		execute dbo.z_ucc_pk02 @datea,''
+		update #z_anavccpk02 set sprice=case when b.eweight=0 then 0 else ROUND( b.emoney/b.eweight,4) end
+			,stotal = round(case when b.eweight=0 then 0 else ROUND( b.emoney/b.eweight,4) end * a.weight,0) 
+		from #z_anavccpk02 a
+		left join @tmpb b on a.uno=b.uno 
+		where a.datea=@datea
+		
+		fetch next from cursor_table3
+		into @datea
+	end
+	close cursor_table3
+	deallocate cursor_table3
 	-----------------------------------------------------------------------------------------------------
 	declare @tmpc table(
 		sel int identity(1,1),
@@ -452,7 +507,7 @@ z_anavccpk02:--z_anavccpk02
 	left join @tmpa b on a.noa=b.noa
 	group by a.productno,a.dime
 	
-	update @tmpc set rate = case when ISNULL(stotal,0)=0 then 0 else ROUND((total-stotal)/stotal*100,2) end
+	update @tmpc set rate = case when ISNULL(total,0)=0 then 0 else ROUND((total-stotal)/total*100,2) end
 	update @tmpc set profit = ISNULL(total,0)-ISNULL(stotal,0)
 	
 	insert into @tmpc(gno,productno,dime,weight,total,stotal,profit)
@@ -609,7 +664,64 @@ z_anavccpk01:--z_anavccpk01
 	from #z_anavccpk01_b a
 	outer apply(select * from  dbo.waste_pk(CHAR(255)) where uno=a.uno and mon=LEFT(a.datea,6)) b
 	where left(a.uno,1) between 'X' and 'Z'
-
+	
+	--廢料單價
+	declare @tmpb table(
+		gno nvarchar(10),
+		pno nvarchar(10),
+		uno nvarchar(30),
+		storeno nvarchar(20),
+		store nvarchar(50),
+		[weight] float,
+		[money] float,
+		price float,
+		vccweight float,
+		vccmoney float,
+		getweight float,
+		getmoney float,
+		cngweight float,
+		cngmoney float,
+		eweight float,
+		emoney float,
+		
+		form nvarchar(20),
+		accy nvarchar(20),
+		noa nvarchar(20),
+		noq nvarchar(10),
+		datea nvarchar(10),
+		productno nvarchar(50),
+		product nvarchar(50),
+		size nvarchar(100),
+		mount2 float,
+		weight2 float,
+		unit2 nvarchar(20)
+	)
+	declare @datea nvarchar(20)
+	
+	declare cursor_table3 cursor for
+		select datea 
+		from #z_anavccpk01_b
+		where LEFT(uno,1) between 'X' and 'Z'
+		group by datea
+	open cursor_table3
+	fetch next from cursor_table3
+	into @datea
+	while(@@FETCH_STATUS <> -1)
+	begin
+		insert into @tmpb
+		execute dbo.z_ucc_pk02 @datea,''
+		update #z_anavccpk01_b set sprice=case when b.eweight=0 then 0 else ROUND( b.emoney/b.eweight,4) end
+		from #z_anavccpk01_b a
+		left join @tmpb b on a.uno=b.uno 
+		where a.datea=@datea
+		
+		fetch next from cursor_table3
+		into @datea
+	end
+	close cursor_table3
+	deallocate cursor_table3
+	
+	
 	update #z_anavccpk01_b set total=round(sprice*gweight,0)
 
 	---------------------------------------------------------------------------------------------------
