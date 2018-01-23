@@ -647,7 +647,7 @@ z_anavccpk01:--z_anavccpk01
 		,0,0
 	from view_gets a
 	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
-	left join view_vccs c on a.accy=c.accy and a.noa=c.noa and a.nor=c.noq
+	left join view_vccs c on a.noa=c.noa and a.nor=c.noq
 	where exists(select * from @tmpa where accy=a.accy and noa=a.noa)
 	and len(a.uno)>0
 	and b.datea between @t_bdate and @t_edate
