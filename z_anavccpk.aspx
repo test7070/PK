@@ -76,11 +76,7 @@
                         type : '8',//[13]  9
                         name : 'xstype',
                         value : q_getPara('vccst.stype').split(',')
-                    },{
-						type : '5', //[14]10
-						name : 'xstype',
-						value : [q_getPara('report.all')].concat(q_getPara('vccst.stype').split(','))
-					}]
+                    }]
 				});
 				q_popAssign();
 				q_getFormat();
