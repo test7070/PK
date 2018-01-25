@@ -304,127 +304,100 @@ z_anavccpk02:--z_anavccpk02
 	declare @t_bdime float = case when '#non'=[8] then 0 else cast([8] as float) end
 	declare @t_edime float = case when '#non'=[9] then 9999999 else cast([9] as float) end
 	declare @t_stype nvarchar(20)= case when '#non'=[13] then '' else [13] end
-	-----------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------
+	-- 出貨單
 	declare @tmpa table(
-		sel int identity(1,1),
-		accy nvarchar(20),
-		noa nvarchar(20),
-		custno nvarchar(20),
-		tranmoney float,
-		typea nvarchar(20)
+		sel int identity(1,1)
+		,accy nvarchar(10)
+		,noa nvarchar(20)
+		,noq nvarchar(10)
+		,typea nvarchar(20)
+		,custno nvarchar(20)
+		,productno nvarchar(30)
+		,product nvarchar(50)
+		,dime float
+		,width float
+		,lengthb float
+		,[weight] float
+		,[money] float
 	)
-	
-	--出貨單 VCCS  只抓買賣的
-	insert into @tmpa(accy,noa,custno,tranmoney,typea)
-	select a.accy,a.noa,a.custno,isnull(a.tranmoney,0),a.typea 
-	from view_vcc a
-	where a.datea between @t_bdate and @t_edate
-	and a.custno between @t_bcustno and @t_ecustno
-	and (len(@t_stype)=0 or CHARINDEX(a.stype,@t_stype)>0)
-	-------------------------------------------------------------------------------------
-	IF OBJECT_ID('tempdb..#z_anavccpk02')is not null
+	insert into @tmpa(accy,noa,noq,typea,custno,productno,product,dime,width,lengthb,[weight],[money])
+	select  a.accy,a.noa,a.noq,b.typea,b.custno,a.productno,a.product,a.dime,a.width,a.lengthb
+		,case when b.typea='1' then a.[weight] else -a.[weight] end
+		,case when b.typea='1' then a.[total] else -a.[total] end
+	from view_vccs a
+	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+	where b.datea between @t_bdate and @t_edate
+	and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
+	and (len(@t_stype)=0 or CHARINDEX(b.stype,@t_stype)>0)
+	and not(ISNULL(a.[weight],0)=0 and ISNULL(a.[total],0)=0 and len(isnull(a.product,''))=0)
+	and ISNULL(a.productno,'') between @t_bproductno and @t_eproductno
+	and ISNULL(a.dime,0) between @t_bdime and @t_edime
+
+	-- 出貨批號明細(包括 出貨&領料)
+	IF OBJECT_ID('tempdb..#z_anavccpk01_b')is not null
 	BEGIN
-		drop table #z_anavccpk02
+		drop table #z_anavccpk01_b
 	END
-	create table #z_anavccpk02(
-		sel int identity(1,1),
-		pno nvarchar(10),
-		tablea nvarchar(20),
-		accy nvarchar(20),
-		noa nvarchar(20),
-		noq nvarchar(20),
-		datea nvarchar(20),
-		custno nvarchar(20),
-		tranmoney float,
-		uno nvarchar(30),
-		productno nvarchar(50),
-		dime float,
-		width float,
-		style nvarchar(20),
-		size nvarchar(max),
-		mount float,
-		[weight] float,
-		price float,
-		total float,
-		sprice float,
-		stotal float
+	create table #z_anavccpk01_b(
+		sel int identity(1,1)
+		-------------------------
+		--要算在哪一筆出貨單中
+		,vccaccy nvarchar(10)
+		,vccno nvarchar(20)
+		,vccnoq nvarchar(10)
+		-------------------------
+		,typea nvarchar(10)
+		,datea nvarchar(20)
+		,tablea nvarchar(20)
+		,accy nvarchar(10)
+		,noa nvarchar(20)
+		,noq nvarchar(10)
+		,uno nvarchar(30)
+		,gweight float
+		,sprice float
+		,total float
 	)
-	declare @noa nvarchar(20)
-	declare @custno nvarchar(20)
-	declare @tranmoney float
-	declare @typea nvarchar(20)
-	
-	declare @noq nvarchar(20)
-	declare @uno nvarchar(30)
-	declare @productno nvarchar(50)
-	declare @dime float
-	declare @width float
-	declare @size nvarchar(50)
-	declare @mount float
-	declare @weight float
-	declare @price float
-	declare @total float
-	
-	declare @totweight float
-	
-	declare cursor_table cursor for
-	select noa,custno,tranmoney,typea from @tmpa 
-	open cursor_table
-	fetch next from cursor_table
-	into @noa,@custno,@tranmoney,@typea
-	while(@@FETCH_STATUS <> -1)
-	begin
-		declare cursor_table2 cursor for
-		select noq,uno,productno,dime,width,size,mount,[weight],price,total 
-			from view_vccs 
-			where noa=@noa 
-			and productno between @t_bproductno and @t_eproductno
-			and dime between @t_bdime and @t_edime
-		open cursor_table2
-		fetch next from cursor_table2
-		into @noq,@uno,@productno,@dime,@width,@size,@mount,@weight,@price,@total
-		while(@@FETCH_STATUS <> -1)
-		begin
-			insert into #z_anavccpk02(pno,tablea,accy,noa,noq,datea
-				,uno,productno,style,size,dime,width,mount,[weight],price,total)
-			select '1','vccs',a.accy,a.noa,a.noq,b.datea
-				,a.uno,a.productno,a.style,a.size,a.dime,a.width
-				,case when b.typea='1' then a.mount else -a.mount end
-				,case when b.typea='1' then a.[weight] else -a.[weight] end
-				,a.price
-				,case when b.typea='1' then a.total else -a.total end
-			from view_vccs a
-			left join view_vcc b on a.accy=b.accy and a.noa=b.noa
-			where a.noa=@noa and a.noq=@noq
-			--出貨單沒批號就到領料單找	
-			--productno都依出貨單
-			if LEN(@uno)=0
-			begin			
-				insert into #z_anavccpk02(pno,tablea,accy,noa,noq,datea
-					,uno,productno,style,dime,width,size,mount,[weight])
-				select '2','gets',a.accy,a.noa,a.nor,b.datea
-					,a.uno,@productno,a.style,@dime,@width,a.size
-					,case when b.typea='1' then a.gmount else -a.gmount end
-					,case when b.typea='1' then a.[gweight] else -a.[gweight] end
-				from view_gets a
-				left join view_vcc b on a.noa=b.noa
-				where a.noa=@noa and a.nor=@noq
-			end
-			fetch next from cursor_table2
-			into @noq,@uno,@productno,@dime,@width,@size,@mount,@weight,@price,@total
-		end
-		close cursor_table2
-		deallocate cursor_table2
-		
-		fetch next from cursor_table
-		into @noa,@custno,@tranmoney,@typea
-	end
-	close cursor_table
-	deallocate cursor_table
-	---找成本單價
-	update #z_anavccpk02 set sprice=isnull(b.sprice,0),stotal=ROUND(isnull(a.[weight],0)*ISNULL(b.sprice,0),0)
-	from #z_anavccpk02 a
+	insert into #z_anavccpk01_b(vccaccy,vccno,vccnoq,typea,datea,tablea,accy,noa,noq,uno,gweight,sprice,total)
+	select a.accy,a.noa,a.noq 
+		,b.typea,b.datea,'vcc',a.accy,a.noa,a.noq,a.uno
+		,case when a.gweight!=0 then a.gweight else a.[weight] end,0,0
+	from view_vccs a
+	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+	left join view_uccb c on a.uno=c.uno
+	where exists(select * from @tmpa where accy=a.accy and noa=a.noa)
+	and len(a.uno)>0
+	and b.datea between @t_bdate and @t_edate
+	and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
+	and (len(@t_stype)=0 or CHARINDEX(b.stype,@t_stype)>0)
+	and ISNULL(a.productno,'') between @t_bproductno and @t_eproductno
+	and ISNULL(a.dime,0) between @t_bdime and @t_edime
+
+	insert into #z_anavccpk01_b(vccaccy,vccno,vccnoq,typea,datea,tablea,accy,noa,noq,uno,gweight,sprice,total)
+	select a.accy,a.noa,a.nor 
+		,b.typea,b.datea,'get',a.accy,a.noa,a.noq,a.uno
+		,case when a.gweight!=0 then a.gweight else a.[weight] end
+		,0,0
+	from view_gets a
+	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+	left join view_vccs c on a.noa=c.noa and a.nor=c.noq
+	where exists(select * from @tmpa where accy=a.accy and noa=a.noa)
+	and len(a.uno)>0
+	and b.datea between @t_bdate and @t_edate
+	and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
+	and (len(@t_stype)=0 or CHARINDEX(b.stype,@t_stype)>0)
+	and ISNULL(c.productno,'') between @t_bproductno and @t_eproductno
+	and ISNULL(c.dime,0) between @t_bdime and @t_edime
+
+	update #z_anavccpk01_b set sprice=isnull(b.sprice,0)
+	from #z_anavccpk01_b a
 	left join view_uccb b on a.uno=b.uno
+	
+	--update #z_anavccpk01_b set sprice=isnull(b.price,0)
+	--from #z_anavccpk01_b a
+	--outer apply(select * from  dbo.waste_pk(CHAR(255)) where uno=a.uno and mon=LEFT(a.datea,6)) b
+	--where left(a.uno,1) between 'X' and 'Z'
+	
 	--廢料單價
 	declare @tmpb table(
 		gno nvarchar(10),
@@ -460,7 +433,7 @@ z_anavccpk02:--z_anavccpk02
 	
 	declare cursor_table3 cursor for
 		select datea 
-		from #z_anavccpk02 
+		from #z_anavccpk01_b
 		where LEFT(uno,1) between 'X' and 'Z'
 		group by datea
 	open cursor_table3
@@ -470,9 +443,8 @@ z_anavccpk02:--z_anavccpk02
 	begin
 		insert into @tmpb
 		execute dbo.z_ucc_pk02 @datea,''
-		update #z_anavccpk02 set sprice=case when b.eweight=0 then 0 else ROUND( b.emoney/b.eweight,4) end
-			,stotal = round(case when b.eweight=0 then 0 else ROUND( b.emoney/b.eweight,4) end * a.weight,0) 
-		from #z_anavccpk02 a
+		update #z_anavccpk01_b set sprice=case when b.eweight=0 then 0 else ROUND( b.emoney/b.eweight,4) end
+		from #z_anavccpk01_b a
 		left join @tmpb b on a.uno=b.uno 
 		where a.datea=@datea
 		
@@ -481,81 +453,110 @@ z_anavccpk02:--z_anavccpk02
 	end
 	close cursor_table3
 	deallocate cursor_table3
-	-----------------------------------------------------------------------------------------------------
-	declare @tmpc table(
-		sel int identity(1,1),
-		recno int,
-		gno nvarchar(20),
-		custno nvarchar(20),
-		cust nvarchar(20),
-		productno nvarchar(50),
-		dime float,
-		[weight] float,
-		total float,
-		stotal float,
-		profit float,
-		rate float
+	
+	
+	update #z_anavccpk01_b set total=round(sprice*gweight,0)
+
+	---------------------------------------------------------------------------------------------------
+	IF OBJECT_ID('tempdb..#z_anavccpk01_c')is not null
+	BEGIN
+		drop table #z_anavccpk01_c
+	END
+	create table #z_anavccpk01_c(
+		sel int identity(1,1)
+		,recno int
+		,gno nvarchar(10)
+		,pno int
+		,custno nvarchar(20)
+		,cust nvarchar(50)
+		,productno nvarchar(30)
+		--,product nvarchar(50)
+		,dime float
+		--,width float
+		--,lengthb float
+		--,radius float
+		,[weight] float
+		,[money] float
+		,cost float
+		,profit float
+		,prate float
+		--------------------------------
+		--detail
+		,tablea nvarchar(20)
+		,accy nvarchar(10)
+		,noa nvarchar(20)
+		,noq nvarchar(10)
+		,uno nvarchar(30)
+		,tproductno nvarchar(30)
+		,tproduct nvarchar(50)
+		,tdime float
+		,twidth float
+		,tlengthb float
+		,tradius float
+		,tweight float
+		,tprice float
+		,tmoney float
 	)
-	insert into @tmpc(gno,productno,dime,[weight],total,stotal)
-	select '1',a.productno,a.dime
-		,sum( case when tablea='vccs' then 1 else 0 end * isnull(a.[weight],0))
-		,sum( isnull(a.total,0))
-		,sum( isnull(a.stotal,0))
-		--,sum(case when b.typea='1' then 1 else -1 end * case when tablea='vccs' then 1 else 0 end * isnull(a.[weight],0))
-		--,sum(case when b.typea='1' then 1 else -1 end * isnull(a.total,0))
-		--,sum(case when b.typea='1' then 1 else -1 end * isnull(a.stotal,0))
-	from #z_anavccpk02 a
-	left join @tmpa b on a.noa=b.noa
-	group by a.productno,a.dime
+	insert into #z_anavccpk01_c(gno,pno,custno,productno,dime,[weight],[money])
+	select '1',1,custno,productno,dime,SUM(ISNULL([weight],0)),SUM(ISNULL([money],0))
+	from @tmpa
+	group by custno,productno,dime
+
+	update #z_anavccpk01_c set cost=ISNULL(b.total,0)
+	from #z_anavccpk01_c a
+	left join (select b.custno,b.productno,b.dime,sum(case when b.typea='2' then -1 else 1 end *isnull(a.total,0)) total
+		from #z_anavccpk01_b a
+		left join @tmpa b on a.vccaccy=b.accy and a.vccno=b.noa and a.vccnoq=b.noq
+		group by  b.custno,b.productno,b.dime
+			) b on a.custno=b.custno and a.productno=b.productno and a.dime=b.dime
 	
-	update @tmpc set rate = case when ISNULL(total,0)=0 then 0 else ROUND((total-stotal)/total*100,2) end
-	update @tmpc set profit = ISNULL(total,0)-ISNULL(stotal,0)
 	
-	insert into @tmpc(gno,productno,dime,weight,total,stotal,profit)
-	select '2',CHAR(255),null,SUM(ISNULL(weight,0)),SUM(ISNULL(total,0)),SUM(ISNULL(stotal,0)),SUM(ISNULL(profit,0)) from @tmpc 	
+	update #z_anavccpk01_c set profit = [money]-cost
+	update #z_anavccpk01_c set cust = b.nick
+	from #z_anavccpk01_c a
+	left join cust b on a.custno=b.noa
+	---------------------------------------------------------------------------------
+
+	insert into #z_anavccpk01_c(gno,pno,custno,[weight],[money],cost,profit)
+	select '3',1,CHAR(255),SUM(ISNULL([weight],0)),SUM(ISNULL([money],0)),SUM(ISNULL([cost],0)),SUM(ISNULL([profit],0))
+	from #z_anavccpk01_c
+	where gno='1'
+	---------------------------------------------------------------------------------------------------
+	declare @tmpc table(
+		sel int identity(1,1)
+		,gno nvarchar(10)
+		,productno nvarchar(30)
+		,dime float
+		,[weight] float
+		,[money] float
+		,[cost] float
+		,[profit] float
+		,[prate] float
+	)
+	insert into @tmpc(gno,productno,dime,[weight],[money],[cost],[profit])
+	select gno,productno,dime,sum(isnull([weight],0)),sum(isnull([money],0)),sum(isnull([cost],0)),sum(isnull([profit],0))
+	from #z_anavccpk01_c
+	group by gno,productno,dime
+	order by gno,productno,dime
 	
-	update @tmpc set rate=case when ISNULL(total,0)=0 then 0 else ROUND((total-stotal)/total*100,2) end where gno='2'
-	
-	-- 排行：量、金額、毛利率、毛利     
-	if @t_sort = 'weight'
-	begin
-		update @tmpc set recno=b.recno
-		from @tmpc a
-		left join (select sel,ROW_NUMBER()over(order by gno,[weight] desc,sel) recno from @tmpc ) b on a.sel=b.sel
-	end
-	else if @t_sort = 'total'
-	begin
-		update @tmpc set recno=b.recno
-		from @tmpc a
-		left join (select sel,ROW_NUMBER()over(order by gno,[total] desc,sel) recno from @tmpc ) b on a.sel=b.sel
-	end
-	else if @t_sort = 'rate'
-	begin
-		update @tmpc set recno=b.recno
-		from @tmpc a
-		left join (select sel,ROW_NUMBER()over(order by gno,[rate] desc,sel) recno from @tmpc ) b on a.sel=b.sel
-	end
-	else
-	begin
-		update @tmpc set recno=b.recno
-		from @tmpc a
-		left join (select sel,ROW_NUMBER()over(order by gno,[profit] desc,sel) recno from @tmpc ) b on a.sel=b.sel
-	end
-	
+	update @tmpc set prate = case when isnull([money],0)=0 then 0 else round(([money]-cost)/[money]*100,2) end
+
 	set @cmd = "日期："+@t_bdate+" ～ "+@t_edate
-	
-	select gno,recno rr
+
+	select gno,sel rr
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+@cmd+'</a>' titlea
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+custno+'</a>' a01
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+cust+'</a>' a02
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+productno+'</a>' a03
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(dime,-1)+'</a>' a04
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma([weight],0)+'</a>' a05
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(total,0)+'</a>' a06
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(stotal,0)+'</a>' a07
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(profit,0)+'</a>' a08
-		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+dbo.getComma(rate,2)+'</a>' a09
-	from @tmpc order by recno;
+		,productno a03
+		,dime a04
+		,dbo.getComma([weight],-1) a05
+		,dbo.getComma([money],-1) a06
+		,dbo.getComma([cost],-1) a07
+		,dbo.getComma([profit],-1) a08
+		,dbo.getComma([prate],-1) a09
+	from @tmpc
+	order by sel
+	
+	drop table #z_anavccpk01_b
+	drop table #z_anavccpk01_c;
 	
 z_anavccpk01:--z_anavccpk01	
 	SET QUOTED_IDENTIFIER OFF 
