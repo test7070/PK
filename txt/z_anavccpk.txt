@@ -436,7 +436,7 @@ z_anavccpk02:--z_anavccpk02
 		unit2 nvarchar(20)
 	)
 	declare @datea nvarchar(20)
-	
+
 	declare cursor_table3 cursor for
 		select datea 
 		from #z_anavccpk01_b
@@ -451,7 +451,7 @@ z_anavccpk02:--z_anavccpk02
 		insert into @tmpb
 		execute dbo.z_ucc_pk02 @datea,''
 		
-		update #z_anavccpk01_b set sprice=case when isnull(b.eweight,0)=0 then 0 else ROUND( isnull(b.emoney,0)/isnull(b.eweight,0),4) end
+		update #z_anavccpk01_b set sprice= isnull(b.price,0)
 		from #z_anavccpk01_b a
 		left join @tmpb b on a.uno=b.uno 
 		where a.datea=@datea
@@ -464,7 +464,7 @@ z_anavccpk02:--z_anavccpk02
 	deallocate cursor_table3
 	
 	
-	update #z_anavccpk01_b set total=round(sprice*gweight,0)
+	update #z_anavccpk01_b set total=round(isnull(sprice,0)*isnull(gweight,0),0)
 
 	---------------------------------------------------------------------------------------------------
 	IF OBJECT_ID('tempdb..#z_anavccpk01_c')is not null
@@ -745,7 +745,7 @@ z_anavccpk01:--z_anavccpk01
 		unit2 nvarchar(20)
 	)
 	declare @datea nvarchar(20)
-	
+
 	declare cursor_table3 cursor for
 		select datea 
 		from #z_anavccpk01_b
@@ -760,7 +760,7 @@ z_anavccpk01:--z_anavccpk01
 		insert into @tmpb
 		execute dbo.z_ucc_pk02 @datea,''
 		
-		update #z_anavccpk01_b set sprice=case when isnull(b.eweight,0)=0 then 0 else ROUND( isnull(b.emoney,0)/isnull(b.eweight,0),4) end
+		update #z_anavccpk01_b set sprice= isnull(b.price,0)
 		from #z_anavccpk01_b a
 		left join @tmpb b on a.uno=b.uno 
 		where a.datea=@datea
@@ -773,7 +773,7 @@ z_anavccpk01:--z_anavccpk01
 	deallocate cursor_table3
 	
 	
-	update #z_anavccpk01_b set total=round(sprice*gweight,0)
+	update #z_anavccpk01_b set total=round(isnull(sprice,0)*isnull(gweight,0),0)
 
 	---------------------------------------------------------------------------------------------------
 	IF OBJECT_ID('tempdb..#z_anavccpk01_c')is not null
