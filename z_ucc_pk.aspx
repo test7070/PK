@@ -179,8 +179,8 @@
 				q_langShow();
 				$('#Xoption').find('input[type=checkbox]').eq(1).prop('checked',true);
 				$('#Xoption').find('input[type=checkbox]').eq(2).prop('checked',true);
-				$('#Xuno').css('width','98%');
-                $('#txtXuno').css('width','85%');
+				$('#Xuno').css('width','95%');
+                $('#txtXuno').css('width','75%');
                 
 				$('#txtYdate').mask('999/99/99');
 				$('#txtYdate').val(q_date());

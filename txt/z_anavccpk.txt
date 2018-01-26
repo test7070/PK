@@ -385,14 +385,14 @@ z_anavccpk02:--z_anavccpk02
 		,custno,productno,dime
 		,typea,datea,tablea,accy,noa,noq,uno,gweight,sprice,total)
 	select a.accy,a.noa,a.nor 
-		,b.custno,a.productno,a.dime
+		,b.custno,c.productno,c.dime
 		,b.typea,b.datea,'get',a.accy,a.noa,a.noq,a.uno
 		,case when a.gweight!=0 then a.gweight else a.[weight] end
 		,0,0
 	from view_gets a
-	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+	left join view_vcc b on a.noa=b.noa
 	left join view_vccs c on a.noa=c.noa and a.nor=c.noq
-	where exists(select * from @tmpa where accy=a.accy and noa=a.noa)
+	where exists(select * from @tmpa where noa=a.noa)
 	and len(a.uno)>0
 	and b.datea between @t_bdate and @t_edate
 	and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
@@ -447,13 +447,15 @@ z_anavccpk02:--z_anavccpk02
 	into @datea
 	while(@@FETCH_STATUS <> -1)
 	begin
+		delete @tmpb
 		insert into @tmpb
 		execute dbo.z_ucc_pk02 @datea,''
-		update #z_anavccpk01_b set sprice=case when b.eweight=0 then 0 else ROUND( b.emoney/b.eweight,4) end
+		
+		update #z_anavccpk01_b set sprice=case when isnull(b.eweight,0)=0 then 0 else ROUND( isnull(b.emoney,0)/isnull(b.eweight,0),4) end
 		from #z_anavccpk01_b a
 		left join @tmpb b on a.uno=b.uno 
 		where a.datea=@datea
-		and LEFT(a.uno,1) between 'X' and 'Z'
+		and b.uno is not null
 		
 		fetch next from cursor_table3
 		into @datea
@@ -505,7 +507,9 @@ z_anavccpk02:--z_anavccpk02
 		,tmoney float
 	)
 	insert into #z_anavccpk01_c(gno,pno,custno,productno,dime,[weight],[money])
-	select '1',1,custno,productno,dime,SUM(ISNULL([weight],0)),SUM(ISNULL([money],0))
+	select '1',1,custno,productno,dime
+		,SUM(case when typea='2' then -1 else 1 end*ISNULL([weight],0))
+		,SUM(case when typea='2' then -1 else 1 end*ISNULL([money],0))
 	from @tmpa
 	group by custno,productno,dime
 
@@ -513,7 +517,7 @@ z_anavccpk02:--z_anavccpk02
 	from #z_anavccpk01_c a
 	left join (select b.custno,b.productno,b.dime,sum(case when b.typea='2' then -1 else 1 end *isnull(a.total,0)) total
 		from #z_anavccpk01_b a
-		left join @tmpa b on a.vccaccy=b.accy and a.vccno=b.noa and a.vccnoq=b.noq
+		left join @tmpa b on a.vccno=b.noa and a.vccnoq=b.noq
 		group by  b.custno,b.productno,b.dime
 			) b on a.custno=b.custno and a.productno=b.productno and a.dime=b.dime
 	
@@ -685,14 +689,14 @@ z_anavccpk01:--z_anavccpk01
 		,custno,product,dime
 		,typea,datea,tablea,accy,noa,noq,uno,gweight,sprice,total)
 	select a.accy,a.noa,a.nor 
-		,a.custno,a.product,a.dime
+		,a.custno,c.product,c.dime
 		,b.typea,b.datea,'get',a.accy,a.noa,a.noq,a.uno
 		,case when a.gweight!=0 then a.gweight else a.[weight] end
 		,0,0
 	from view_gets a
-	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
+	left join view_vcc b on a.noa=b.noa
 	left join view_vccs c on a.noa=c.noa and a.nor=c.noq
-	where exists(select * from @tmpa where accy=a.accy and noa=a.noa)
+	where exists(select * from @tmpa where noa=a.noa)
 	and len(a.uno)>0
 	and b.datea between @t_bdate and @t_edate
 	and ISNULL(b.custno,'') between @t_bcustno and @t_ecustno
@@ -752,13 +756,15 @@ z_anavccpk01:--z_anavccpk01
 	into @datea
 	while(@@FETCH_STATUS <> -1)
 	begin
+		delete @tmpb
 		insert into @tmpb
 		execute dbo.z_ucc_pk02 @datea,''
-		update #z_anavccpk01_b set sprice=case when b.eweight=0 then 0 else ROUND( b.emoney/b.eweight,4) end
+		
+		update #z_anavccpk01_b set sprice=case when isnull(b.eweight,0)=0 then 0 else ROUND( isnull(b.emoney,0)/isnull(b.eweight,0),4) end
 		from #z_anavccpk01_b a
 		left join @tmpb b on a.uno=b.uno 
 		where a.datea=@datea
-		and LEFT(a.uno,1) between 'X' and 'Z'
+		and b.uno is not null
 		
 		fetch next from cursor_table3
 		into @datea
@@ -810,7 +816,9 @@ z_anavccpk01:--z_anavccpk01
 		,tmoney float
 	)
 	insert into #z_anavccpk01_c(gno,pno,custno,product,dime,[weight],[money])
-	select '1',1,custno,product,dime,SUM(ISNULL([weight],0)),SUM(ISNULL([money],0))
+	select '1',1,custno,product,dime
+		,SUM(case when typea='2' then -1 else 1 end*ISNULL([weight],0))
+		,SUM(case when typea='2' then -1 else 1 end*ISNULL([money],0))
 	from @tmpa
 	group by custno,product,dime
 	
@@ -818,7 +826,7 @@ z_anavccpk01:--z_anavccpk01
 	from #z_anavccpk01_c a
 	left join (select b.custno,b.product,b.dime,sum(case when b.typea='2' then -1 else 1 end *isnull(a.total,0)) total
 		from #z_anavccpk01_b a
-		left join @tmpa b on a.vccaccy=b.accy and a.vccno=b.noa and a.vccnoq=b.noq
+		left join @tmpa b on a.vccno=b.noa and a.vccnoq=b.noq
 		group by  b.custno,b.product,b.dime
 			) b on a.custno=b.custno and a.product=b.product and a.dime=b.dime
 	
