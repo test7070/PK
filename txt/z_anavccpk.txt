@@ -508,8 +508,8 @@ z_anavccpk02:--z_anavccpk02
 	)
 	insert into #z_anavccpk01_c(gno,pno,custno,productno,dime,[weight],[money])
 	select '1',1,custno,productno,dime
-		,SUM(case when typea='2' then -1 else 1 end*ISNULL([weight],0))
-		,SUM(case when typea='2' then -1 else 1 end*ISNULL([money],0))
+		,SUM(ISNULL([weight],0))
+		,SUM(ISNULL([money],0))
 	from @tmpa
 	group by custno,productno,dime
 
@@ -583,7 +583,7 @@ z_anavccpk02:--z_anavccpk02
 		,'<a style="font-family:'+ "'Times New Roman','標楷體', serif"+char(59)+'">'+@cmd+'</a>' titlea
 		,productno a03
 		,dime a04
-		,dbo.getComma([weight],-1) a05
+		,dbo.getComma([weight],2) a05
 		,dbo.getComma([money],-1) a06
 		,dbo.getComma([cost],-1) a07
 		,dbo.getComma([profit],-1) a08
@@ -817,8 +817,8 @@ z_anavccpk01:--z_anavccpk01
 	)
 	insert into #z_anavccpk01_c(gno,pno,custno,product,dime,[weight],[money])
 	select '1',1,custno,product,dime
-		,SUM(case when typea='2' then -1 else 1 end*ISNULL([weight],0))
-		,SUM(case when typea='2' then -1 else 1 end*ISNULL([money],0))
+		,SUM(ISNULL([weight],0))
+		,SUM(ISNULL([money],0))
 	from @tmpa
 	group by custno,product,dime
 	
@@ -896,7 +896,7 @@ z_anavccpk01:--z_anavccpk01
 		,cust a02
 		,product a03
 		,dime a04
-		,dbo.getComma([weight],-1) a05
+		,dbo.getComma([weight],2) a05
 		,dbo.getComma([money],-1) a06
 		,dbo.getComma([cost],-1) a07
 		,dbo.getComma([profit],-1) a08
