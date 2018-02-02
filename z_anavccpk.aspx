@@ -76,7 +76,13 @@
                         type : '8',//[13]  9
                         name : 'xstype',
                         value : q_getPara('vccst.stype').split(',')
-                    }]
+                    }, {
+						type : '2', //[14][15] 10
+						name : 'xstore',
+						dbf : 'store',
+						index : 'noa,store',
+						src : 'store_b.aspx'
+					}]
 				});
 				q_popAssign();
 				q_getFormat();
