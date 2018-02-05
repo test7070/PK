@@ -819,10 +819,10 @@ z_anavccpk01:--z_anavccpk01
 	from #z_anavccpk01_b a
 	left join view_uccb b on a.uno=b.uno
 	
-	update #z_anavccpk01_b set sprice=isnull(b.price,0)
+	/*update #z_anavccpk01_b set sprice=isnull(b.price,0)
 	from #z_anavccpk01_b a
 	outer apply(select * from  dbo.waste_pk(CHAR(255)) where uno=a.uno and mon=LEFT(a.datea,6)) b
-	where left(a.uno,1) between 'X' and 'Z'
+	where left(a.uno,1) between 'X' and 'Z'*/
 	
 	--廢料單價
 	declare @tmpb table(
