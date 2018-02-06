@@ -3,17 +3,18 @@ z_anavccpk05:--z_anavccpk05
 	declare @cmd nvarchar(max)
 	declare @t_bdate nvarchar(20) = case when '#non'=[1] then '' else [1] end
 	declare @t_edate nvarchar(20) = case when '#non'=[2] then char(255) else [2] end
-	declare @t_bproductno nvarchar(max) = case when '#non'=[5] then '' else [5] end
-	declare @t_eproductno nvarchar(max) = case when '#non'=[6] then char(255) else [6] end
-	
-	declare @t_bstoreno nvarchar(20) = case when '#non'=[14] then '' else [14] end
-	declare @t_estoreno nvarchar(20) = case when '#non'=[15] then char(255) else [15] end
+	declare @t_bcustno nvarchar(20) = case when '#non'=[3] then '' else [3] end
+	declare @t_ecustno nvarchar(20) = case when '#non'=[4] then char(255) else [4] end
+	declare @t_bstoreno nvarchar(20) = case when '#non'=[5] then '' else [5] end
+	declare @t_estoreno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
+	declare @t_bproductno nvarchar(max) = case when '#non'=[7] then '' else [7] end
+	declare @t_eproductno nvarchar(max) = case when '#non'=[8] then char(255) else [8] end
 	
 	declare @t_bdime float = 0
 	declare @t_edime float = 999
 	begin try
-		set @t_bdime = cast([8] as float)
-		set @t_edime = cast([9] as float)
+		set @t_bdime = cast([9] as float)
+		set @t_edime = cast([10] as float)
 	end try
 	begin catch
 		--nothing
@@ -21,12 +22,26 @@ z_anavccpk05:--z_anavccpk05
 	declare @t_bwidth float = 0
 	declare @t_ewidth float = 9999
 	begin try
-		set @t_bwidth = cast([10] as float)
-		set @t_ewidth = cast([11] as float)
+		set @t_bwidth = cast([11] as float)
+		set @t_ewidth = cast([12] as float)
 	end try
 	begin catch
 		--nothing
 	end catch
+	declare @t_blength float = 0
+	declare @t_elength float = 9999
+	begin try
+		set @t_blength = cast([13] as float)
+		set @t_elength = cast([14] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	
+	declare @t_stype nvarchar(max) = case when '#non'=[15] then '' else [15] end
+	declare @t_source nvarchar(max) = case when '#non'=[16] then '' else [16] end
+	declare @t_sort nvarchar(max) = case when '#non'=[17] then '' else [17] end
+	declare @t_detail nvarchar(max) = case when '#non'=[18] then '' else [18] end
 	----------------------------------------------------------------------------------------------------
 	declare @tmpa table(
 		sel int identity(1,1)
@@ -40,6 +55,8 @@ z_anavccpk05:--z_anavccpk05
 		,datea nvarchar(20)
 		,uno nvarchar(30)
 		,storeno nvarchar(30)
+		,store nvarchar(30)
+		,[source] nvarchar(30)
 		,productno nvarchar(30)
 		,dime float
 		,width float
@@ -47,10 +64,9 @@ z_anavccpk05:--z_anavccpk05
 		,mount float
 		,[weight] float
 	)
-	insert into @tmpa(gno,pno,tablea,accy,noa,noq,datea,uno,storeno,productno,dime,width,lengthb,mount,[weight])
+	insert into @tmpa(gno,pno,tablea,accy,noa,noq,datea,uno,productno,dime,width,lengthb,mount,[weight])
 	select '2',2,'vccs',b.accy,b.noa,b.noq,b.datea
-		,case when len(b.uno)>0 then b.uno when len(c.uno)>0 then c.uno end [uno]  
-		,case when len(b.uno)>0 then b.storeno when len(c.uno)>0 then c.storeno end [storeno] 
+		,case when len(b.uno)>0 then b.uno when len(c.uno)>0 then c.uno end [uno]   
 		,case when len(b.uno)>0 then b.productno when len(c.uno)>0 then c.productno end [productno] 
 		,case when len(b.uno)>0 then b.dime when len(c.uno)>0 then c.dime end [dime] 
 		,case when len(b.uno)>0 then b.width when len(c.uno)>0 then c.width end [width] 
@@ -71,17 +87,29 @@ z_anavccpk05:--z_anavccpk05
 	where a.datea between @t_bdate and @t_edate
 	and len(ISNULL(a.uno,''))>0
 	----------------------------------------------------------------------------------------------------
-	
+	update @tmpa set storeno=ISNULL(b.storeno,''),store=ISNULL(c.store,'')
+			,[source]=ISNULL(b.[source],'')
+		from @tmpa a
+		left join view_uccb b on a.uno=b.uno
+		left join store c on b.storeno=c.noa
+		
 	delete @tmpa where not((productno between @t_bproductno and @t_eproductno) 
+		and (len(@t_source)=0 or charindex(@t_source,[source])>0)
 		and (dime between @t_bdime and @t_edime) 
-		and (width between @t_bwidth and @t_ewidth) )
+		and (width between @t_bwidth and @t_ewidth)
+		and (lengthb between @t_blength and @t_elength) )
 		and (storeno between @t_bstoreno and @t_estoreno)
 	
-	insert into @tmpa (gno,pno,productno,dime,width,mount,[weight])
-	select '1',1,productno,dime,width,SUM(ISNULL(mount,0)),SUM(ISNULL([weight],0))
+	insert into @tmpa (gno,pno,productno,[source],dime,width,[lengthb],mount,[weight])
+	select '1',1,productno,[source],dime,width,[lengthb],SUM(ISNULL(mount,0)),SUM(ISNULL([weight],0))
 	from @tmpa 
 	where pno=2
-	group by productno,dime,width
+	group by productno,[source],dime,width,[lengthb]
+	
+	if len(@t_detail)=0
+	begin
+		delete @tmpa where pno=2
+	end
 	
 	update @tmpa set recno=b.recno
 	from @tmpa a
@@ -100,40 +128,59 @@ z_anavccpk05:--z_anavccpk05
 		,recno rr
 		,uno a01
 		,productno a02
-		,dime a03
-		,width a04
-		,lengthb a05
-		,storeno a06
+		,[source] a03
+		,dime a04
+		,width a05
+		,lengthb a06
 		,dbo.getComma(mount,-1) a07
 		,dbo.getComma([weight],-1) a08
 	from @tmpa 
 	order by pno,recno;
-
-z_anavccpk04:--z_anavccpk04
-	declare @t_bdate nvarchar(10)
-	declare @t_edate nvarchar(10)
-	declare @t_bcustno nvarchar(20)
-	declare @t_ecustno nvarchar(20)
-	declare @t_detail nvarchar(max)
-	declare @t_bproductno nvarchar(20) = case when '#non'=[10] then '' else [10] end
-	declare @t_eproductno nvarchar(20) = case when '#non'=[11] then char(255) else [11] end
 	
-	set @t_bdate = case when '#non'=[1] then '' else [1] end
-	set @t_edate = case when '#non'=[2] then char(255) else [2] end
-	set @t_bcustno = case when '#non'=[3] then '' else [3] end
-	set @t_ecustno = case when '#non'=[4] then char(255) else [4] end
+z_anavccpk04:--z_anavccpk04
+	SET QUOTED_IDENTIFIER OFF
+	declare @cmd nvarchar(max)
+	declare @t_bdate nvarchar(20) = case when '#non'=[1] then '' else [1] end
+	declare @t_edate nvarchar(20) = case when '#non'=[2] then char(255) else [2] end
+	declare @t_bcustno nvarchar(20) = case when '#non'=[3] then '' else [3] end
+	declare @t_ecustno nvarchar(20) = case when '#non'=[4] then char(255) else [4] end
+	declare @t_bstoreno nvarchar(20) = case when '#non'=[5] then '' else [5] end
+	declare @t_estoreno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
+	declare @t_bproductno nvarchar(max) = case when '#non'=[7] then '' else [7] end
+	declare @t_eproductno nvarchar(max) = case when '#non'=[8] then char(255) else [8] end
+	
 	declare @t_bdime float = 0
 	declare @t_edime float = 999
-	
 	begin try
-		set @t_bdime = cast([8] as float)
-		set @t_edime = cast([9] as float)
+		set @t_bdime = cast([9] as float)
+		set @t_edime = cast([10] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	declare @t_bwidth float = 0
+	declare @t_ewidth float = 9999
+	begin try
+		set @t_bwidth = cast([11] as float)
+		set @t_ewidth = cast([12] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	declare @t_blength float = 0
+	declare @t_elength float = 9999
+	begin try
+		set @t_blength = cast([13] as float)
+		set @t_elength = cast([14] as float)
 	end try
 	begin catch
 		--nothing
 	end catch
 	
-	set @t_detail = case when '#non'=[8] then '' else [8] end
+	declare @t_stype nvarchar(max) = case when '#non'=[15] then '' else [15] end
+	declare @t_source nvarchar(max) = case when '#non'=[16] then '' else [16] end
+	declare @t_sort nvarchar(max) = case when '#non'=[17] then '' else [17] end
+	declare @t_detail nvarchar(max) = case when '#non'=[18] then '' else [18] end
 ------------------------------------------------------------------------------------------------------------------------------
 	declare @result table(
 		gno nvarchar(10),
@@ -282,23 +329,48 @@ z_anavccpk04:--z_anavccpk04
 
 z_anavccpk03:--z_anavccpk03
 	SET QUOTED_IDENTIFIER OFF
+	declare @cmd nvarchar(max)
+	declare @t_bdate nvarchar(20) = case when '#non'=[1] then '' else [1] end
+	declare @t_edate nvarchar(20) = case when '#non'=[2] then char(255) else [2] end
+	declare @t_bcustno nvarchar(20) = case when '#non'=[3] then '' else [3] end
+	declare @t_ecustno nvarchar(20) = case when '#non'=[4] then char(255) else [4] end
+	declare @t_bstoreno nvarchar(20) = case when '#non'=[5] then '' else [5] end
+	declare @t_estoreno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
+	declare @t_bproductno nvarchar(max) = case when '#non'=[7] then '' else [7] end
+	declare @t_eproductno nvarchar(max) = case when '#non'=[8] then char(255) else [8] end
 	
-	declare @t_bproductno nvarchar(max) = case when '#non'=[5] then '' else [5] end
-	declare @t_eproductno nvarchar(max) = case when '#non'=[6] then char(255) else [6] end
 	declare @t_bdime float = 0
-	declare @t_edime float = 9999
-	declare @t_bwidth float = 0
-	declare @t_ewidth float = 99999
-	
+	declare @t_edime float = 999
 	begin try
-		set @t_bdime = cast([8] as float)
-		set @t_edime = cast([9] as float)
-		set @t_bwidth = cast([10] as float)
-		set @t_ewidth = cast([11] as float)
+		set @t_bdime = cast([9] as float)
+		set @t_edime = cast([10] as float)
 	end try
 	begin catch
 		--nothing
 	end catch
+	declare @t_bwidth float = 0
+	declare @t_ewidth float = 9999
+	begin try
+		set @t_bwidth = cast([11] as float)
+		set @t_ewidth = cast([12] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	declare @t_blength float = 0
+	declare @t_elength float = 9999
+	begin try
+		set @t_blength = cast([13] as float)
+		set @t_elength = cast([14] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	
+	declare @t_stype nvarchar(max) = case when '#non'=[15] then '' else [15] end
+	declare @t_source nvarchar(max) = case when '#non'=[16] then '' else [16] end
+	declare @t_sort nvarchar(max) = case when '#non'=[17] then '' else [17] end
+	declare @t_detail nvarchar(max) = case when '#non'=[18] then '' else [18] end
 	------------------------------------------------------------------------------------------
 	declare @tmpa table(
 		accy nvarchar(20),
@@ -402,20 +474,49 @@ z_anavccpk03:--z_anavccpk03
 	from @tmpd order by recno;
 
 z_anavccpk02:--z_anavccpk02
-	SET QUOTED_IDENTIFIER OFF 
-	declare @cmd nvarchar(max) 
-
-	declare @t_bdate nvarchar(10)= case when '#non'=[1] then '' else [1] end
-	declare @t_edate nvarchar(10)= case when '#non'=[2] then char(255) else [2] end
-	declare @t_bcustno nvarchar(20)= case when '#non'=[3] then '' else [3] end
-	declare @t_ecustno nvarchar(20)= case when '#non'=[4] then char(255) else [4] end
-	declare @t_bproductno nvarchar(20) = case when '#non'=[5] or len(rtrim(ltrim([5])))=0 then '' else [5] end
-	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
-	declare @t_sort nvarchar(max) = case when '#non'=[7] then '' else [7] end
-	declare @t_bdime float = case when '#non'=[8] then 0 else cast([8] as float) end
-	declare @t_edime float = case when '#non'=[9] then 9999999 else cast([9] as float) end
-	declare @t_detail nvarchar(max) = case when '#non'=[12] then '' else [12] end
-	declare @t_stype nvarchar(max) = case when '#non'=[13] then '' else [13] end
+	SET QUOTED_IDENTIFIER OFF
+	declare @cmd nvarchar(max)
+	declare @t_bdate nvarchar(20) = case when '#non'=[1] then '' else [1] end
+	declare @t_edate nvarchar(20) = case when '#non'=[2] then char(255) else [2] end
+	declare @t_bcustno nvarchar(20) = case when '#non'=[3] then '' else [3] end
+	declare @t_ecustno nvarchar(20) = case when '#non'=[4] then char(255) else [4] end
+	declare @t_bstoreno nvarchar(20) = case when '#non'=[5] then '' else [5] end
+	declare @t_estoreno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
+	declare @t_bproductno nvarchar(max) = case when '#non'=[7] then '' else [7] end
+	declare @t_eproductno nvarchar(max) = case when '#non'=[8] then char(255) else [8] end
+	
+	declare @t_bdime float = 0
+	declare @t_edime float = 999
+	begin try
+		set @t_bdime = cast([9] as float)
+		set @t_edime = cast([10] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	declare @t_bwidth float = 0
+	declare @t_ewidth float = 9999
+	begin try
+		set @t_bwidth = cast([11] as float)
+		set @t_ewidth = cast([12] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	declare @t_blength float = 0
+	declare @t_elength float = 9999
+	begin try
+		set @t_blength = cast([13] as float)
+		set @t_elength = cast([14] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	
+	declare @t_stype nvarchar(max) = case when '#non'=[15] then '' else [15] end
+	declare @t_source nvarchar(max) = case when '#non'=[16] then '' else [16] end
+	declare @t_sort nvarchar(max) = case when '#non'=[17] then '' else [17] end
+	declare @t_detail nvarchar(max) = case when '#non'=[18] then '' else [18] end
 	---------------------------------------------------------------------------------
 	-- 出貨單
 	declare @tmpa table(
@@ -706,20 +807,49 @@ z_anavccpk02:--z_anavccpk02
 	drop table #z_anavccpk01_c;
 	
 z_anavccpk01:--z_anavccpk01	
-	SET QUOTED_IDENTIFIER OFF 
-	declare @cmd nvarchar(max) 
+	SET QUOTED_IDENTIFIER OFF
+	declare @cmd nvarchar(max)
+	declare @t_bdate nvarchar(20) = case when '#non'=[1] then '' else [1] end
+	declare @t_edate nvarchar(20) = case when '#non'=[2] then char(255) else [2] end
+	declare @t_bcustno nvarchar(20) = case when '#non'=[3] then '' else [3] end
+	declare @t_ecustno nvarchar(20) = case when '#non'=[4] then char(255) else [4] end
+	declare @t_bstoreno nvarchar(20) = case when '#non'=[5] then '' else [5] end
+	declare @t_estoreno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
+	declare @t_bproductno nvarchar(max) = case when '#non'=[7] then '' else [7] end
+	declare @t_eproductno nvarchar(max) = case when '#non'=[8] then char(255) else [8] end
 	
-	declare @t_bdate nvarchar(10)= case when '#non'=[1] then '' else [1] end
-	declare @t_edate nvarchar(10)= case when '#non'=[2] then char(255) else [2] end
-	declare @t_bcustno nvarchar(20)= case when '#non'=[3] then '' else [3] end
-	declare @t_ecustno nvarchar(20)= case when '#non'=[4] then char(255) else [4] end
-	declare @t_bproductno nvarchar(20) = case when '#non'=[5] or len(rtrim(ltrim([5])))=0 then '' else [5] end
-	declare @t_eproductno nvarchar(20) = case when '#non'=[6] then char(255) else [6] end
-	declare @t_sort nvarchar(max) = case when '#non'=[7] then '' else [7] end
-	declare @t_bdime float = case when '#non'=[8] then 0 else cast([8] as float) end
-	declare @t_edime float = case when '#non'=[9] then 9999999 else cast([9] as float) end
-	declare @t_detail nvarchar(max) = case when '#non'=[12] then '' else [12] end
-	declare @t_stype nvarchar(max) = case when '#non'=[13] then '' else [13] end
+	declare @t_bdime float = 0
+	declare @t_edime float = 999
+	begin try
+		set @t_bdime = cast([9] as float)
+		set @t_edime = cast([10] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	declare @t_bwidth float = 0
+	declare @t_ewidth float = 9999
+	begin try
+		set @t_bwidth = cast([11] as float)
+		set @t_ewidth = cast([12] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	declare @t_blength float = 0
+	declare @t_elength float = 9999
+	begin try
+		set @t_blength = cast([13] as float)
+		set @t_elength = cast([14] as float)
+	end try
+	begin catch
+		--nothing
+	end catch
+	
+	declare @t_stype nvarchar(max) = case when '#non'=[15] then '' else [15] end
+	declare @t_source nvarchar(max) = case when '#non'=[16] then '' else [16] end
+	declare @t_sort nvarchar(max) = case when '#non'=[17] then '' else [17] end
+	declare @t_detail nvarchar(max) = case when '#non'=[18] then '' else [18] end
 	---------------------------------------------------------------------------------
 	-- 出貨單
 	declare @tmpa table(

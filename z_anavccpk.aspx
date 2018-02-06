@@ -51,38 +51,44 @@
 						index : 'noa,comp',
 						src : 'cust_b.aspx'
 					}, {
-						type : '5', //[5] 3
-						name : 'xbproduct',
-						value : t_ucc.split('&')
-					}, {
-						type : '5', //[6] 4
-						name : 'xeproduct',
-						value : t_ucc.split('&')
-					}, {
-						type : '5', //[7] 5
-						name : 'xsort',
-						value : 'weight@重量,total@銷售金額,rate@毛利率,profit@毛利'.split(',')
-					},{
-						type : '1', //[8][9] 6
-						name : 'xdime'
-					},{
-						type : '1', //[10][11] 7
-						name : 'xwidth'
-					}, {
-                        type : '8',//[12]  8
-                        name : 'xoption01',
-                        value : '明細'.split('&')
-                    }, {
-                        type : '8',//[13]  9
-                        name : 'xstype',
-                        value : q_getPara('vccst.stype').split(',')
-                    }, {
-						type : '2', //[14][15] 10
+						type : '2', //[5][6] 3
 						name : 'xstore',
 						dbf : 'store',
 						index : 'noa,store',
 						src : 'store_b.aspx'
-					}]
+					}, {
+						type : '5', //[7] 4
+						name : 'xbproduct',
+						value : t_ucc.split('&')
+					}, {
+						type : '5', //[8] 5
+						name : 'xeproduct',
+						value : t_ucc.split('&')
+					},{
+						type : '1', //9][10] 6
+						name : 'xdime'
+					},{
+						type : '1', //[11][12] 7
+						name : 'xwidth'
+					},{
+						type : '1', //[13][14] 8
+						name : 'xlength'
+					}, {
+                        type : '8',//[15]  9
+                        name : 'xstype',
+                        value : q_getPara('vccst.stype').split(',')
+                    },{
+						type : '6', //[16] 10
+						name : 'xsource'
+					}, {
+						type : '5', //[17] 11
+						name : 'xsort',
+						value : 'weight@重量,total@銷售金額,rate@毛利率,profit@毛利'.split(',')
+					}, {
+                        type : '8',//[18]  12
+                        name : 'xoption01',
+                        value : '明細'.split('&')
+                    }]
 				});
 				q_popAssign();
 				q_getFormat();
@@ -96,6 +102,8 @@
 				$('#txtXdime2').css('text-align','right').val('9999');
 				$('#txtXwidth1').css('text-align','right').val('0');
 				$('#txtXwidth2').css('text-align','right').val('9999');
+				$('#txtXlength1').css('text-align','right').val('0');
+				$('#txtXlength2').css('text-align','right').val('9999');
 				
 				$('#chkXstype').children().eq(0).prop('checked',true);//預設 買賣
 				$('#Xbproduct select').change(function(e){
