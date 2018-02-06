@@ -43,6 +43,7 @@ z_anavccpk05:--z_anavccpk05
 	declare @t_sort nvarchar(max) = case when '#non'=[17] then '' else [17] end
 	declare @t_detail nvarchar(max) = case when '#non'=[18] then '' else [18] end
 	----------------------------------------------------------------------------------------------------
+	----------------------------------------------------------------------------------------------------
 	declare @tmpa table(
 		sel int identity(1,1)
 		,recno int
@@ -54,6 +55,7 @@ z_anavccpk05:--z_anavccpk05
 		,noq nvarchar(10)
 		,datea nvarchar(20)
 		,uno nvarchar(30)
+		,custno nvarchar(20)
 		,storeno nvarchar(30)
 		,store nvarchar(30)
 		,[source] nvarchar(30)
@@ -64,9 +66,10 @@ z_anavccpk05:--z_anavccpk05
 		,mount float
 		,[weight] float
 	)
-	insert into @tmpa(gno,pno,tablea,accy,noa,noq,datea,uno,productno,dime,width,lengthb,mount,[weight])
+	insert into @tmpa(gno,pno,tablea,accy,noa,noq,datea,uno,custno,productno,dime,width,lengthb,mount,[weight])
 	select '2',2,'vccs',b.accy,b.noa,b.noq,b.datea
 		,case when len(b.uno)>0 then b.uno when len(c.uno)>0 then c.uno end [uno]   
+		,case when len(b.uno)>0 then a.custno when len(c.uno)>0 then d.custno end [uno]   
 		,case when len(b.uno)>0 then b.productno when len(c.uno)>0 then c.productno end [productno] 
 		,case when len(b.uno)>0 then b.dime when len(c.uno)>0 then c.dime end [dime] 
 		,case when len(b.uno)>0 then b.width when len(c.uno)>0 then c.width end [width] 
@@ -76,14 +79,16 @@ z_anavccpk05:--z_anavccpk05
 	from view_vcc a
 	left join view_vccs b on a.accy=b.accy and a.noa=b.noa
 	left join view_gets c on a.noa=c.noa and b.noq=c.nor
+	left join view_get d on c.accy=d.accy and c.noa=d.noa
 	where a.datea between @t_bdate and @t_edate
 	and (len(ISNULL(b.uno,''))>0 or len(isnull(c.uno,''))>0)
 	----------------------------------------------------------------------------------------------------
 	insert into @tmpa(gno,pno,tablea,accy,noa,noq,datea
-		,uno,storeno,productno,dime,width,lengthb,mount,[weight])
-	select '2',2,'cut',a.accy,a.noa,'',a.datea
-		,a.uno,a.storeno,a.productno,a.dime,a.width,a.lengthb,a.gmount,a.gweight
+		,uno,custno,productno,dime,width,lengthb,mount,[weight])
+	select '2',2,'cut',a.accy,a.noa,b.noq,a.datea
+		,a.uno,b.custno,a.productno,a.dime,a.width,a.lengthb,b.mount,b.[weight]
 	from view_cut a
+	left join view_cuts b on a.accy=b.accy and a.noa=b.noa
 	where a.datea between @t_bdate and @t_edate
 	and len(ISNULL(a.uno,''))>0
 	----------------------------------------------------------------------------------------------------
@@ -92,13 +97,15 @@ z_anavccpk05:--z_anavccpk05
 		from @tmpa a
 		left join view_uccb b on a.uno=b.uno
 		left join store c on b.storeno=c.noa
+	
+	delete @tmpa where not(ISNULL(custno,'') between @t_bcustno and @t_ecustno)
 		
 	delete @tmpa where not((productno between @t_bproductno and @t_eproductno) 
 		and (len(@t_source)=0 or charindex(@t_source,[source])>0)
 		and (dime between @t_bdime and @t_edime) 
 		and (width between @t_bwidth and @t_ewidth)
-		and (lengthb between @t_blength and @t_elength) )
-		and (storeno between @t_bstoreno and @t_estoreno)
+		and (lengthb between @t_blength and @t_elength) 
+		and (storeno between @t_bstoreno and @t_estoreno))
 	
 	insert into @tmpa (gno,pno,productno,[source],dime,width,[lengthb],mount,[weight])
 	select '1',1,productno,[source],dime,width,[lengthb],SUM(ISNULL(mount,0)),SUM(ISNULL([weight],0))
@@ -113,12 +120,12 @@ z_anavccpk05:--z_anavccpk05
 	
 	update @tmpa set recno=b.recno
 	from @tmpa a
-	left join(select sel,ROW_NUMBER()over(order by productno,dime,width) recno from @tmpa where pno=1) b on a.sel=b.sel
+	left join(select sel,ROW_NUMBER()over(order by productno,dime,width,lengthb,[source]) recno from @tmpa where pno=1) b on a.sel=b.sel
 	where b.sel is not null
 	
 	update @tmpa set recno=b.recno
 	from @tmpa a
-	left join(select sel,ROW_NUMBER()over(order by productno,dime,width,uno) recno from @tmpa where pno=2) b on a.sel=b.sel
+	left join(select sel,ROW_NUMBER()over(order by productno,dime,width,lengthb,[source],uno) recno from @tmpa where pno=2) b on a.sel=b.sel
 	where b.sel is not null
 	
 	set @cmd = "日期："+@t_bdate+" ～ "+@t_edate
@@ -136,6 +143,7 @@ z_anavccpk05:--z_anavccpk05
 		,dbo.getComma([weight],-1) a08
 	from @tmpa 
 	order by pno,recno;
+	
 	
 z_anavccpk04:--z_anavccpk04
 	SET QUOTED_IDENTIFIER OFF
