@@ -80,12 +80,15 @@
                     },{
 						type : '6', //[16] 10
 						name : 'xsource'
+					},{
+						type : '6', //[17] 11
+						name : 'xstoreno'
 					}, {
-						type : '5', //[17] 11
+						type : '5', //[18] 12
 						name : 'xsort',
 						value : 'weight@重量,total@銷售金額,rate@毛利率,profit@毛利'.split(',')
 					}, {
-                        type : '8',//[18]  12
+                        type : '8',//[19]  13
                         name : 'xoption01',
                         value : '明細'.split('&')
                     }]

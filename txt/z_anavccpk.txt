@@ -40,11 +40,15 @@ z_anavccpk05:--z_anavccpk05
 	
 	declare @t_stype nvarchar(max) = case when '#non'=[15] then '' else [15] end
 	declare @t_source nvarchar(max) = case when '#non'=[16] then '' else [16] end
-	declare @t_sort nvarchar(max) = case when '#non'=[17] then '' else [17] end
-	declare @t_detail nvarchar(max) = case when '#non'=[18] then '' else [18] end
+	declare @t_storeno nvarchar(max) = case when '#non'=[17] then '' else [17] end
+	declare @t_sort nvarchar(max) = case when '#non'=[18] then '' else [18] end
+	declare @t_detail nvarchar(max) = case when '#non'=[19] then '' else [19] end
 	----------------------------------------------------------------------------------------------------
-	----------------------------------------------------------------------------------------------------
-	declare @tmpa table(
+	IF OBJECT_ID('tempdb..#z_anavccpk05')is not null
+	BEGIN
+		drop table #z_anavccpk05
+	END
+	create table #z_anavccpk05(
 		sel int identity(1,1)
 		,recno int
 		,gno nvarchar(10)
@@ -66,7 +70,7 @@ z_anavccpk05:--z_anavccpk05
 		,mount float
 		,[weight] float
 	)
-	insert into @tmpa(gno,pno,tablea,accy,noa,noq,datea,uno,custno,productno,dime,width,lengthb,mount,[weight])
+	insert into #z_anavccpk05(gno,pno,tablea,accy,noa,noq,datea,uno,custno,productno,dime,width,lengthb,mount,[weight])
 	select '2',2,'vccs',b.accy,b.noa,b.noq,b.datea
 		,case when len(b.uno)>0 then b.uno when len(c.uno)>0 then c.uno end [uno]   
 		,case when len(b.uno)>0 then a.custno when len(c.uno)>0 then d.custno end [uno]   
@@ -83,7 +87,7 @@ z_anavccpk05:--z_anavccpk05
 	where a.datea between @t_bdate and @t_edate
 	and (len(ISNULL(b.uno,''))>0 or len(isnull(c.uno,''))>0)
 	----------------------------------------------------------------------------------------------------
-	insert into @tmpa(gno,pno,tablea,accy,noa,noq,datea
+	insert into #z_anavccpk05(gno,pno,tablea,accy,noa,noq,datea
 		,uno,custno,productno,dime,width,lengthb,mount,[weight])
 	select '2',2,'cut',a.accy,a.noa,b.noq,a.datea
 		,a.uno,b.custno,a.productno,a.dime,a.width,a.lengthb,b.mount,b.[weight]
@@ -92,40 +96,45 @@ z_anavccpk05:--z_anavccpk05
 	where a.datea between @t_bdate and @t_edate
 	and len(ISNULL(a.uno,''))>0
 	----------------------------------------------------------------------------------------------------
-	update @tmpa set storeno=ISNULL(b.storeno,''),store=ISNULL(c.store,'')
+	update #z_anavccpk05 set storeno=ISNULL(b.storeno,''),store=ISNULL(c.store,'')
 			,[source]=ISNULL(b.[source],'')
-		from @tmpa a
+		from #z_anavccpk05 a
 		left join view_uccb b on a.uno=b.uno
 		left join store c on b.storeno=c.noa
 	
-	delete @tmpa where not(ISNULL(custno,'') between @t_bcustno and @t_ecustno)
+	if len(@t_storeno)>0
+	begin
+		delete #z_anavccpk05
+		where CHARINDEX(','+storeno+',',','+@t_storeno+',')=0
+	end
+	delete #z_anavccpk05 where not(ISNULL(custno,'') between @t_bcustno and @t_ecustno)
 		
-	delete @tmpa where not((productno between @t_bproductno and @t_eproductno) 
+	delete #z_anavccpk05 where not((productno between @t_bproductno and @t_eproductno) 
 		and (len(@t_source)=0 or charindex(@t_source,[source])>0)
 		and (dime between @t_bdime and @t_edime) 
 		and (width between @t_bwidth and @t_ewidth)
 		and (lengthb between @t_blength and @t_elength) 
 		and (storeno between @t_bstoreno and @t_estoreno))
 	
-	insert into @tmpa (gno,pno,productno,[source],dime,width,[lengthb],mount,[weight])
+	insert into #z_anavccpk05 (gno,pno,productno,[source],dime,width,[lengthb],mount,[weight])
 	select '1',1,productno,[source],dime,width,[lengthb],SUM(ISNULL(mount,0)),SUM(ISNULL([weight],0))
-	from @tmpa 
+	from #z_anavccpk05
 	where pno=2
 	group by productno,[source],dime,width,[lengthb]
 	
 	if len(@t_detail)=0
 	begin
-		delete @tmpa where pno=2
+		delete #z_anavccpk05 where pno=2
 	end
 	
-	update @tmpa set recno=b.recno
-	from @tmpa a
-	left join(select sel,ROW_NUMBER()over(order by productno,dime,width,lengthb,[source]) recno from @tmpa where pno=1) b on a.sel=b.sel
+	update #z_anavccpk05 set recno=b.recno
+	from #z_anavccpk05 a
+	left join(select sel,ROW_NUMBER()over(order by productno,dime,width,lengthb,[source]) recno from #z_anavccpk05 where pno=1) b on a.sel=b.sel
 	where b.sel is not null
 	
-	update @tmpa set recno=b.recno
-	from @tmpa a
-	left join(select sel,ROW_NUMBER()over(order by productno,dime,width,lengthb,[source],uno) recno from @tmpa where pno=2) b on a.sel=b.sel
+	update #z_anavccpk05 set recno=b.recno
+	from #z_anavccpk05 a
+	left join(select sel,ROW_NUMBER()over(order by productno,dime,width,lengthb,[source],uno) recno from #z_anavccpk05 where pno=2) b on a.sel=b.sel
 	where b.sel is not null
 	
 	set @cmd = "日期："+@t_bdate+" ～ "+@t_edate
@@ -141,9 +150,9 @@ z_anavccpk05:--z_anavccpk05
 		,lengthb a06
 		,dbo.getComma(mount,-1) a07
 		,dbo.getComma([weight],-1) a08
-	from @tmpa 
-	order by pno,recno;
-	
+	from #z_anavccpk05
+	order by pno,recno
+	drop table #z_anavccpk05;
 	
 z_anavccpk04:--z_anavccpk04
 	SET QUOTED_IDENTIFIER OFF
@@ -187,8 +196,9 @@ z_anavccpk04:--z_anavccpk04
 	
 	declare @t_stype nvarchar(max) = case when '#non'=[15] then '' else [15] end
 	declare @t_source nvarchar(max) = case when '#non'=[16] then '' else [16] end
-	declare @t_sort nvarchar(max) = case when '#non'=[17] then '' else [17] end
-	declare @t_detail nvarchar(max) = case when '#non'=[18] then '' else [18] end
+	declare @t_storeno nvarchar(max) = case when '#non'=[17] then '' else [17] end
+	declare @t_sort nvarchar(max) = case when '#non'=[18] then '' else [18] end
+	declare @t_detail nvarchar(max) = case when '#non'=[19] then '' else [19] end
 ------------------------------------------------------------------------------------------------------------------------------
 	declare @result table(
 		gno nvarchar(10),
@@ -377,8 +387,9 @@ z_anavccpk03:--z_anavccpk03
 	
 	declare @t_stype nvarchar(max) = case when '#non'=[15] then '' else [15] end
 	declare @t_source nvarchar(max) = case when '#non'=[16] then '' else [16] end
-	declare @t_sort nvarchar(max) = case when '#non'=[17] then '' else [17] end
-	declare @t_detail nvarchar(max) = case when '#non'=[18] then '' else [18] end
+	declare @t_storeno nvarchar(max) = case when '#non'=[17] then '' else [17] end
+	declare @t_sort nvarchar(max) = case when '#non'=[18] then '' else [18] end
+	declare @t_detail nvarchar(max) = case when '#non'=[19] then '' else [19] end
 	------------------------------------------------------------------------------------------
 	declare @tmpa table(
 		accy nvarchar(20),
@@ -523,8 +534,9 @@ z_anavccpk02:--z_anavccpk02
 	
 	declare @t_stype nvarchar(max) = case when '#non'=[15] then '' else [15] end
 	declare @t_source nvarchar(max) = case when '#non'=[16] then '' else [16] end
-	declare @t_sort nvarchar(max) = case when '#non'=[17] then '' else [17] end
-	declare @t_detail nvarchar(max) = case when '#non'=[18] then '' else [18] end
+	declare @t_storeno nvarchar(max) = case when '#non'=[17] then '' else [17] end
+	declare @t_sort nvarchar(max) = case when '#non'=[18] then '' else [18] end
+	declare @t_detail nvarchar(max) = case when '#non'=[19] then '' else [19] end
 	---------------------------------------------------------------------------------
 	-- 出貨單
 	declare @tmpa table(
@@ -856,8 +868,9 @@ z_anavccpk01:--z_anavccpk01
 	
 	declare @t_stype nvarchar(max) = case when '#non'=[15] then '' else [15] end
 	declare @t_source nvarchar(max) = case when '#non'=[16] then '' else [16] end
-	declare @t_sort nvarchar(max) = case when '#non'=[17] then '' else [17] end
-	declare @t_detail nvarchar(max) = case when '#non'=[18] then '' else [18] end
+	declare @t_storeno nvarchar(max) = case when '#non'=[17] then '' else [17] end
+	declare @t_sort nvarchar(max) = case when '#non'=[18] then '' else [18] end
+	declare @t_detail nvarchar(max) = case when '#non'=[19] then '' else [19] end
 	---------------------------------------------------------------------------------
 	-- 出貨單
 	declare @tmpa table(
