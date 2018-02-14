@@ -95,6 +95,8 @@ z_anavccpk05:--z_anavccpk05
 	left join view_cuts b on a.accy=b.accy and a.noa=b.noa
 	where a.datea between @t_bdate and @t_edate
 	and len(ISNULL(a.uno,''))>0
+	
+	
 	----------------------------------------------------------------------------------------------------
 	update #z_anavccpk05 set storeno=ISNULL(b.storeno,''),store=ISNULL(c.store,'')
 			,[source]=ISNULL(b.[source],'')
@@ -134,8 +136,17 @@ z_anavccpk05:--z_anavccpk05
 	
 	update #z_anavccpk05 set recno=b.recno
 	from #z_anavccpk05 a
-	left join(select sel,ROW_NUMBER()over(order by productno,dime,width,lengthb,[source],uno) recno from #z_anavccpk05 where pno=2) b on a.sel=b.sel
-	where b.sel is not null
+	left join(select * from #z_anavccpk05 where pno=1) b 
+		on a.productno=b.productno and a.[source]=b.[source] and a.dime=b.dime and a.width=b.width and a.lengthb=b.lengthb
+	where a.pno=2	
+
+--select * from #z_anavccpk05
+--order by productno,[source],dime,width,lengthb,recno,pno
+--return	
+	--update #z_anavccpk05 set recno=b.recno
+	--from #z_anavccpk05 a
+	--left join(select sel,ROW_NUMBER()over(order by productno,dime,width,lengthb,[source],uno) recno from #z_anavccpk05 where pno=2) b on a.sel=b.sel
+	--where b.sel is not null
 	
 	set @cmd = "日期："+@t_bdate+" ～ "+@t_edate
 	
@@ -151,7 +162,7 @@ z_anavccpk05:--z_anavccpk05
 		,dbo.getComma(mount,-1) a07
 		,dbo.getComma([weight],-1) a08
 	from #z_anavccpk05
-	order by pno,recno
+	order by productno,[source],dime,width,lengthb,recno,pno
 	drop table #z_anavccpk05;
 	
 z_anavccpk04:--z_anavccpk04
