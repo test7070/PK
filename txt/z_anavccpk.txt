@@ -120,9 +120,30 @@ z_anavccpk05:--z_anavccpk05
 	
 	insert into #z_anavccpk05 (gno,pno,productno,[source],dime,width,[lengthb],mount,[weight])
 	select '1',1,productno,[source],dime,width,[lengthb],SUM(ISNULL(mount,0)),SUM(ISNULL([weight],0))
-	from #z_anavccpk05
-	where pno=2
+	from(
+		--vcc
+		select productno,[source],dime,width,[lengthb],SUM(ISNULL(mount,0)) mount,SUM(ISNULL([weight],0)) [weight]
+		from #z_anavccpk05
+		where pno=2 and tablea='vccs'
+		group by productno,[source],dime,width,[lengthb]
+		union all
+		--cut
+		select a.productno,a.[source],a.dime,a.width,a.[lengthb],sum(isnull(a.mount,0)),sum(isnull(a.[weight],0))
+		from(
+			select a.noa,a.productno,a.[source],a.dime,a.width,a.lengthb,isnull(b.gmount,0) mount,isnull(b.gweight,0) [weight]
+			from(select a.accy,a.noa,a.productno,a.[source],a.dime,a.width,a.lengthb
+				from #z_anavccpk05 a
+				left join view_uccb b on a.uno=b.uno
+				where a.pno=2 and a.tablea='cut'
+				group by a.accy,a.noa,a.productno,a.[source],a.dime,a.width,a.lengthb) a
+			left join view_cut b on a.accy=b.accy and a.noa=b.noa) a
+		group by a.productno,a.[source],a.dime,a.width,a.[lengthb]) a
 	group by productno,[source],dime,width,[lengthb]
+	/*
+	select '1',1,productno,[source],dime,width,[lengthb],SUM(ISNULL(mount,0)),SUM(ISNULL([weight],0))
+	from #z_anavccpk05
+	where pno=2 and tablea='cut'
+	group by productno,[source],dime,width,[lengthb]*/
 	
 	if len(@t_detail)=0
 	begin
