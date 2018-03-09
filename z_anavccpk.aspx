@@ -106,7 +106,7 @@
 				$('#txtXwidth1').css('text-align','right').val('0');
 				$('#txtXwidth2').css('text-align','right').val('9999');
 				$('#txtXlength1').css('text-align','right').val('0');
-				$('#txtXlength2').css('text-align','right').val('9999');
+				$('#txtXlength2').css('text-align','right').val('99999');
 				
 				$('#chkXstype').children().eq(0).prop('checked',true);//預設 買賣
 				$('#Xbproduct select').change(function(e){
