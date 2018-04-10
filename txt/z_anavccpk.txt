@@ -112,7 +112,7 @@ z_anavccpk05:--z_anavccpk05
 	delete #z_anavccpk05 where not(ISNULL(custno,'') between @t_bcustno and @t_ecustno)
 		
 	delete #z_anavccpk05 where not((productno between @t_bproductno and @t_eproductno) 
-		and (len(@t_source)=0 or charindex(@t_source,[source])>0)
+		and (len(@t_source)=0 or charindex([source],@t_source)>0)
 		and (dime between @t_bdime and @t_edime) 
 		and (width between @t_bwidth and @t_ewidth)
 		and (lengthb between @t_blength and @t_elength) 
