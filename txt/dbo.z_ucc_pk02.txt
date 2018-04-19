@@ -1,5 +1,15 @@
+USE [ST]
+GO
 
-alter PROCEDURE [dbo].[z_ucc_pk02]
+/****** Object:  StoredProcedure [dbo].[z_ucc_pk02]    Script Date: 2018/4/19 下午 03:08:20 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+ALTER PROCEDURE [dbo].[z_ucc_pk02]
 	 @t_edate nvarchar(20),@t_detail nvarchar(20)
 as
 begin
@@ -502,8 +512,8 @@ begin
 		--vcc
 		declare cursor_table cursor for
 		select a.uno,isnull(a.storeno,'')
-			,-1*case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end 
-			,isnull(a.total,0)
+			,case when b.typea='1' then -1 else 1 end * case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end 
+			,case when b.typea='1' then -1 else 1 end * isnull(a.total,0)
 			,a.accy,a.noa,a.noq,a.productno,a.product,a.size
 			,a.mount,a.unit,b.datea
 		from view_vccs a
