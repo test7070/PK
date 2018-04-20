@@ -1,12 +1,7 @@
-USE [ST]
-GO
-
-/****** Object:  StoredProcedure [dbo].[z_ucc_pk02]    Script Date: 2018/4/19 下午 03:08:20 ******/
-SET ANSI_NULLS ON
-GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 
 ALTER PROCEDURE [dbo].[z_ucc_pk02]
@@ -321,7 +316,8 @@ begin
 	insert into @tmp(uno,storeno,[weight],[money])
 	select a.uno
 		,case when len(isnull(a.storeno,''))=0 then isnull(b.storeno,'') else isnull(a.storeno,'') end
-		,SUM(ISNULL(a.[weight],0)),SUM(ISNULL(a.total,0))
+		,SUM(case when b.typea='1' then 1 else -1 end * ISNULL(a.[weight],0))
+		,SUM(case when b.typea='1' then 1 else -1 end * ISNULL(a.total,0))
 	from view_rc2s a
 	left join view_rc2 b on a.accy=b.accy and a.noa=b.noa
 	where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
@@ -416,8 +412,8 @@ begin
 
 	declare cursor_table cursor for
 	select a.uno,isnull(a.storeno,'')
-		,SUM( case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end) 
-		,sum(isnull(a.total,0))
+		,SUM(case when b.typea='1' then 1 else -1 end * case when ISNULL(a.[gweight],0)>0 then ISNULL(a.[gweight],0) else ISNULL(a.[weight],0) end) 
+		,sum(case when b.typea='1' then 1 else -1 end * isnull(a.total,0))
 	from view_vccs a
 	left join view_vcc b on a.accy=b.accy and a.noa=b.noa
 	where LEFT(isnull(a.uno,''),1) between 'X' and 'Z'
