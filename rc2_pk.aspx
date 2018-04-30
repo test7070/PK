@@ -802,6 +802,16 @@
 					opacity : 0
 				});
 				
+				for(var i=0;i<q_bbsCount;i++){
+					try{
+						$('#txtWeight_'+i).val(parseFloat($('#txtWeight_'+i).val()));
+					}catch(e){
+						alert('第 '+(i+1)+' 筆重量異常');
+						Unlock(1);
+						return;
+					}
+				}
+				
 				$('#txtOrdcno').val(GetOrdcnoList());
 				//日期檢查
 				if ($('#txtDatea').val().length == 0 || !q_cd($('#txtDatea').val())) {
