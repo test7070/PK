@@ -596,7 +596,7 @@
 					<td align="center" style="width:40px;">結案</td>
 					<td align="center" style="width:150px;">備註</td>
 				</tr>
-				<tr  style='background:#cad3ff;'>
+				<tr class="data" style='background:#cad3ff;'>
 					<td align="center">
 						<input class="btn"  id="btnMinus.*" type="button" value='-' style=" font-weight: bold;" />
 						<input id="txtNoq.*" type="text" style="display: none;" />
